@@ -1,0 +1,5 @@
+export const HOME_PATH: string = '/'
+export const REPORT_PATH: string = '/report'
+export const MAIL_PATH: string = '/mail'
+export const LOGIN_PATH: string = '/login'
+export const REGISTER_PATH: string = '/register'
