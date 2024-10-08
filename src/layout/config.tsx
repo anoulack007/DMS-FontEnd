@@ -1,9 +1,10 @@
-import { HOME_PATH, MAIL_PATH, REPORT_PATH } from '../routes/paths';
+import { HOME_PATH, MAIL_PATH, REPORT_PATH, USER_PATH } from '../routes/paths';
 
 //icons
 import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard';
 import ReportIcon from '@mui/icons-material/Report';
 import EmailIcon from '@mui/icons-material/Email';
+import PersonIcon from '@mui/icons-material/Person';
 
 export interface MENU_ITEM_LISTS_PROPS {
   label: string;
@@ -34,5 +35,10 @@ export const MENU_ITEM_LISTS: MENU_ITEM_LISTS_PROPS[] = [
     label: 'Mail',
     path: MAIL_PATH,
     icon: <EmailIcon />
+  },
+  {
+    label: 'User',
+    path: USER_PATH,
+    icon: <PersonIcon />
   }
 ];
