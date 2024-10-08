@@ -1,6 +1,6 @@
 import { Box } from "@mui/material"
 
-const ReportPage = () => {
+const ReportRecyclePage = () => {
   return (
     <Box>
       Report
@@ -8,4 +8,4 @@ const ReportPage = () => {
   )
 }
 
-export default ReportPage
+export default ReportRecyclePage

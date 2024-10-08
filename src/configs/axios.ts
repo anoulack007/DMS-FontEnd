@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-    baseURL: "https://capstone-project-backend-e586.onrender.com/auth/",
+    baseURL: "https://dms-backend-khlo.onrender.com/auth/",
 
 });
 
@@ -33,7 +33,7 @@ axiosInstance.interceptors.response.use(
                     storedTokens.refreshToken
                 )}`;
 
-                const res = await axios.post("https://capstone-project-backend-e586.onrender.com/auth/" + "/contact/refreshToken");
+                const res = await axios.post("https://dms-backend-khlo.onrender.com/auth/" + "/contact/refreshToken");
 
                 const newAccessToken: string = "Bearer " + res?.data?.access_token;
                 const newRefreshToken: string = "Bearer " + res?.data?.refresh_token;
