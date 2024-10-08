@@ -1,10 +1,13 @@
-import { HOME_PATH, MAIL_PATH, REPORT_PATH, USER_PATH } from '../routes/paths';
+import { HOME_PATH, MANAGE_DOC_PATH, MANAGE_USER_PATH, RECYCLE_PATH, REPORT_RECYCLE_PATH, REPORT_SHARE_PATH, SEARCH_DOC_PATH } from '../routes/paths';
 
 //icons
 import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard';
-import ReportIcon from '@mui/icons-material/Report';
-import EmailIcon from '@mui/icons-material/Email';
-import PersonIcon from '@mui/icons-material/Person';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import SearchIcon from '@mui/icons-material/Search';
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
+import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
+import RecyclingOutlinedIcon from '@mui/icons-material/RecyclingOutlined';
+import ScreenShareOutlinedIcon from '@mui/icons-material/ScreenShareOutlined';
 
 export interface MENU_ITEM_LISTS_PROPS {
   label: string;
@@ -21,24 +24,43 @@ export const DRAWER_TITLE: string = 'Test';
 export const MENU_ITEM_LISTS: MENU_ITEM_LISTS_PROPS[] = [
   {
 
-    label: 'Dashboard',
+    label: 'ໜ້າຫຼັກ',
     path: HOME_PATH,
     icon: <SpaceDashboardIcon />,
   },
   {
-    label: 'Report',
-    path: REPORT_PATH,
-    icon: <ReportIcon />
+    label: 'ຈັດການເອກະສານ',
+    path: MANAGE_DOC_PATH,
+    icon: <ArticleOutlinedIcon />
+  },
+  {
+    label: 'ຄົ້ນຫາເອກະສານ',
+    path: SEARCH_DOC_PATH,  
+    icon: <SearchIcon />
+  },
+  {
+    label: 'ຈັດການຜູ້ໃຊ້',
+    path: MANAGE_USER_PATH,
+    icon: <BadgeOutlinedIcon />
+    
+  },
+  {
+    label: 'ຖັງຊີ້ເຫຍື້ອ',
+    path: RECYCLE_PATH,
+    icon: <DeleteForeverOutlinedIcon />
 
   },
   {
-    label: 'Mail',
-    path: MAIL_PATH,
-    icon: <EmailIcon />
+    label: 'ລາຍງານການລົບ - ກູ້ຄືນເອກະສານ',
+    path: REPORT_RECYCLE_PATH,
+    icon: <RecyclingOutlinedIcon />
+
   },
   {
-    label: 'User',
-    path: USER_PATH,
-    icon: <PersonIcon />
-  }
+    label: 'ລາຍງານການແຊຮ໌ເອກະສານ',
+    path: REPORT_SHARE_PATH,
+    icon: <ScreenShareOutlinedIcon />
+
+  },
+  
 ];

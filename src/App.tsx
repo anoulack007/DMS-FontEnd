@@ -1,58 +1,58 @@
-
-import { Box } from '@mui/material'
+import { useEffect } from 'react'
+import './App.css'
 import RoutesComponent from './routes'
-import axios from 'axios';
-import { useDispatch } from 'react-redux';
-import { clearUserData, loginSuccess } from './store/slices/userSlice';
-
-interface AuthToken {
-  accessToken: string;
-  refreshToken: string;
-}
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from './store'
+import { AUTH_TOKEN } from './utils/constant/value'
+import { LoginWithTokenService, RefreshTokenService } from './service/Login'
+import { loginFailed, loginSuccess } from './store/authenticationSlice'
+import { ErrorModel } from './models/Error'
+import LoginPage from './pages/login'
+import { LinearProgress } from '@mui/material'
 
 function App() {
 
-  const dispatch= useDispatch();
+  const dispatch = useDispatch()
+  const isLoggedIn = useSelector((state: RootState) => state?.authentication?.loggedIn)
+  const isAuth = useSelector((state: RootState) => state?.authentication?.data)
 
-  const handleTokenRefresh = async () => {
+  const handleLoginWithToken = async (): Promise<void> => {
     try {
-      const authTokenString = localStorage.getItem("authToken");
-      if (!authTokenString) {
-        throw new Error("No auth token found for refresh");
+      const authToken = JSON.parse(localStorage.getItem(AUTH_TOKEN) || '')
+      if (authToken) {
+        const token: string = authToken?.accessToken
+        const getAdmin = await LoginWithTokenService(token)
+        dispatch(loginSuccess(getAdmin))
       }
+    } catch (error) {
+      const err = error as ErrorModel
+      console.log(err);
 
-      const authToken: AuthToken = JSON.parse(authTokenString);
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${authToken.refreshToken}`;
+      if (err?.response?.data?.error === 'jwt expired') {
+        const storedTokens = JSON.parse(localStorage.getItem(AUTH_TOKEN) || '')
+        console.log(storedTokens);
 
-      const res = await axios.post("/contact/refreshToken");
-      const newAccessToken = res.data.access_token;
-
-      const newAuthToken: AuthToken = {
-        accessToken: newAccessToken,
-        refreshToken: authToken.refreshToken,
-      };
-
-      localStorage.setItem("authToken", JSON.stringify(newAuthToken));
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${newAccessToken}`;
-
-      // Retry the original request
-      const resGetData = await axios.get("/auth/login");
-      dispatch(loginSuccess(resGetData.data));
-    } catch (err) {
-      console.error("Token refresh failed:", err);
-      dispatch(clearUserData());
+        const getRefreshToken: string = storedTokens?.refreshToken
+        if (getRefreshToken) {
+          RefreshTokenService(getRefreshToken)
+        }
+      } else {
+        dispatch(loginFailed());
+      }
     }
-  };
+  }
 
+  useEffect(() => {
+    handleLoginWithToken()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
-    <Box>
-      <RoutesComponent />
-    </Box>
+    <>
+      {
+        !isLoggedIn ? <LinearProgress /> : isAuth ? <RoutesComponent /> : <LoginPage />
+      }
+    </>
   )
 }
 

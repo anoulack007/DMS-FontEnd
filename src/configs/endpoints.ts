@@ -1,1 +1,0 @@
-export const BANNER_ENDPOINT: string = 'banners';

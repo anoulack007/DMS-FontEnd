@@ -1,13 +1,14 @@
 import axios from "axios";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { loginSuccess } from "../../../store/slices/userSlice";
 import { useNavigate } from "react-router-dom";
 import { HOME_PATH } from "../../../routes/paths";
+import { loginSuccess } from "../../../store/authenticationSlice";
 
 const UseMainController = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [email, setEmail] = useState<string>(null!);
@@ -28,18 +29,13 @@ const UseMainController = () => {
     try {
       setLoading(true);
       const res = await axios.post(
-        "https://capstone-project-backend-e586.onrender.com/auth/login",
+        "https://dms-backend-khlo.onrender.com/auth/login",
         { emailOrUsername: email, password }
       );
 
-      console.log("Login response:", res.data);
-
       // Access the tokens from the nested data object
-      const token = `Bearer ${res.data.data.access_token}`;
-      const refreshToken = `Bearer ${res.data.data.refresh_token}`;
-
-      console.log("Token:", token);
-      console.log("Refresh Token:", refreshToken);
+      const token = `Bearer ${res?.data?.data?.access_token}`;
+      const refreshToken = `Bearer ${res?.data?.data?.refresh_token}`;
 
       if (!res.data.data.access_token) {
         throw new Error("Access token not received from server");
@@ -56,11 +52,9 @@ const UseMainController = () => {
       );
 
       const userRes = await axios.get(
-        "https://capstone-project-backend-e586.onrender.com/user/get-one"
+        "https://dms-backend-khlo.onrender.com/user/get-one"
       );
       const userData = userRes.data;
-      console.log("User data:", userData);
-
       // Combine all user data into a single object
       const combinedUserData = {
         ...res.data,

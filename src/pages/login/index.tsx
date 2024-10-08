@@ -131,6 +131,7 @@ const LoginPage = () => {
                     fullWidth
                   />
 
+
                   <Typography fontSize={13} textAlign={"right"}>
                     <Link to="#">Forgot Password?</Link>
                   </Typography>
@@ -138,12 +139,13 @@ const LoginPage = () => {
                   <Box mt={3} sx={{ maxHeight: 50 }}>
                     <Button
                       type="submit"
-                      sx={{ borderRadius: 5, height: "100%" }}
+                      sx={{ borderRadius: 5, height: "100%", textTransform: 'none' }}
                       fullWidth
                       variant="contained"
+                      disabled={ctrl?.email && ctrl?.password ? false : true}
                     >
                       {ctrl.loading ? (
-                        <CircularProgress size={20} color="primary" />
+                        <CircularProgress size={20} color="inherit" />
                       ) : (
                         "Login"
                       )}
