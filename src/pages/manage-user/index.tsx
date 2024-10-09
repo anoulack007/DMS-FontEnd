@@ -11,8 +11,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import Toolbar from '@mui/material/Toolbar';
-import { red } from '@mui/material/colors';
-
+import image from '../../assets/avatar.svg'
 
 
 const columns: GridColDef[] = [
@@ -78,8 +77,11 @@ export default function DataTable() {
     <Box>
       <Box sx={{ flexGrow: 1, bgcolor: 'white', width: '100%', height: 120 }}>
         <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          </Typography>
           {auth && (
-            <div>
+            <div style={{marginTop: 25}}>
+              admin-1
               <IconButton
                 size="large"
                 aria-label="account of current user"
@@ -88,7 +90,7 @@ export default function DataTable() {
                 onClick={handleMenu}
                 color="inherit"
               >
-
+                <img src={image} alt="image   " />
               </IconButton>
               <Menu
                 id="menu-appbar"
@@ -113,9 +115,9 @@ export default function DataTable() {
         </Toolbar>
       </Box>
 
-      <Typography variant="h6" component="div" sx={{ flexGrow: 1, bgcolor: 'red', width: '100%', height: 120 }}>
-        Manage User
-      </Typography>
+      <Box sx={{ height: 100, bgcolor: 'red' }} />
+      
+      
 
       <Paper sx={{ height: 400, width: '100%' }}>
         <DataGrid
