@@ -10,6 +10,7 @@ import image from '../../assets/avatar.svg'
 
 //icons
 import SearchIcon from '@mui/icons-material/Search';
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
 const columns: GridColDef[] = [
   {
@@ -25,7 +26,7 @@ const columns: GridColDef[] = [
     filterable: false,
   } as GridColDef<any, { color: string; name: string }>,
   { field: 'id', headerName: 'User ID', width: 150 },
-  { field: 'name', headerName: 'Name', width: 250 },
+  { field: 'name', headerName: 'Name', width: 200 },
   { field: 'phoneNumber', headerName: 'Phone Number', width: 150 },
   {
     field: 'email',
@@ -39,10 +40,11 @@ const columns: GridColDef[] = [
   {
     field: 'company',
     headerName: 'Companry',
-    width: 250,
+    width: 150,
   }, {
     field: 'action',
-    headerName: 'Action'
+    headerName: 'Action',
+    width: 150,
   }
 
 ];
@@ -134,9 +136,11 @@ export default function DataTable() {
               placeholder="Search"
               inputProps={{ 'aria-label': 'search' }}
             />
+
             <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
               <SearchIcon />
             </IconButton>
+            
           </Paper>
         </Toolbar>
       </Box>
