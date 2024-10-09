@@ -1,18 +1,15 @@
 import * as React from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import Paper from '@mui/material/Paper';
 import { renderEmail } from './cell-renderers/email';
 import { renderAvatar } from './cell-renderers/avartar';
 import { randomColor, randomPhoneNumber, randomEmail } from '@mui/x-data-grid-generator';
-import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Typography from '@mui/material/Typography';
-import Toolbar from '@mui/material/Toolbar';
+
+import { Paper, Box, IconButton, Menu, MenuItem, Typography, Toolbar, InputBase } from '@mui/material';
+
 import image from '../../assets/avatar.svg'
 
+//icons
+import SearchIcon from '@mui/icons-material/Search';
 
 const columns: GridColDef[] = [
   {
@@ -43,7 +40,10 @@ const columns: GridColDef[] = [
     field: 'company',
     headerName: 'Companry',
     width: 250,
-  },
+  }, {
+    field: 'action',
+    headerName: 'Action'
+  }
 
 ];
 
@@ -61,6 +61,8 @@ const rows = [
 
 const paginationModel = { page: 0, pageSize: 5 };
 
+
+
 export default function DataTable() {
   const [auth, setAuth] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -75,12 +77,13 @@ export default function DataTable() {
   return (
 
     <Box>
-      <Box sx={{ flexGrow: 1, bgcolor: 'white', width: '100%', height: 120 }}>
+
+      <Box sx={{ flexGrow: 1, bgcolor: 'white', width: '100%', height: 74, borderRadius: 3 }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           </Typography>
           {auth && (
-            <div style={{marginTop: 25}}>
+            <div style={{ marginTop: 10 }}>
               admin-1
               <IconButton
                 size="large"
@@ -115,9 +118,29 @@ export default function DataTable() {
         </Toolbar>
       </Box>
 
-      <Box sx={{ height: 100, bgcolor: 'red' }} />
-      
-      
+
+      <Box sx={{ flexGrow: 1, width: '100%', height: 89 }}>
+        <Toolbar>
+          <Typography variant="h5" component="div" sx={{ flexGrow: 1, color: '#838383', marginTop: 1 }}>
+          User management
+            <div style={{fontSize: 14, color: '#838383'}}>User management</div>
+          </Typography>
+          <Paper
+            component="form"
+            sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 300, borderRadius: 6, marginTop: 3 }}
+          >
+            <InputBase
+              sx={{ ml: 1, flex: 1 }}
+              placeholder="Search"
+              inputProps={{ 'aria-label': 'search' }}
+            />
+            <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
+              <SearchIcon />
+            </IconButton>
+          </Paper>
+        </Toolbar>
+      </Box>
+
 
       <Paper sx={{ height: 400, width: '100%' }}>
         <DataGrid
