@@ -9,7 +9,6 @@ function UserPage() {
             <Header />
             <div style={{marginTop: 100}}>name</div>
             
-            
             <Box sx={{ display: 'flex' }}>
                 <Box sx={{ flexGrow: 1 }}>
                     
