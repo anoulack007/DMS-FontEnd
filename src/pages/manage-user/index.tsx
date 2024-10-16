@@ -4,13 +4,23 @@ import { renderEmail } from './cell-renderers/email';
 import { renderAvatar } from './cell-renderers/avartar';
 import { randomColor, randomPhoneNumber, randomEmail } from '@mui/x-data-grid-generator';
 
-import { Paper, Box, IconButton, Menu, MenuItem, Typography, Toolbar, InputBase } from '@mui/material';
+import { Paper, Box, IconButton, Menu, MenuItem, Typography, Toolbar, InputBase,Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CircularProgress,
+  Checkbox,
+  Chip,
+  TableSortLabel,
+  Drawer, } from '@mui/material';
 
 import image from '../../assets/avatar.svg'
 
 //icons
 import SearchIcon from '@mui/icons-material/Search';
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+
 
 const columns: GridColDef[] = [
   {
@@ -60,6 +70,8 @@ const rows = [
   { avatar: randomColor(), id: 8, name: 'Rossini', phoneNumber: randomPhoneNumber(), email: randomEmail(), role: 'admin', company: 'soutsaka' },
   { avatar: randomColor(), id: 9, name: 'Harvey', phoneNumber: randomPhoneNumber(), email: randomEmail(), role: 'admin', company: 'soutsaka' },
 ];
+
+
 
 const paginationModel = { page: 0, pageSize: 5 };
 
@@ -155,7 +167,9 @@ export default function DataTable() {
           checkboxSelection
           sx={{ border: 0 }}
         />
+
       </Paper>
+
     </Box>
 
   );
