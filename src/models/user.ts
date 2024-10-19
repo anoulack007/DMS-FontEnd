@@ -3,9 +3,11 @@ export interface UserModel {
     id: number
     userId: string
     username: string
+    name: string
+    surname: string
     password: string
     email: string
-    phone: string
+    phoneNumber: string
     image: {
         url : string
         filename: string

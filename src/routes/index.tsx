@@ -9,6 +9,7 @@ import {
   REPORT_RECYCLE_PATH,
   REPORT_SHARE_PATH,
   SEARCH_DOC_PATH,
+  ADD_USER_PATH,
 } from "./paths";
 import MainLayout from "../layout";
 import HomePage from "../pages/home";
@@ -22,6 +23,7 @@ import ReportRecyclePage from "../pages/report";
 import ManageUserPage from "../pages/manage-user";
 import DocumentDetailPage from "../pages/document-detail";
 import ProtectedRoutes from "./ProtectedRoute";
+import UserDetailPage from "../pages/add-user";
 
 const RoutesComponent = () => {
   return useRoutes([
@@ -65,6 +67,10 @@ const RoutesComponent = () => {
           path: `${DOCUMENT_DETAIL_PATH}/:id`,
           element: <DocumentDetailPage />,
         },
+        {
+          path: ADD_USER_PATH,
+          element: <UserDetailPage />,
+        }
       ],
     },
 

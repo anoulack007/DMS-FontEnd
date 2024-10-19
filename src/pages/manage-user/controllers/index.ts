@@ -2,27 +2,112 @@ import { useEffect, useState } from "react"
 import { UserModel } from "../../../models/user"
 import axiosInstance from "../../../configs/axios"
 import { GET_ALL_USER } from "../../../configs/endPoint/login"
+import { useNavigate } from "react-router-dom"
 
 const UseMainController = () => {
 
     const [data, setData] = useState<UserModel[]>([])
+    const [auth, setAuth] = useState(true);
+    const [anchorElProfile, setAnchorElProfile] = useState<null | HTMLElement>(null);  // แยกตัวแปรสำหรับโปรไฟล์
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null); // แยกตัวแปรสำหรับแต่ละ Action Menu
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [page, setPage] = useState(0);
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
+    const navigate = useNavigate();
+
+    // User Data
     const handleGetData = async () => {
         try {
-            const res = await axiosInstance.get(GET_ALL_USER);
+            const res = await axiosInstance.get(GET_ALL_USER)
             setData(res?.data?.data)
-            console.log(res?.data?.data)
+
         } catch (error) {
             console.log(error)
         }
     }
-
     useEffect(() => {
-        handleGetData();
-    }, []);
+        handleGetData()
+    }, [])
+
+
+    // ChangeTablePage
+    const handleChangePage = (event: unknown, newPage: number) => {
+        setPage(newPage);
+    };
+    // ChangeRowsPerPage
+    const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    // Profile menu
+    const handleProfileMenu = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorElProfile(event.currentTarget);
+    };
+    const handleCloseProfileMenu = () => {
+        setAnchorElProfile(null);
+    };
+
+    // checkbox
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const handleCheckboxChange = (id: number) => {
+        setSelectedIds((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter((prevId) => prevId !== id);
+            } else {
+                return [...prev, id];
+            }
+        });
+    };
+
+    // Add user button
+    const handleAddUserClick = (path: string) => {
+        navigate(path);
+    };
+
+    // Action on Table
+    const open = Boolean(anchorEl);
+    const handleActionClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleCloseActionMenu = () => {
+        setAnchorEl(null);
+    };
+
+    const isSelected = (id: string) => selectedItems.includes(id);
+    const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.checked) {
+          setSelectedItems(data.map((user) => user.userId));
+        } else {
+          setSelectedItems([]);
+        }
+      };
+
 
     return {
         data,
+        open,
+        auth,
+        anchorEl,
+        anchorElProfile,
+        rowsPerPage,
+        page,
+        selectedIds,
+        selectedItems,
+        setSelectedIds,
+        isSelected,
+        handleActionClick,
+        handleAddUserClick,
+        handleChangePage,
+        handleChangeRowsPerPage,
+        handleCheckboxChange,
+        handleCloseActionMenu,
+        handleCloseProfileMenu,
+        handleGetData,
+        handleProfileMenu,
+
+        handleSelectAll,
     }
 }
 
