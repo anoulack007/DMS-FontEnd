@@ -2,9 +2,10 @@ export interface AdminModel {
   id: string;
   username: string;
   email: string;
-  userId: string;
+  password: string;
   name: string;
   surname: string;
   phoneNumber: string;
   company: string;
+  image: string;
 }

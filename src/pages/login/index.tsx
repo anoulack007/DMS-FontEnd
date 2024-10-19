@@ -9,7 +9,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { Link } from "react-router-dom";
 
 //images
 import Image from "../../assets/Image/2762372.jpg";
@@ -86,8 +85,7 @@ const LoginPage = () => {
               <form onSubmit={ctrl.handleSubmit}>
                 <Box sx={{ p: 5 }}>
                   <TextField
-                    value={ctrl?.email ?? ""}
-                    onChange={ctrl.handleChangeEmail}
+                    inputRef={ctrl?.email}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -101,8 +99,7 @@ const LoginPage = () => {
                   />
 
                   <TextField
-                    onChange={ctrl?.handleChangePassword}
-                    value={ctrl?.password ?? ""}
+                    inputRef={ctrl?.password}
                     type={ctrl.showPassword ? "text" : "password"}
                     InputProps={{
                       startAdornment: (
@@ -130,11 +127,6 @@ const LoginPage = () => {
                     margin="normal"
                     fullWidth
                   />
-
-
-                  <Typography fontSize={13} textAlign={"right"}>
-                    <Link to="#">Forgot Password?</Link>
-                  </Typography>
 
                   <Box mt={3} sx={{ maxHeight: 50 }}>
                     <Button
