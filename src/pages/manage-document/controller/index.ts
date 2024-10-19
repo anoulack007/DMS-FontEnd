@@ -30,15 +30,30 @@ const UseMainController = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+  const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
 
-  const handleDocumentClick = (e: React.MouseEvent, doc: Document) => {
-    e.preventDefault();
-    setSelectedDocument(doc);
-    setDrawerOpen(true);
-    // Update URL with document ID without navigating
-    setSearchParams({ docId: doc.id, action: 'drawer' });
+  // const handleDocumentClick = (e: React.MouseEvent, doc: Document) => {
+  //   e.preventDefault();
+  //   setSelectedDocument(doc);
+  //   setCollapseOpen(true);
+  //   // Update URL with document ID without navigating
+  //   setSearchParams({ docId: doc.id, action: 'collapse' });
+  // };
+
+  const handleDetailsClick = () => {
+    if (selectedDocument) {
+      console.log("Opening details for:", selectedDocument);
+      setCollapseOpen(true); // Open the collapse
+      setSearchParams({ docId: selectedDocument.id, action: 'collapse' });
+    } else {
+      console.log("No document selected.");
+    }
   };
+  
+  // Check if collapseOpen is changing
+  useEffect(() => {
+    console.log("Collapse Open:", collapeOpen);
+  }, [collapeOpen]);
 
   const handleFolderClick = (e: React.MouseEvent, doc: Document) => {
     e.preventDefault();
@@ -47,7 +62,7 @@ const UseMainController = () => {
   };
 
   const handleDrawerClose = () => {
-    setDrawerOpen(false);
+    setCollapseOpen(false);
   };
 
   const handleGetData = async () => {
@@ -110,6 +125,42 @@ const UseMainController = () => {
           status: "Internal",
           isFolder: true,
         },
+        {
+          id: "7",
+          name: "Test document 7",
+          idDocument: "4886AFL",
+          modified: "1/03/2023",
+          fileSize: "35.56 Mb",
+          status: "Internal",
+          isFolder: true,
+        },
+        {
+          id: "8",
+          name: "Test document 8",
+          idDocument: "4886AFL",
+          modified: "1/03/2023",
+          fileSize: "35.56 Mb",
+          status: "Internal",
+          isFolder: true,
+        },
+        {
+          id: "9",
+          name: "Test document 9",
+          idDocument: "4886AFL",
+          modified: "1/03/2023",
+          fileSize: "35.56 Mb",
+          status: "Internal",
+          isFolder: true,
+        },
+        {
+          id: "10",
+          name: "Test document 10",
+          idDocument: "4886AFL",
+          modified: "1/03/2023",
+          fileSize: "35.56 Mb",
+          status: "Internal",
+          isFolder: true,
+        },
       ];
       setDocuments(mockData);
     } catch (error) {
@@ -133,6 +184,10 @@ const UseMainController = () => {
   };
 
   const handleSelectItem = (id: string) => {
+    const doc = documents.find((document) => document.id === id);
+    if (doc) {
+      setSelectedDocument(doc);
+    }
     setSelectedItems((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
@@ -186,11 +241,19 @@ const UseMainController = () => {
     handleFilterClose(field);
   };
 
+
+  useEffect(() => {
+    const action = searchParams.get('action');
+    setCollapseOpen(action === 'collapse');
+  }, [searchParams]);
+
   
   return {
+    collapeOpen,
+    setCollapseOpen,
     searchParams,
+    setSearchParams,
     selectedDocument,
-    drawerOpen,
     loading,
     error,
     sortOrder,
@@ -207,8 +270,10 @@ const UseMainController = () => {
     handleFilterClose,
     handleFilter,
     handleDrawerClose,
-    handleDocumentClick,
-    handleFolderClick
+    // handleDocumentClick,
+    handleFolderClick,
+    handleDetailsClick
+
   };
 };
 

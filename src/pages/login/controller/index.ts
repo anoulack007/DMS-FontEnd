@@ -1,9 +1,14 @@
-import axios from "axios";
-import { useState } from "react";
+// import axios from "axios";
+import { FormEvent, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { HOME_PATH } from "../../../routes/paths";
 import { loginSuccess } from "../../../store/authenticationSlice";
+// import axiosInstance from "../../../configs/axios";
+// import { LOGIN_END_POINT } from "../../../configs/endPoint/login";
+import { LoginService } from "../../../service/Login";
+import { ErrorModel } from "../../../models/Error";
+import { ErrorResponse } from "../../../utils/functions/Error";
 
 const UseMainController = () => {
   const dispatch = useDispatch();
@@ -11,85 +16,98 @@ const UseMainController = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [email, setEmail] = useState<string>(null!);
-  const [password, setPassword] = useState<string>(null!);
-  const [error, setError] = useState<string>(null!);
 
-  const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(event.target.value);
-  };
+  const email = useRef<HTMLInputElement>(null!);
+  const password = useRef<HTMLInputElement>(null!);
 
-  const handleChangePassword = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(event.target.value);
-  };
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-  const handleLogin = async (email: string, password: string) => {
+  // const handleLogin = async (email: string, password: string) => {
+  //   try {
+  //     setLoading(true);
+  //     const res = await axiosInstance.post(
+  //       'https://dms-backend-khlo.onrender.com' + LOGIN_END_POINT,
+  //       { emailOrUsername: email, password }
+  //     );
+
+  //     // Access the tokens from the nested data object
+  //     const token = `Bearer ${res?.data?.data?.access_token}`;
+  //     const refreshToken = `Bearer ${res?.data?.data?.refresh_token}`;
+
+  //     if (!res.data.data.access_token) {
+  //       throw new Error("Access token not received from server");
+  //     }
+
+  //     axios.defaults.headers.common["Authorization"] = token;
+
+  //     localStorage.setItem(
+  //       "authToken",
+  //       JSON.stringify({
+  //         accessToken: token,
+  //         refreshToken: refreshToken,
+  //       })
+  //     );
+
+  //     const userRes = await axiosInstance.get(
+  //       LOGIN_END_POINT
+  //     );
+  //     const userData = userRes.data;
+  //     // Combine all user data into a single object
+  //     const combinedUserData = {
+  //       ...res.data,
+  //       ...userData,
+  //       token,
+  //       refreshToken,
+  //     };
+
+  //     dispatch(loginSuccess(combinedUserData));
+  //     navigate(HOME_PATH);
+  //   } catch (err: any) {
+  //     console.error("Login error:", err);
+  //     setError(
+  //       err?.response?.data?.message ?? "Server error, please try again later"
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+
+  //   return { loading, error };
+  // };
+
+  // const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   handleLogin(email, password);
+  // };
+
+  const handleLogin = async (): Promise<void> => {
     try {
       setLoading(true);
-      const res = await axios.post(
-        "https://dms-backend-khlo.onrender.com/auth/login",
-        { emailOrUsername: email, password }
-      );
-
-      // Access the tokens from the nested data object
-      const token = `Bearer ${res?.data?.data?.access_token}`;
-      const refreshToken = `Bearer ${res?.data?.data?.refresh_token}`;
-
-      if (!res.data.data.access_token) {
-        throw new Error("Access token not received from server");
-      }
-
-      axios.defaults.headers.common["Authorization"] = token;
-
-      localStorage.setItem(
-        "authToken",
-        JSON.stringify({
-          accessToken: token,
-          refreshToken: refreshToken,
-        })
-      );
-
-      const userRes = await axios.get(
-        "https://dms-backend-khlo.onrender.com/user/get-one"
-      );
-      const userData = userRes.data;
-      // Combine all user data into a single object
-      const combinedUserData = {
-        ...res.data,
-        ...userData,
-        token,
-        refreshToken,
-      };
-
-      dispatch(loginSuccess(combinedUserData));
+      const userInput = email.current.value;
+      const passwordInput = password.current.value;
+      const resUserLogin = await LoginService(userInput, passwordInput);
+      dispatch(loginSuccess(resUserLogin));
       navigate(HOME_PATH);
-    } catch (err: any) {
-      console.error("Login error:", err);
-      setError(
-        err?.response?.data?.message ?? "Server error, please try again later"
-      );
+    } catch (error) {
+      console.log(error);
+
+      ErrorResponse(error as ErrorModel);
     } finally {
       setLoading(false);
     }
-
-    return { loading, error };
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    handleLogin(email, password);
+    await handleLogin();
   };
   return {
     loading,
     showPassword,
     password,
     email,
-    handleChangeEmail,
-    handleChangePassword,
     handleClickShowPassword,
-    handleSubmit,
+    handleSubmit
   };
 };
 
