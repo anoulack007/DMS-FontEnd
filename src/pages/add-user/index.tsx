@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, IconButton, InputBase, Menu, MenuItem, Paper, styled, TextField, Toolbar, Typography } from "@mui/material";
+import { Avatar, Box, Button, IconButton, Menu, MenuItem, Paper, styled, TextField, Toolbar, Typography } from "@mui/material";
 import UseMainController from "./controllers";
 import image from '../../assets/avatar.svg';
 import Grid from '@mui/material/Grid2';
@@ -6,7 +6,6 @@ import Grid from '@mui/material/Grid2';
 import { MANAGE_USER_PATH } from "../../routes/paths";
 
 // icon
-import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 
 const AvatarUpload = styled(Box)({
@@ -31,13 +30,13 @@ const Item = styled(Paper)({
   backgroundColor: '#fff',  // Ensure white background as in your example
 });
 
-const UserDetailPage = () => {
+const AddUserPage = () => {
 
   const ctrl = UseMainController();
 
   return (
     <Box>
-      {/* Profile Menu */}
+      {/* Box 1 Profile Menu */}
       <Box sx={{ flexGrow: 1, bgcolor: 'white', width: '100%', height: 74, borderRadius: 3 }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
@@ -79,7 +78,7 @@ const UserDetailPage = () => {
       </Box>
 
 
-      {/* Search */}
+      {/* Box 2 */}
       <Box sx={{ flexGrow: 1, width: '100%', height: 89 }}>
         <Toolbar>
           <Typography variant="h5" component="div" sx={{ flexGrow: 1, color: '#838383', marginTop: 1 }}>
@@ -91,19 +90,6 @@ const UserDetailPage = () => {
               User management /
               <span style={{ color: 'red' }}> Add User</span> </p>
           </Typography>
-          <Paper
-            component="form"
-            sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 300, borderRadius: 6, marginTop: 3 }}
-          >
-            <InputBase
-              sx={{ ml: 1, flex: 1 }}
-              placeholder="Search"
-              inputProps={{ 'aria-label': 'search' }}
-            />
-            <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
-              <SearchIcon />
-            </IconButton>
-          </Paper>
         </Toolbar>
       </Box>
 
@@ -236,7 +222,7 @@ const UserDetailPage = () => {
                 color="primary"
                 sx={{ mt: 3 }}
               >
-                บันทึก
+                ບັນທຶກ
               </Button>
             </form>
           </Item>
@@ -248,4 +234,4 @@ const UserDetailPage = () => {
   )
 }
 
-export default UserDetailPage
+export default AddUserPage

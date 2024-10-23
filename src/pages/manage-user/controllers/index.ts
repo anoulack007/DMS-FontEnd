@@ -13,6 +13,12 @@ const UseMainController = () => {
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [page, setPage] = useState(0);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
+    const open = Boolean(anchorEl);
+    const [openDialog, setOpenDialog] = useState(false); // เปิด/ปิด dialog
+    const [userToDelete, setUserToDelete] = useState<UserModel | null>(null); // กำหนดผู้ใช้ที่จะลบ
+
+
+
 
     const navigate = useNavigate();
 
@@ -67,22 +73,49 @@ const UseMainController = () => {
     };
 
     // Action on Table
-    const open = Boolean(anchorEl);
     const handleActionClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
     const handleCloseActionMenu = () => {
         setAnchorEl(null);
     };
+    // Edit User Button
+    const handleEditUserClick = (path: string) => {
+        navigate(path);
+    };
+    // Delete User Button
+    // Delete User Button -> เปิด Dialog และเก็บข้อมูลผู้ใช้ที่ต้องการลบ
+    const handleDeleteUserClick = (user: UserModel) => {
+        setUserToDelete(user); // เก็บผู้ใช้ที่เลือก
+        setOpenDialog(true);   // เปิด dialog
+    };
 
+    // Close Dialog
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setUserToDelete(null); // เคลียร์ข้อมูลหลังปิด dialog
+    };
+
+    // Confirm Delete User
+    const handleConfirmDelete = () => {
+        if (userToDelete) {
+            // ใส่ logic สำหรับลบผู้ใช้ที่เลือกได้ที่นี่
+            console.log("Deleted user:", userToDelete);
+            setOpenDialog(false); // ปิด dialog
+            setUserToDelete(null);
+        }
+    };
+
+    // Select
     const isSelected = (id: string) => selectedItems.includes(id);
     const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
-          setSelectedItems(data.map((user) => user.userId));
+            setSelectedItems(data.map((user) => user.userId));
         } else {
-          setSelectedItems([]);
+            setSelectedItems([]);
         }
-      };
+    };
+
 
 
     return {
@@ -106,8 +139,13 @@ const UseMainController = () => {
         handleCloseProfileMenu,
         handleGetData,
         handleProfileMenu,
-
+        handleEditUserClick,
+        handleDeleteUserClick,
         handleSelectAll,
+        handleCloseDialog,
+        handleConfirmDelete,
+        openDialog,
+        userToDelete
     }
 }
 

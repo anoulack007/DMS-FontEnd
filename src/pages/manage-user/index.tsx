@@ -1,15 +1,7 @@
-import { ADD_USER_PATH } from "../../routes/paths";
+import { ADD_USER_PATH, USER_DETAIL_PATH } from "../../routes/paths";
 
 import {
-  Paper, Box, IconButton, Menu, MenuItem, Typography, Toolbar, InputBase, Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Checkbox,
-  TablePagination,
-  Button,
+  Paper, Box, IconButton, Menu, MenuItem, Typography, Toolbar, InputBase, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, TablePagination, Button,
 } from '@mui/material';
 
 import image from '../../assets/avatar.svg';
@@ -24,6 +16,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 //Component
 import CustomMenu from './components/custom-menu';
+import PopupDialog from "./components/modal-popup";
 
 
 export default function DataTable() {
@@ -113,7 +106,7 @@ export default function DataTable() {
         }}
       ></Box>
 
-      
+
 
       {/* DataTable */}
       <TableContainer component={Paper} sx={{ height: 400, width: '100%', marginBottom: 10 }}>
@@ -185,8 +178,8 @@ export default function DataTable() {
                         horizontal: 'left',
                       }}
                     >
-                      <MenuItem onClick={ctrl?.handleCloseActionMenu}>Edit</MenuItem>
-                      <MenuItem onClick={ctrl?.handleCloseActionMenu}>Delete</MenuItem>
+                      <MenuItem onClick={() => ctrl?.handleEditUserClick(USER_DETAIL_PATH)}>Edit</MenuItem>
+                      <MenuItem onClick={() => ctrl.handleDeleteUserClick(user)}>Delete</MenuItem>
                     </Menu>
                   </TableCell>
                 </TableRow>
@@ -202,6 +195,13 @@ export default function DataTable() {
           rowsPerPage={ctrl?.rowsPerPage}
           onRowsPerPageChange={ctrl?.handleChangeRowsPerPage}
           rowsPerPageOptions={[5, 10, 15]}
+        />
+        {/* แสดง PopupDialog เมื่อกด Delete */}
+        <PopupDialog
+          open={ctrl?.openDialog}
+          onClose={ctrl.handleCloseDialog}
+          onConfirm={ctrl.handleConfirmDelete}
+          userToDelete={ctrl?.userToDelete?.username || null} // ส่งชื่อผู้ใช้ที่จะแสดงใน dialog
         />
       </TableContainer>
     </Box>

@@ -10,6 +10,7 @@ import {
   REPORT_SHARE_PATH,
   SEARCH_DOC_PATH,
   ADD_USER_PATH,
+  USER_DETAIL_PATH,
 } from "./paths";
 import MainLayout from "../layout";
 import HomePage from "../pages/home";
@@ -23,7 +24,8 @@ import ReportRecyclePage from "../pages/report";
 import ManageUserPage from "../pages/manage-user";
 import DocumentDetailPage from "../pages/document-detail";
 import ProtectedRoutes from "./ProtectedRoute";
-import UserDetailPage from "../pages/add-user";
+import UserDetailPage from "../pages/user-detail";
+import AddUserPage from "../pages/add-user";
 
 const RoutesComponent = () => {
   return useRoutes([
@@ -69,7 +71,11 @@ const RoutesComponent = () => {
         },
         {
           path: ADD_USER_PATH,
-          element: <UserDetailPage />,
+          element: <AddUserPage />,
+        },
+        {
+          path: USER_DETAIL_PATH,
+          element: <UserDetailPage />
         }
       ],
     },
