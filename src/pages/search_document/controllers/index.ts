@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { DOCUMENT_DETAIL_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
 import { GET_ALL_FOLDER_END_POINT } from "../../../configs/endPoint/crud";
-import { STATUS_ENUMS } from "../../../enums/status-enum";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
@@ -41,42 +40,8 @@ const UseMainController = () => {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
 
-  // const [status, setStatus] = useState<STATUS_ENUMS>()
-  const [newName, setNewName] = useState<string>(null!)
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
-  const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
-
-  // const handleChangeStatus = async (newStatus: string) => {
-  //   if (!selectedDocument) return;
+  const [status, setStatus] = useState<string>(null!)
   
-  //   try {
-  //     setIsUpdating(true);
-  
-  //     // Optimistic update
-  //     setSelectedDocument((prev) => ({
-  //       ...prev,
-  //       status: newStatus,
-  //     }));
-  
-  //     // Make API call to update status
-  //     const response = await axiosInstance.patch(`/${selectedDocument.documentId}`, {
-  //       status: newStatus,
-  //     });
-  
-  //     // Optional: Update with server response
-  //     setSelectedDocument(response.data);
-  
-  //     // You might want to trigger a refresh of the documents list
-  //     // refreshDocumentsList();
-  
-  //   } catch (error) {
-  //     console.error('Error updating document status:', error);
-  
-  //   } finally {
-  //     setIsUpdating(false);
-  //   }
-  // };
-
 
   // const handleDocumentClick = (e: React.MouseEvent, doc: Document) => {
   //   e.preventDefault();
@@ -111,7 +76,7 @@ const UseMainController = () => {
     setCollapseOpen(false);
   };
 
-  const handleGetData = async () => { 
+  const handleGetData = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -204,13 +169,8 @@ const UseMainController = () => {
 
   
   return {
-    setIsSubmitting,
-    isSubmitting,
-    newName,
-    handleReName: (value: string) => setNewName(value),
-    setRenameDialogOpen,
-    renameDialogOpen,
     status,
+    handleChangeStatus: (value: string) => setStatus(value),
     collapeOpen,
     setCollapseOpen,
     searchParams,

@@ -16,8 +16,17 @@ import {
   Menu,
   MenuItem,
   Collapse,
+  Divider,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
 import FoldeImage from "../../assets/Image/image 11.png";
+import Invite_IC from "../../assets/logo/invite_ic.svg";
+import Access_IC from "../../assets/logo/access_ic.svg";
 
 //icons
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -30,22 +39,34 @@ import CloseIcon from "@mui/icons-material/Close";
 import UseMainController from "./controller";
 import CustomMenu from "./components/custom-menu";
 
+interface Document {
+  id: string;
+  name: string;
+  path: string;
+  documentId: string;
+  modified: string;
+  size: string;
+  status: string;
+  isFolder: boolean;
+  parentId: string;
+  isPinned: boolean;
+  isDelete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const getStatusColor = (status: string): string => {
   switch (status.toLowerCase()) {
-    case "highly confidential":
-      return "#FFCCCB"; // Light red
-    case "confidential":
-      return "#FFE5B4"; // Light orange
-    case "internal":
-      return "#E0F0FF"; // Light blue
     case "public":
-      return "#E0FFE0"; // Light green
+      return "#03994D"; // Light red
+    case "private":
+      return "#91040B"; // Light orange
     default:
       return "transparent";
   }
 };
 
-type SortField = "name" | "modified" | "fileSize" | "status";
+type SortField = "name" | "modified" | "size" | "status";
 
 const ManageDocumentPage = () => {
   const ctrl = UseMainController();
@@ -75,7 +96,10 @@ const ManageDocumentPage = () => {
     switch (field) {
       case "modified":
         return [
-          <MenuItem key="today" onClick={() => ctrl?.handleFilter(field, "Today")}>
+          <MenuItem
+            key="today"
+            onClick={() => ctrl?.handleFilter(field, "Today")}
+          >
             Today
           </MenuItem>,
           <MenuItem
@@ -94,24 +118,15 @@ const ManageDocumentPage = () => {
       case "status":
         return [
           <MenuItem
-            key="highly-confidential"
-            onClick={() => ctrl?.handleFilter(field, "Highly Confidential")}
-          >
-            Highly Confidential
-          </MenuItem>,
-          <MenuItem
-            key="confidential"
+            key="private"
             onClick={() => ctrl?.handleFilter(field, "Confidential")}
           >
-            Confidential
+            Private
           </MenuItem>,
           <MenuItem
-            key="internal"
-            onClick={() => ctrl?.handleFilter(field, "Internal")}
+            key="public"
+            onClick={() => ctrl.handleFilter(field, "Public")}
           >
-            Internal
-          </MenuItem>,
-          <MenuItem key="public" onClick={() => ctrl.handleFilter(field, "Public")}>
             Public
           </MenuItem>,
         ];
@@ -151,8 +166,9 @@ const ManageDocumentPage = () => {
     <Box>
       {ctrl?.selectedItems.length > 0 && (
         <CustomMenu
-          selectedCount={ctrl?.selectedItems.length}
+          selectedCount={ctrl.selectedItems.length}
           onDetailsClick={ctrl.handleDetailsClick}
+          hanldeFolderRename={() => ctrl?.setRenameDialogOpen(true)}
         />
       )}
 
@@ -188,7 +204,7 @@ const ManageDocumentPage = () => {
                   {renderSortableHeader("name", "Document Name")}
                   <TableCell>ID Document</TableCell>
                   {renderSortableHeader("modified", "Modified")}
-                  {renderSortableHeader("fileSize", "File Size")}
+                  {renderSortableHeader("size", "File Size")}
                   {renderSortableHeader("status", "Status")}
                   <TableCell>Actions</TableCell>
                 </TableRow>
@@ -211,9 +227,17 @@ const ManageDocumentPage = () => {
                     <TableRow
                       key={doc?.id}
                       selected={ctrl?.isSelected(doc.id)}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                      onDoubleClick={(e) => ctrl.handleFolderClick(e, doc)} // Move the event here
+                      sx={{
+                        "&:last-child td, &:last-child th": { border: 0 },
+                        "&:hover": {
+                          backgroundColor: "rgba(0, 0, 0, 0.04)", // Light gray hover color
+                          transition: "background-color 0.2s ease", // Smooth transition effect
+                        },
+                        cursor: "pointer", // Changes cursor to pointer on hover
+                      }}
+                      onDoubleClick={(e) => ctrl.handleFolderClick(e, doc)}
                     >
+                      {/* Rest of your TableRow content remains the same */}
                       <TableCell padding="checkbox">
                         <Checkbox
                           icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
@@ -239,9 +263,13 @@ const ManageDocumentPage = () => {
                           </Box>
                         </Box>
                       </TableCell>
-                      <TableCell>{doc?.idDocument}</TableCell>
-                      <TableCell>{doc?.modified}</TableCell>
-                      <TableCell>{doc?.fileSize}</TableCell>
+                      <TableCell>{doc?.documentId}</TableCell>
+                      <TableCell>
+                        {doc?.createdAt
+                          ? new Date(doc?.createdAt).toLocaleString()
+                          : ""}
+                      </TableCell>
+                      <TableCell>{doc?.size}</TableCell>
                       <TableCell>
                         <Chip
                           label={doc?.status}
@@ -249,7 +277,7 @@ const ManageDocumentPage = () => {
                             backgroundColor: getStatusColor(doc?.status),
                             borderRadius: "4px",
                             fontWeight: "normal",
-                            color: "black",
+                            color: "white",
                           }}
                         />
                       </TableCell>
@@ -290,56 +318,131 @@ const ManageDocumentPage = () => {
             <Box
               sx={{
                 display: "flex",
-                justifyContent: "space-between",
                 alignItems: "center",
                 mb: 2,
+                gap: 2,
               }}
             >
-              <Typography variant="h6">Document Details</Typography>
-              <IconButton
-                size="small"
-                onClick={() => {
-                  ctrl.setCollapseOpen(false);
-                  ctrl.setSearchParams({});
-                }}
-              >
-                <CloseIcon />
-              </IconButton>
+              <img src={FoldeImage} alt="folder" />
+              <Typography variant="h5">
+                {ctrl?.selectedDocument?.name}
+              </Typography>
+
+              <Box sx={{ ml: "auto" }}>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    ctrl.setCollapseOpen(false);
+                    ctrl.setSearchParams({});
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Box>
             </Box>
 
+            <Divider />
+
             {ctrl.selectedDocument && (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Box
+                sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 3 }}
+              >
+                <Box>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    Status
+                  </Typography>
+                  <TextField
+                    // select
+                    fullWidth
+                    value={ctrl?.selectedDocument?.status ?? ""}
+                    // onChange={(event) => {
+                    //   // Assuming you have a function to update the status
+                    //   ctrl.handleChangeStatus(event.target.value);
+                    // }}
+                    margin="normal"
+                    size="medium"
+                  >
+                    {/* {Object.values(STATUS_ENUMS).map((status) => (
+                <MenuItem key={status} value={status}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {status}
+                  </Box>
+                </MenuItem>
+              ))} */}
+                  </TextField>
+
+                  <Box sx={{ mt: 1 }}>
+                    <Typography>Has access</Typography>
+
+                    <Box sx={{ mt: 2, display: "flex" }}>
+                      <IconButton>
+                        <img src={Invite_IC} alt="invite" />
+                      </IconButton>
+
+                      <IconButton>
+                        <img src={Access_IC} alt="access" />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </Box>
+
+                <Divider />
+
+                <Typography>Details</Typography>
+
                 <Typography>
                   <strong>Name:</strong> {ctrl.selectedDocument.name}
                 </Typography>
                 <Typography>
-                  <strong>ID:</strong> {ctrl.selectedDocument.idDocument}
+                  <strong>Owner:</strong>
                 </Typography>
                 <Typography>
-                  <strong>Modified:</strong>
+                  <strong>ID:</strong> {ctrl.selectedDocument?.documentId}
                 </Typography>
                 <Typography>
-                  <strong>Size:</strong>
+                  <strong>Created:</strong>{" "}
+                  {ctrl?.selectedDocument?.createdAt
+                    ? new Date(
+                        ctrl?.selectedDocument?.createdAt
+                      ).toLocaleString()
+                    : "-"}
                 </Typography>
-                <Box>
-                  <strong>Status:</strong>
-                  <Chip
-                    label={ctrl.selectedDocument.status}
-                    sx={{
-                      ml: 1,
-                      backgroundColor: getStatusColor(
-                        ctrl.selectedDocument.status
-                      ),
-                      borderRadius: "4px",
-                      fontWeight: "normal",
-                      color: "black",
-                    }}
-                  />
-                </Box>
+                <Typography>
+                  <strong>Size:</strong> {ctrl?.selectedDocument?.size}
+                </Typography>
               </Box>
             )}
           </Paper>
         </Collapse>
+
+        <Dialog
+          open={ctrl?.renameDialogOpen}
+          onClose={() => ctrl?.setRenameDialogOpen(false)}
+          maxWidth="xs"
+          fullWidth
+        >
+          <form>
+            <DialogTitle>Rename Document</DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                label="New name"
+                fullWidth
+                value={ctrl?.newName}
+                onChange={(e) => ctrl?.handleReName}
+              />
+            </DialogContent>
+            <DialogActions>
+              {/* <Button onClick={onClose} disabled={ctrl?.isSubmitting}>
+                Cancel
+              </Button> */}
+              {/* <Button type="submit" disabled={ctrl?.isSubmitting || !ctrl?.newName.trim()}>
+                {ctrl?.isSubmitting ? <CircularProgress size={24} /> : "Rename"}
+              </Button> */}
+            </DialogActions>
+          </form>
+        </Dialog>
       </Box>
     </Box>
   );

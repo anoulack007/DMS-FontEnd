@@ -3,7 +3,7 @@ import { FormEvent, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { HOME_PATH } from "../../../routes/paths";
-import { loginSuccess } from "../../../store/authenticationSlice";
+import { loginFailed, loginSuccess } from "../../../store/authenticationSlice";
 // import axiosInstance from "../../../configs/axios";
 // import { LOGIN_END_POINT } from "../../../configs/endPoint/login";
 import { LoginService } from "../../../service/Login";

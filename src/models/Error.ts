@@ -4,6 +4,7 @@ export interface ErrorModel {
   response: {
     data: {
       message: string;
+      name: string;
       error: string;
       statusCode: number;
     };
