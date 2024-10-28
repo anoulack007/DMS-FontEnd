@@ -3,7 +3,7 @@ import authentication from './authenticationSlice';
 
 export const store = configureStore({
   reducer: {
-    authentication,
+    authentication
   },
 });
 

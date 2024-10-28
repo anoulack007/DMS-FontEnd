@@ -1,3 +1,5 @@
+import { ImageModel } from "./image";
+
 export interface AdminModel {
   id: string;
   username: string;
@@ -7,5 +9,5 @@ export interface AdminModel {
   surname: string;
   phoneNumber: string;
   company: string;
-  image: string;
+  image: ImageModel;
 }

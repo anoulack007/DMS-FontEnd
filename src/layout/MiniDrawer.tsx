@@ -1,57 +1,149 @@
-import { Box, CssBaseline, Divider, IconButton, List, Tooltip } from '@mui/material';
-import { styled, Theme, CSSObject } from '@mui/material/styles';
-import MuiDrawer from '@mui/material/Drawer';
-import LockOpenIcon from '@mui/icons-material/LockOpen';
-import LockIcon from '@mui/icons-material/Lock';
-import NavItem from './components/NavItem';
-import { useLocation } from 'react-router-dom';
-import { COLLAPSED_SPACE, DRAWER_WIDTH, MENU_ITEM_LISTS } from './config';
-import { useState } from 'react';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  CssBaseline,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  List,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import { styled, Theme, CSSObject } from "@mui/material/styles";
+import MuiDrawer from "@mui/material/Drawer";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
+import LockIcon from "@mui/icons-material/Lock";
+import NavItem from "./components/NavItem";
+import { useLocation } from "react-router-dom";
+import { COLLAPSED_SPACE, DRAWER_WIDTH, MENU_ITEM_LISTS } from "./config";
+import { useState } from "react";
 
-import Logo from '../assets/logo/JOB_LOGO.png'
+//images
+import Logo from "../assets/logo/JOB_LOGO.png";
+import Add_ic from "../assets/Image/Add.svg";
+import CloseIcon from "@mui/icons-material/Close";
+
+//icons
+import Upload_ic from "../assets/Image/Document Arrow Up.svg";
+import Upload_ic2 from "../assets/Image/Folder Arrow Up.svg";
+import FoldeImage from "../assets/Image/image 11.png";
+import axiosInstance from "../configs/axios";
+import { CREATE_FOLDER_END_POINT } from "../configs/endPoint/crud";
+import Swal from "sweetalert2";
 
 const openedMixin = (theme: Theme): CSSObject => ({
   width: DRAWER_WIDTH,
-  transition: theme.transitions.create('width', {
+  transition: theme.transitions.create("width", {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.enteringScreen,
   }),
-  overflowX: 'hidden',
+  overflowX: "hidden",
 });
 
 const closedMixin = (theme: Theme): CSSObject => ({
-  transition: theme.transitions.create('width', {
+  transition: theme.transitions.create("width", {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
   }),
-  overflowX: 'hidden',
+  overflowX: "hidden",
   width: `calc(${theme.spacing(COLLAPSED_SPACE)} + 1px)`,
-  [theme.breakpoints.up('sm')]: {
+  [theme.breakpoints.up("sm")]: {
     width: `calc(${theme.spacing(COLLAPSED_SPACE)} + 1px)`,
   },
 });
 
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    width: DRAWER_WIDTH,
-    flexShrink: 0,
-    whiteSpace: 'nowrap',
-    boxSizing: 'border-box',
-    ...(open && {
-      ...openedMixin(theme),
-      '& .MuiDrawer-paper': openedMixin(theme),
-    }),
-    ...(!open && {
-      ...closedMixin(theme),
-      '& .MuiDrawer-paper': closedMixin(theme),
-    }),
-  })
-);
+const Drawer = styled(MuiDrawer, {
+  shouldForwardProp: (prop) => prop !== "open",
+})(({ theme, open }) => ({
+  width: DRAWER_WIDTH,
+  flexShrink: 0,
+  whiteSpace: "nowrap",
+  boxSizing: "border-box",
+  ...(open && {
+    ...openedMixin(theme),
+    "& .MuiDrawer-paper": openedMixin(theme),
+  }),
+  ...(!open && {
+    ...closedMixin(theme),
+    "& .MuiDrawer-paper": closedMixin(theme),
+  }),
+}));
 
 const MiniDrawer = () => {
   const location = useLocation();
-  const [open, setOpen] = useState(false);
-  const [locked, setLocked] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
+  const [locked, setLocked] = useState<boolean>(false);
+
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [folderName, setFolderName] = useState<string>(null!);
+
+  const [anchorEl, setAnchorEl] = useState<null>(null!);
+  const opening = Boolean(anchorEl);
+
+  const handleClick = (event: any) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+    handleClose();
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleCreateFolder = async () => {
+    try {
+      setLoading(true);
+      const data = {
+        name: folderName,
+      };
+  
+      const res = await axiosInstance.post(CREATE_FOLDER_END_POINT, data);
+  
+      // On success, show SweetAlert2 success alert
+      Swal.fire({
+        title: 'Success!',
+        text: 'Folder created successfully.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        customClass: {
+          confirmButton: 'your-custom-button-class', // You can add custom styles here if needed
+        },
+      });
+
+      handleCloseDialog();
+  
+    } catch (error) {
+      // On error, show SweetAlert2 error alert
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to create folder. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        customClass: {
+          confirmButton: 'your-custom-button-class',
+        },
+      });
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDrawerOpen = () => !locked && !open && setOpen(true);
   const handleDrawerClose = () => !locked && open && setOpen(false);
@@ -60,21 +152,23 @@ const MiniDrawer = () => {
   const currentPath = location.pathname;
 
   return (
-    <Box sx={{ position: 'relative' }}>
+    <Box sx={{ position: "relative" }}>
       <CssBaseline />
-      <Drawer 
-        variant="permanent" 
+      <Drawer
+        variant="permanent"
         open={open}
         onMouseEnter={handleDrawerOpen}
         onMouseLeave={handleDrawerClose}
       >
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-evenly',
-          alignItems: 'center', 
-          py: 0.5, 
-          px: 1
-        }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-evenly",
+            alignItems: "center",
+            py: 0.5,
+            px: 1,
+          }}
+        >
           <Tooltip title={locked ? "Unlock drawer" : "Lock drawer"}>
             <IconButton onClick={toggleLock} size="small">
               {locked ? <LockIcon /> : <LockOpenIcon />}
@@ -83,13 +177,117 @@ const MiniDrawer = () => {
           <img height={70} width={70} src={Logo} alt="Freelancer" />
         </Box>
         <Divider />
+
+        <Box sx={{ p: 1 }}>
+          <Button
+            fullWidth
+            sx={{
+              p: 3,
+              height: 55,
+              bgcolor: "#2C3E50",
+              color: "white",
+              borderRadius: 8,
+              textTransform: "none",
+              gap: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+            }}
+            onClick={handleClick} // Change to onClick
+          >
+            <img src={Add_ic} alt="Add" style={{ marginRight: 8 }} />
+            Upload Files
+          </Button>
+          <Menu
+            anchorEl={anchorEl}
+            open={opening} // Change this line
+            onClose={handleClose}
+            PaperProps={{
+              style: {
+                borderRadius: "10px",
+                padding: "10px",
+                border: "1 dashed purple",
+              },
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, p: 2 }}>
+              <img height={30} src={FoldeImage} alt="Folder" />
+              <Typography variant="inherit">Folder</Typography>
+            </Box>
+
+            <Divider />
+
+            <MenuItem sx={{ my: 1 }} onClick={handleClose}>
+              <ListItemIcon>
+                <img src={Upload_ic} alt="" />
+              </ListItemIcon>
+              <Typography variant="inherit">Files upload</Typography>
+            </MenuItem>
+            <MenuItem onClick={handleOpenDialog}>
+              <ListItemIcon>
+                <img src={Upload_ic2} alt="upload" />
+              </ListItemIcon>
+              <Typography variant="inherit">Folder upload</Typography>
+            </MenuItem>
+          </Menu>
+
+          <Dialog
+            maxWidth="sm"
+            fullWidth
+            open={openDialog}
+            onClose={handleCloseDialog}
+          >
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between'}}>
+              Create a folder
+              <IconButton
+                edge="end"
+                color="inherit"
+                onClick={handleCloseDialog}
+                aria-label="close"
+              >
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="folderName"
+                label="Enter your folder name"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={folderName ?? ''}
+                onChange={(e) => setFolderName(e.target.value)}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button sx={{ textTransform: 'none'}} onClick={handleCloseDialog} color="primary">
+                Cancel
+              </Button>
+              <Button
+              sx={{ textTransform: 'none'}}
+                type="submit"
+                onClick={handleCreateFolder}
+                color="primary"
+                variant="contained"
+                disabled={!folderName}
+              >
+                {loading ? <CircularProgress color="primary" size={20} /> : "Create"}
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Box>
+
         <List>
           {MENU_ITEM_LISTS.map((item: any, index: number) => (
-            <NavItem 
-              key={item.path} 
-              item={item} 
-              open={open} 
-              active={currentPath === '' ? index === 0 : currentPath === item.path} 
+            <NavItem
+              key={item.path}
+              item={item}
+              open={open}
+              active={
+                currentPath === "" ? index === 0 : currentPath === item.path
+              }
             />
           ))}
         </List>

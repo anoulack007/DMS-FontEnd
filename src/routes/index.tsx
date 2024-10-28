@@ -32,9 +32,9 @@ const RoutesComponent = () => {
     {
       path: "/",
       element: (
-        <ProtectedRoutes>
+        // <ProtectedRoutes>
           <MainLayout />
-        </ProtectedRoutes>
+        // </ProtectedRoutes>
       ),
       children: [
         {

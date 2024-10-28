@@ -13,9 +13,10 @@ import EditIcon from "@mui/icons-material/Edit";
 interface Props {
   selectedCount: number;
   onDetailsClick: () => void; // Update the prop to accept a document
+  hanldeFolderRename: () => void;
 }
 
-const CustomMenu = ({ selectedCount, onDetailsClick }: Props) => {
+const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename }: Props) => {
   const ListMenu = [
     {
       label: "Share",
@@ -36,6 +37,7 @@ const CustomMenu = ({ selectedCount, onDetailsClick }: Props) => {
     {
       label: "Rename",
       icon: <EditIcon />,
+      onclick: hanldeFolderRename
     },
   ];
 
@@ -55,6 +57,7 @@ const CustomMenu = ({ selectedCount, onDetailsClick }: Props) => {
       {ListMenu.map((item, index) => (
         <Button
           key={index}
+          onClick={item?.onclick}
           startIcon={item.icon}
           sx={{
             textTransform: "none",
