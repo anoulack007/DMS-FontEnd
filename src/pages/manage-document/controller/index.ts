@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { DOCUMENT_DETAIL_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
 import { GET_ALL_FOLDER_END_POINT } from "../../../configs/endPoint/crud";
-import { STATUS_ENUMS } from "../../../enums/status-enum";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
@@ -46,6 +45,8 @@ const UseMainController = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
 
+ 
+
   // const handleChangeStatus = async (newStatus: string) => {
   //   if (!selectedDocument) return;
   
@@ -77,14 +78,6 @@ const UseMainController = () => {
   //   }
   // };
 
-
-  // const handleDocumentClick = (e: React.MouseEvent, doc: Document) => {
-  //   e.preventDefault();
-  //   setSelectedDocument(doc);
-  //   setCollapseOpen(true);
-  //   // Update URL with document ID without navigating
-  //   setSearchParams({ docId: doc.id, action: 'collapse' });
-  // };
 
   const handleDetailsClick = () => {
     if (selectedDocument) {
@@ -234,7 +227,7 @@ const UseMainController = () => {
     handleDrawerClose,
     // handleDocumentClick,
     handleFolderClick,
-    handleDetailsClick
+    handleDetailsClick,
 
   };
 };

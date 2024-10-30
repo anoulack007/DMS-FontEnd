@@ -41,6 +41,9 @@ const UseMainController = () => {
   const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
 
   const [status, setStatus] = useState<string>(null!)
+
+  const [allDocuments, setAllDocuments] = useState<Document[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>(null!);
   
 
   // const handleDocumentClick = (e: React.MouseEvent, doc: Document) => {
@@ -60,11 +63,6 @@ const UseMainController = () => {
       console.log("No document selected.");
     }
   };
-  
-  // Check if collapseOpen is changing
-  useEffect(() => {
-    console.log("Collapse Open:", collapeOpen);
-  }, [collapeOpen]);
 
   const handleFolderClick = (e: React.MouseEvent, doc: Document) => {
     e.preventDefault();
@@ -83,6 +81,7 @@ const UseMainController = () => {
       
       const res = await axiosInstance.get(GET_ALL_FOLDER_END_POINT);
       setDocuments(res?.data?.data);
+      setAllDocuments(res?.data?.data);
     } catch (error) {
       console.error("API error:", error);
       setError("An error occurred while fetching data");
@@ -161,6 +160,30 @@ const UseMainController = () => {
     handleFilterClose(field);
   };
 
+  const handleSearch = (searchValue: string) => {
+    setSearchTerm(searchValue);
+    
+    if (!searchValue.trim()) {
+      setDocuments(allDocuments);
+      return;
+    }
+  
+    const searchTermLower = searchValue.toLowerCase();
+    const filteredDocuments = allDocuments.filter((doc) => {
+      return (
+        doc.name.toLowerCase().includes(searchTermLower) ||
+        doc.documentId.toLowerCase().includes(searchTermLower) ||
+        doc.status.toLowerCase().includes(searchTermLower) ||
+        new Date(doc.createdAt)
+          .toLocaleDateString()
+          .toLowerCase()
+          .includes(searchTermLower)
+      );
+    });
+  
+    setDocuments(filteredDocuments);
+  };
+
 
   useEffect(() => {
     const action = searchParams.get('action');
@@ -169,6 +192,7 @@ const UseMainController = () => {
 
   
   return {
+    searchTerm,
     status,
     handleChangeStatus: (value: string) => setStatus(value),
     collapeOpen,
@@ -194,7 +218,8 @@ const UseMainController = () => {
     handleDrawerClose,
     // handleDocumentClick,
     handleFolderClick,
-    handleDetailsClick
+    handleDetailsClick,
+    handleSearch
 
   };
 };
