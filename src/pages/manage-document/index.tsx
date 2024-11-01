@@ -23,6 +23,9 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  FormControl,
+  InputLabel,
+  Select,
 } from "@mui/material";
 import FoldeImage from "../../assets/Image/image 11.png";
 import Invite_IC from "../../assets/logo/invite_ic.svg";
@@ -38,6 +41,7 @@ import CloseIcon from "@mui/icons-material/Close";
 //controllers
 import UseMainController from "./controller";
 import CustomMenu from "./components/custom-menu";
+import { STATUS_ENUMS } from "../../enums/status-enum";
 
 interface Document {
   id: string;
@@ -169,6 +173,7 @@ const ManageDocumentPage = () => {
           selectedCount={ctrl.selectedItems.length}
           onDetailsClick={ctrl.handleDetailsClick}
           hanldeFolderRename={() => ctrl?.setRenameDialogOpen(true)}
+          handleDelete={ctrl?.handleDeleteFolder}
         />
       )}
 
@@ -351,25 +356,22 @@ const ManageDocumentPage = () => {
                   <Typography variant="body1" sx={{ mb: 1 }}>
                     Status
                   </Typography>
-                  <TextField
-                    // select
-                    fullWidth
-                    value={ctrl?.selectedDocument?.status ?? ""}
-                    // onChange={(event) => {
-                    //   // Assuming you have a function to update the status
-                    //   ctrl.handleChangeStatus(event.target.value);
-                    // }}
-                    margin="normal"
-                    size="medium"
-                  >
-                    {/* {Object.values(STATUS_ENUMS).map((status) => (
-                <MenuItem key={status} value={status}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    {status}
-                  </Box>
-                </MenuItem>
-              ))} */}
-                  </TextField>
+                  <FormControl fullWidth margin="normal" size="medium">
+                    <InputLabel id="status-select-label">Status</InputLabel>
+                    <Select
+                      labelId="status-select-label"
+                      id="status-select"
+                      value={ctrl?.selectedDocument?.status ?? ''}
+                      label="Status"
+                      onChange={ctrl.handleChangeStatus}
+                    >
+                      {Object.values(STATUS_ENUMS).map((status) => (
+                        <MenuItem key={status} value={status}>
+                          {status}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
 
                   <Box sx={{ mt: 1 }}>
                     <Typography>Has access</Typography>
@@ -421,7 +423,7 @@ const ManageDocumentPage = () => {
           maxWidth="xs"
           fullWidth
         >
-          <form>
+          <form onSubmit={ctrl.handleRenameFolder}>
             <DialogTitle>Rename Document</DialogTitle>
             <DialogContent>
               <TextField
@@ -430,16 +432,23 @@ const ManageDocumentPage = () => {
                 label="New name"
                 fullWidth
                 value={ctrl?.newName}
-                onChange={(e) => ctrl?.handleReName}
+                onChange={(e) => ctrl?.handleChangeName(e.target.value)}
               />
             </DialogContent>
             <DialogActions>
               {/* <Button onClick={onClose} disabled={ctrl?.isSubmitting}>
                 Cancel
               </Button> */}
-              {/* <Button type="submit" disabled={ctrl?.isSubmitting || !ctrl?.newName.trim()}>
+              <Button
+                type="submit"
+                sx={{
+                  bgcolor: "#2C3E50",
+                  textTransform: "none",
+                  color: "white",
+                }}
+              >
                 {ctrl?.isSubmitting ? <CircularProgress size={24} /> : "Rename"}
-              </Button> */}
+              </Button>
             </DialogActions>
           </form>
         </Dialog>

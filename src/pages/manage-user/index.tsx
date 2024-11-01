@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { UserModel } from "../../models/user"
 import { Box, Typography } from "@mui/material"
-import axiosInstance from "../../configs/axios"
+import axiosInstance from "../../configs/axios";
 
 const ManageUserPage = () => {
 
@@ -13,6 +13,7 @@ const ManageUserPage = () => {
     try {
       const res = await axiosInstance.get(GET_ALL_USER);
       setData(res?.data?.data)
+      console.log(res?.data?.data)
     } catch (error) {
       console.log(error)
     }
