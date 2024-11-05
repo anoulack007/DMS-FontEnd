@@ -1,4 +1,4 @@
 export enum STATUS_ENUMS {
-    PRIVATE = "Private",
-    PUBLIC = "Public"
+    PRIVATE = "PRIVATE",
+    PUBLIC = "PUBLIC"
 }

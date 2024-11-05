@@ -46,7 +46,6 @@ export const LoginWithTokenService = async (token: string) => {
   axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${decodeToken}`;
   try {
     const getProfile = await axiosInstance.get(GET_PROFILE_BY_TOKEN);
-    console.log('getProfile', getProfile)
     return getProfile?.data?.data;
   } catch (error) {
     console.error("LoginWithTokenService error:", error);
