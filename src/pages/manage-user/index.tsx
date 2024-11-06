@@ -4,7 +4,6 @@ import {
   Paper, Box, IconButton, Menu, MenuItem, Typography, Toolbar, InputBase, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, TablePagination, Button,
 } from '@mui/material';
 
-import image from '../../assets/avatar.svg';
 
 //icons
 import SearchIcon from '@mui/icons-material/Search';
@@ -25,47 +24,7 @@ export default function DataTable() {
 
   return (
     <Box>
-      {/* Profile Menu */}
-      <Box sx={{ flexGrow: 1, bgcolor: 'white', width: '100%', height: 74, borderRadius: 3 }}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          </Typography>
-          {ctrl?.auth && (
-            <div style={{ marginTop: 10 }}>
-              admin-1
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={ctrl?.handleProfileMenu}
-                color="inherit"
-              >
-                <img src={image} alt="avatar" />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={ctrl?.anchorElProfile}  // ใช้ anchorElProfile สำหรับโปรไฟล์
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(ctrl?.anchorElProfile)}
-                onClose={ctrl?.handleCloseProfileMenu}
-              >
-                <MenuItem onClick={ctrl?.handleCloseProfileMenu}>Profile</MenuItem>
-                <MenuItem onClick={ctrl?.handleCloseProfileMenu}>My account</MenuItem>
-              </Menu>
-            </div>
-          )}
-        </Toolbar>
-      </Box>
-
+      
       {/* Add User & Search */}
       <Box sx={{ flexGrow: 1, width: '100%', height: 89 }}>
         <Toolbar>
@@ -109,7 +68,7 @@ export default function DataTable() {
 
 
       {/* DataTable */}
-      <TableContainer component={Paper} sx={{ height: 400, width: '100%', marginBottom: 10 }}>
+      <TableContainer component={Paper} sx={{ height: 500, width: '100%', marginBottom: 10 }}>
         <Table aria-label="simple table">  {/* ใช้ Table */}
           <TableHead>
             <TableRow>
@@ -157,7 +116,7 @@ export default function DataTable() {
                   <TableCell>{user?.userId}</TableCell>
                   <TableCell>{user?.phoneNumber}</TableCell>
                   <TableCell>{user?.email}</TableCell>
-                  <TableCell>{null}</TableCell>
+                  <TableCell>{user?.role}</TableCell>
                   <TableCell>{user?.company}</TableCell>
                   <TableCell>
                     <IconButton onClick={ctrl?.handleActionClick}>

@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, IconButton, Menu, MenuItem, Paper, styled, TextField, Toolbar, Typography } from "@mui/material";
+import { Avatar, Box, Button, IconButton, MenuItem, Paper, styled, TextField, Toolbar, Typography } from "@mui/material";
 import UseMainController from "./controllers";
 import image from '../../assets/avatar.svg';
 import Grid from '@mui/material/Grid2';
@@ -36,49 +36,8 @@ const UserDetailPage = () => {
   const ctrl = UseMainController();
   return (
     <Box>
-      {/* Box 1 Profile Menu */}
-      <Box sx={{ flexGrow: 1, bgcolor: 'white', width: '100%', height: 74, borderRadius: 3 }}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          </Typography>
-          {ctrl?.auth && (
-            <div style={{ marginTop: 10 }}>
-              admin-1
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={ctrl?.handleProfileMenu}
-                color="inherit"
-              >
-                <img src={image} alt="avatar" />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={ctrl?.anchorElProfile}  // ใช้ anchorElProfile สำหรับโปรไฟล์
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(ctrl?.anchorElProfile)}
-                onClose={ctrl?.handleCloseProfileMenu}
-              >
-                <MenuItem onClick={ctrl?.handleCloseProfileMenu}>Profile</MenuItem>
-                <MenuItem onClick={ctrl?.handleCloseProfileMenu}>My account</MenuItem>
-              </Menu>
-            </div>
-          )}
-        </Toolbar>
-      </Box>
-
-
-      {/* Box 2 */}
+      
+      {/* Box 1 */}
       <Box sx={{ flexGrow: 1, width: '100%', height: 89 }}>
         <Toolbar>
           <Typography variant="h5" component="div" sx={{ flexGrow: 1, color: '#838383', marginTop: 1 }}>

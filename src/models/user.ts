@@ -11,6 +11,9 @@ export interface UserModel {
     image: {
         url : string
         filename: string
+        mimetype: string
+        path: string
     }
     company: string
+    role: string
 }

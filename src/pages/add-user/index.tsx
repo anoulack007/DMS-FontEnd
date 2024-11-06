@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, IconButton, Menu, MenuItem, Paper, styled, TextField, Toolbar, Typography } from "@mui/material";
+import { Avatar, Box, Button, IconButton, MenuItem, Paper, styled, TextField, Toolbar, Typography } from "@mui/material";
 import UseMainController from "./controllers";
 import image from '../../assets/avatar.svg';
 import Grid from '@mui/material/Grid2';
@@ -36,49 +36,8 @@ const AddUserPage = () => {
 
   return (
     <Box>
-      {/* Box 1 Profile Menu */}
-      <Box sx={{ flexGrow: 1, bgcolor: 'white', width: '100%', height: 74, borderRadius: 3 }}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          </Typography>
-          {ctrl?.auth && (
-            <div style={{ marginTop: 10 }}>
-              admin-1
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={ctrl?.handleProfileMenu}
-                color="inherit"
-              >
-                <img src={image} alt="avatar" />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={ctrl?.anchorElProfile}  // ใช้ anchorElProfile สำหรับโปรไฟล์
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(ctrl?.anchorElProfile)}
-                onClose={ctrl?.handleCloseProfileMenu}
-              >
-                <MenuItem onClick={ctrl?.handleCloseProfileMenu}>Profile</MenuItem>
-                <MenuItem onClick={ctrl?.handleCloseProfileMenu}>My account</MenuItem>
-              </Menu>
-            </div>
-          )}
-        </Toolbar>
-      </Box>
 
-
-      {/* Box 2 */}
+      {/* Box 1 */}
       <Box sx={{ flexGrow: 1, width: '100%', height: 89 }}>
         <Toolbar>
           <Typography variant="h5" component="div" sx={{ flexGrow: 1, color: '#838383', marginTop: 1 }}>
@@ -100,7 +59,7 @@ const AddUserPage = () => {
             <AvatarUpload>
               <Avatar
                 sx={{ width: '100%', height: '100%' }}
-                src={image}
+                src={ctrl.formDataUser.image.url || image}
                 alt="avatar"
               />
             </AvatarUpload>
@@ -108,112 +67,116 @@ const AddUserPage = () => {
               Allowed *.jpeg, *.jpg, *.png, *.gif <br />
               Max size of 3.1 MB
             </Typography>
+            <Button variant="outlined" component="label" sx={{ mt: 2 }}>
+            Upload Image
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={ctrl.handleImageUpload}
+            />
+          </Button>
           </Item>
         </Grid>
 
         {/* Form */}
         <Grid size={6}>
           <Item>
-            <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-              <Grid size={6}>
-                <TextField
-                  fullWidth
-                  label="Name"
-                  variant="outlined"
-                  name="name"
-                  value={ctrl?.formDataUser.name}
-                  onChange={ctrl?.handleChange}
-                  required
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  fullWidth
-                  label="Surname"
-                  variant="outlined"
-                  name="surname"
-                  value={ctrl?.formDataUser.surname}
-                  onChange={ctrl?.handleChange}
-                  required
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  fullWidth
-                  label="Phone Number"
-                  variant="outlined"
-                  name="phoneNumber"
-                  value={ctrl?.formDataUser.phoneNumber}
-                  onChange={ctrl?.handleChange}
-                  required
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  variant="outlined"
-                  name="email"
-                  type="email"
-                  value={ctrl?.formDataUser.email}
-                  onChange={ctrl?.handleChange}
-                  required
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  fullWidth
-                  label="Username"
-                  variant="outlined"
-                  name="username"
-                  value={ctrl?.formDataUser.username}
-                  onChange={ctrl?.handleChange}
-                  required
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  fullWidth
-                  label="Password"
-                  variant="outlined"
-                  type="password"
-                  name="password"
-                  value={ctrl?.formDataUser.password}
-                  onChange={ctrl?.handleChange}
-                  required
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  fullWidth
-                  label="Company"
-                  variant="outlined"
-                  name="company"
-                  value={ctrl?.formDataUser.company}
-                  onChange={ctrl?.handleChange}
-                  required
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Role"
-                  variant="outlined"
-                  name="role"
-                  value={ctrl?.formDataUser.role}
-                  onChange={ctrl?.handleRoleChange}
-                  required
-                >
-                  {ctrl?.roles.map((role) => (
-                    <MenuItem key={role} value={role}>
-                      {role}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-            </Grid>
             <form onSubmit={ctrl?.handleSubmit}>
+              <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+                <Grid size={6}>
+                  <TextField
+                    fullWidth
+                    label="Name"
+                    variant="outlined"
+                    name="name"
+                    value={ctrl?.formDataUser.name}
+                    onChange={ctrl?.handleChange}
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <TextField
+                    fullWidth
+                    label="Surname"
+                    variant="outlined"
+                    name="surname"
+                    value={ctrl?.formDataUser.surname}
+                    onChange={ctrl?.handleChange}
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <TextField
+                    fullWidth
+                    label="Phone Number"
+                    variant="outlined"
+                    name="phoneNumber"
+                    value={ctrl?.formDataUser.phoneNumber}
+                    onChange={ctrl?.handleChange}
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    variant="outlined"
+                    name="email"
+                    type="email"
+                    value={ctrl?.formDataUser.email}
+                    onChange={ctrl?.handleChange}
+                    required
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <TextField
+                    fullWidth
+                    label="Username"
+                    variant="outlined"
+                    name="username"
+                    value={ctrl?.formDataUser.username}
+                    onChange={ctrl?.handleChange}
+                    required
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <TextField
+                    fullWidth
+                    label="Password"
+                    variant="outlined"
+                    type="password"
+                    name="password"
+                    value={ctrl?.formDataUser.password}
+                    onChange={ctrl?.handleChange}
+                    required
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <TextField
+                    fullWidth
+                    label="Company"
+                    variant="outlined"
+                    name="company"
+                    value={ctrl?.formDataUser.company}
+                    onChange={ctrl?.handleChange}
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Role"
+                    variant="outlined"
+                    name="role"
+                    value={ctrl?.formDataUser.role}
+                    onChange={ctrl?.handleRoleChange}
+                  >
+                    {ctrl?.roles.map((role) => (
+                      <MenuItem key={role} value={role}>
+                        {role}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+              </Grid>
 
               {/* ปุ่มบันทึก */}
               <Button
