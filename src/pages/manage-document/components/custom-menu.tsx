@@ -14,9 +14,10 @@ interface Props {
   selectedCount: number;
   onDetailsClick: () => void; // Update the prop to accept a document
   hanldeFolderRename: () => void;
+  handleDelete: (e: React.FormEvent) => void;
 }
 
-const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename }: Props) => {
+const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename, handleDelete }: Props) => {
   const ListMenu = [
     {
       label: "Share",
@@ -25,6 +26,7 @@ const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename }: Props
     {
       label: "Delete",
       icon: <DeleteIcon />,
+      onclick: handleDelete
     },
     {
       label: "Move to",

@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DOCUMENT_DETAIL_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
-import { GET_ALL_FOLDER_END_POINT } from "../../../configs/endPoint/crud";
+import { CREATE_FOLDER_END_POINT, GET_ALL_FOLDER_END_POINT } from "../../../configs/endPoint/crud";
+import Swal from "sweetalert2";
+import { STATUS_ENUMS } from "../../../enums/status-enum";
+import { SelectChangeEvent } from "@mui/material";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
@@ -14,7 +17,7 @@ interface Document {
   documentId: string;
   modified: string;
   size: string;
-  status: string;
+  status: STATUS_ENUMS;
   isFolder: boolean;
   parentId: string
   isPinned: boolean
@@ -41,47 +44,58 @@ const UseMainController = () => {
   const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
 
   // const [status, setStatus] = useState<STATUS_ENUMS>()
-  const [newName, setNewName] = useState<string>(null!)
+  const [newName, setNewName] = useState<string>(null!);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
 
- 
+  const handleChangeStatus = async (event: SelectChangeEvent<STATUS_ENUMS>) => {
+    const newStatus = event.target.value as STATUS_ENUMS;
+    
+    if (!selectedDocument) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'No Document Selected',
+        text: 'Please select a document to change the status.',
+      });
+      return;
+    }
 
-  // const handleChangeStatus = async (newStatus: string) => {
-  //   if (!selectedDocument) return;
-  
-  //   try {
-  //     setIsUpdating(true);
-  
-  //     // Optimistic update
-  //     setSelectedDocument((prev) => ({
-  //       ...prev,
-  //       status: newStatus,
-  //     }));
-  
-  //     // Make API call to update status
-  //     const response = await axiosInstance.patch(`/${selectedDocument.documentId}`, {
-  //       status: newStatus,
-  //     });
-  
-  //     // Optional: Update with server response
-  //     setSelectedDocument(response.data);
-  
-  //     // You might want to trigger a refresh of the documents list
-  //     // refreshDocumentsList();
-  
-  //   } catch (error) {
-  //     console.error('Error updating document status:', error);
-  
-  //   } finally {
-  //     setIsUpdating(false);
-  //   }
-  // };
+    try {
+      const res = await axiosInstance.patch(`${CREATE_FOLDER_END_POINT}/${selectedDocument.id}`, {
+        status: newStatus
+      });
+
+      // Update selected document
+      setSelectedDocument({ ...selectedDocument, status: newStatus });
+      
+      // Update documents list
+      setDocuments(prevDocs => 
+        prevDocs.map(doc => 
+          doc.id === selectedDocument.id 
+            ? { ...doc, status: newStatus }
+            : doc
+        )
+      );
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Status Updated!',
+        text: `The document status has been updated to "${newStatus}" successfully.`,
+      });
+    } catch (error) {
+      console.error('Error updating status:', error);
+      
+      await Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Failed to update status. Please try again.',
+      });
+    }
+  };
 
 
   const handleDetailsClick = () => {
     if (selectedDocument) {
-      console.log("Opening details for:", selectedDocument);
       setCollapseOpen(true); // Open the collapse
       setSearchParams({ docId: selectedDocument.id, action: 'collapse' });
     } else {
@@ -89,10 +103,6 @@ const UseMainController = () => {
     }
   };
   
-  // Check if collapseOpen is changing
-  useEffect(() => {
-    console.log("Collapse Open:", collapeOpen);
-  }, [collapeOpen]);
 
   const handleFolderClick = (e: React.MouseEvent, doc: Document) => {
     e.preventDefault();
@@ -150,7 +160,7 @@ const UseMainController = () => {
       setSortField(field);
       setSortOrder("asc");
     }
-    // Implement sorting logic here
+
     const sortedDocuments = [...documents].sort((a, b) => {
       if (a[field] < b[field]) return sortOrder === "asc" ? -1 : 1;
       if (a[field] > b[field]) return sortOrder === "asc" ? 1 : -1;
@@ -195,12 +205,97 @@ const UseMainController = () => {
     setCollapseOpen(action === 'collapse');
   }, [searchParams]);
 
+  const handleDeleteFolder = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault(); // Prevent the default form submission behavior
+  
+    // Confirm deletion
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'This action will permanently delete the folder.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+    });
+  
+    if (result.isConfirmed) {
+      try {
+        const res = await axiosInstance.delete(`${CREATE_FOLDER_END_POINT}/${selectedDocument?.id}`);
+  
+        // Show success alert
+        await Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'The folder has been deleted successfully.',
+        });
+
+        handleGetData();
+      } catch (error) {
+        console.error(error);
+        // Show error alert
+        await Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Failed to delete folder. Please try again.',
+        });
+      }
+    }
+  };
+
+  const handleRenameFolder = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+    
+    if (!selectedDocument) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'No Document Selected',
+        text: 'Please select a document to rename the folder.',
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      const res = await axiosInstance.patch(`${CREATE_FOLDER_END_POINT}/${selectedDocument.id}`, {
+        name: newName
+      });
+
+      setSelectedDocument(res.data);
+      setRenameDialogOpen(false);
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Folder Renamed!',
+        text: `The folder has been renamed to "${newName}" successfully.`,
+      });
+
+      handleGetData();
+    } catch (error) {
+      console.error(error);
+      
+      await Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Failed to rename folder. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChangeName = (value: string) => {
+    setNewName(value);
+  };
+
+
+
   
   return {
     setIsSubmitting,
     isSubmitting,
     newName,
-    handleReName: (value: string) => setNewName(value),
+    // handleChangeName: (value: string) => setNewName(value),
     setRenameDialogOpen,
     renameDialogOpen,
     status,
@@ -228,6 +323,11 @@ const UseMainController = () => {
     // handleDocumentClick,
     handleFolderClick,
     handleDetailsClick,
+    handleRenameFolder,
+    handleChangeName,
+    handleDeleteFolder,
+    handleChangeStatus
+    
 
   };
 };
