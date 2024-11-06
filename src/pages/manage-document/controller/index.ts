@@ -6,6 +6,8 @@ import { CREATE_FOLDER_END_POINT, GET_ALL_FOLDER_END_POINT } from "../../../conf
 import Swal from "sweetalert2";
 import { STATUS_ENUMS } from "../../../enums/status-enum";
 import { SelectChangeEvent } from "@mui/material";
+import { ErrorResponse } from "../../../utils/functions/Error";
+import { ErrorModel } from "../../../models/Error";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
@@ -244,7 +246,9 @@ const UseMainController = () => {
 
   const handleRenameFolder = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    
+
+    setRenameDialogOpen(false);
+  
     if (!selectedDocument) {
       await Swal.fire({
         icon: 'warning',
@@ -253,36 +257,57 @@ const UseMainController = () => {
       });
       return;
     }
-
+  
+    if (!newName || newName.trim() === '') {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Name',
+        text: 'Please enter a valid name for the folder.',
+      });
+      return;
+    }
+  
+    // Show confirmation dialog first
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: `Do you really want to rename the folder to "${newName}"?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, rename it!',
+      cancelButtonText: 'No, keep it',
+    });
+  
+    // If the user cancels, do nothing
+    if (!result.isConfirmed) {
+      return;
+    }
+  
     try {
       setIsSubmitting(true);
-      
+  
+      // Proceed with the rename only if the user confirmed
       const res = await axiosInstance.patch(`${CREATE_FOLDER_END_POINT}/${selectedDocument.id}`, {
-        name: newName
+        name: newName,
       });
-
+  
+      // Update the selected document with the new data from the API response
       setSelectedDocument(res.data);
-      setRenameDialogOpen(false);
-
+  
       await Swal.fire({
         icon: 'success',
         title: 'Folder Renamed!',
         text: `The folder has been renamed to "${newName}" successfully.`,
       });
-
+  
       handleGetData();
     } catch (error) {
       console.error(error);
-      
-      await Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Failed to rename folder. Please try again.',
-      });
+      ErrorResponse(error as ErrorModel)
     } finally {
       setIsSubmitting(false);
     }
   };
+  
 
   const handleChangeName = (value: string) => {
     setNewName(value);

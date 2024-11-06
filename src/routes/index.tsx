@@ -1,7 +1,6 @@
 import { useRoutes } from "react-router-dom";
 import {
   DOCUMENT_DETAIL_PATH,
-  HOME_PATH,
   LOGIN_PATH,
   MANAGE_DOC_PATH,
   MANAGE_USER_PATH,
@@ -13,7 +12,6 @@ import {
   USER_DETAIL_PATH,
 } from "./paths";
 import MainLayout from "../layout";
-import HomePage from "../pages/home";
 import LoginPage from "../pages/login";
 import NotFoundPage from "../404";
 import SearchDocumentPage from "../pages/search_document";
@@ -37,10 +35,6 @@ const RoutesComponent = () => {
         // </ProtectedRoutes>
       ),
       children: [
-        {
-          path: HOME_PATH,
-          element: <HomePage />,
-        },
         {
           path: MANAGE_DOC_PATH,
           element: <ManageDocumentPage />,

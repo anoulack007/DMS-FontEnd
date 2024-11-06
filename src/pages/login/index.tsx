@@ -17,7 +17,7 @@ import UseMainController from "./controller";
 
 //icons
 import EmailIcon from "@mui/icons-material/Email";
-import PasswordIcon from "@mui/icons-material/Password";
+import LockIcon from '@mui/icons-material/Lock';
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
@@ -43,22 +43,7 @@ const LoginPage = () => {
         }}
       >
         <Grid container>
-          <Grid item xs={12} md={6}>
-            <Box
-              sx={{
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <img
-                src={Image}
-                alt="Login illustration"
-                style={{ maxWidth: "100%", height: "auto" }}
-              />
-            </Box>
-          </Grid>
+
           <Grid item xs={12} md={6}>
             <Box
               sx={{
@@ -76,10 +61,10 @@ const LoginPage = () => {
                 mt={3}
                 textAlign={"center"}
                 variant="h5"
-                fontWeight={600}
-                color="primary"
+                fontWeight={700}
+                sx={{ color: '#2C3E50', fontFamily: 'Noto Sans Lao, sans-serif' }}
               >
-                Login Account
+                ເຂົ້າສູ່ລະບົບ
               </Typography>
 
               <form onSubmit={ctrl.handleSubmit}>
@@ -93,7 +78,7 @@ const LoginPage = () => {
                         </InputAdornment>
                       ),
                     }}
-                    placeholder="Email Id"
+                    placeholder="ປ້ອນຊື່ ຫຼື ອີເມວ"
                     margin="normal"
                     fullWidth
                   />
@@ -104,7 +89,7 @@ const LoginPage = () => {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <PasswordIcon />
+                          <LockIcon />
                         </InputAdornment>
                       ),
                       endAdornment: (
@@ -123,7 +108,7 @@ const LoginPage = () => {
                         </InputAdornment>
                       ),
                     }}
-                    placeholder="Password"
+                    placeholder="ລະຫັດຜ່ານ"
                     margin="normal"
                     fullWidth
                   />
@@ -131,7 +116,7 @@ const LoginPage = () => {
                   <Box mt={3} sx={{ maxHeight: 50 }}>
                     <Button
                       type="submit"
-                      sx={{ borderRadius: 5, height: "100%", textTransform: 'none' }}
+                      sx={{ borderRadius: 5, height: "100%", textTransform: 'none', bgcolor: '#2C3E50', fontFamily: 'Noto Sans Lao, sans-serif' }}
                       fullWidth
                       variant="contained"
                       disabled={ctrl?.email && ctrl?.password ? false : true}
@@ -145,6 +130,22 @@ const LoginPage = () => {
                   </Box>
                 </Box>
               </form>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <img
+                src={Image}
+                alt="Login illustration"
+                style={{ maxWidth: "100%", height: "auto" }}
+              />
             </Box>
           </Grid>
         </Grid>
