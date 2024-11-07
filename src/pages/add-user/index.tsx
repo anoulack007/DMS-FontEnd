@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, IconButton, MenuItem, Paper, styled, TextField, Toolbar, Typography } from "@mui/material";
+import { Avatar, Box, Button, IconButton, MenuItem, Paper, styled, TextField, Typography } from "@mui/material";
 import UseMainController from "./controllers";
 import image from '../../assets/avatar.svg';
 import Grid from '@mui/material/Grid2';
@@ -8,12 +8,13 @@ import { MANAGE_USER_PATH } from "../../routes/paths";
 // icon
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 
+
 const AvatarUpload = styled(Box)({
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
   flexDirection: 'column',
-  width: 250,           // Fixed width and height for avatar box
+  width: 250,
   height: 250,
   borderRadius: '50%',
   border: '1px dashed #ccc',
@@ -27,30 +28,47 @@ const Item = styled(Paper)({
   textAlign: 'center',
   borderRadius: '15px',
   boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-  backgroundColor: '#fff',  // Ensure white background as in your example
+  backgroundColor: '#fff',
 });
 
 const AddUserPage = () => {
-
   const ctrl = UseMainController();
+
+
 
   return (
     <Box>
 
       {/* Box 1 */}
-      <Box sx={{ flexGrow: 1, width: '100%', height: 89 }}>
-        <Toolbar>
-          <Typography variant="h5" component="div" sx={{ flexGrow: 1, color: '#838383', marginTop: 1 }}>
-            Add User
-            <p style={{ fontSize: 16 }}>
-              <IconButton onClick={() => ctrl?.handleSwitchPageClick(MANAGE_USER_PATH)}>
-                <ArrowBackIosNewIcon />
-              </IconButton>
-              User management /
-              <span style={{ color: 'red' }}> Add User</span> </p>
-          </Typography>
-        </Toolbar>
+      <Box sx={{
+        display: "flex",
+        gap: 2,
+        mb: 4,
+        flexWrap: "wrap",
+        alignItems: "center",
+      }}>
+        <Typography variant="h5" component="div" sx={{ flexGrow: 1, color: '#838383', marginTop: 1 }}>
+          Add User Page
+          <p style={{ fontSize: 16 }}>
+            <IconButton onClick={() => ctrl?.handleSwitchPageClick(MANAGE_USER_PATH)}>
+              <ArrowBackIosNewIcon />
+            </IconButton>
+            User Management /
+            <span style={{ color: 'red' }}> Add User Page</span> </p>
+        </Typography>
+
+        <Button
+          variant="contained"
+          startIcon={<ArrowBackIosNewIcon />}
+          onClick={() => ctrl?.handleSwitchPageClick(MANAGE_USER_PATH)}
+          sx={{ height: 50 }}
+        >
+          Back
+        </Button>
+
       </Box>
+
+
 
       {/* Upload Avatar */}
       <Grid container spacing={2}>
@@ -59,7 +77,7 @@ const AddUserPage = () => {
             <AvatarUpload>
               <Avatar
                 sx={{ width: '100%', height: '100%' }}
-                src={ctrl.formDataUser.image.url || image}
+                src={ctrl?.previewProfile || image}
                 alt="avatar"
               />
             </AvatarUpload>
@@ -68,14 +86,14 @@ const AddUserPage = () => {
               Max size of 3.1 MB
             </Typography>
             <Button variant="outlined" component="label" sx={{ mt: 2 }}>
-            Upload Image
-            <input
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={ctrl.handleImageUpload}
-            />
-          </Button>
+              Upload Image
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={ctrl?.handleImageUpload}  // use controller for file upload
+              />
+            </Button>
           </Item>
         </Grid>
 
@@ -90,8 +108,8 @@ const AddUserPage = () => {
                     label="Name"
                     variant="outlined"
                     name="name"
-                    value={ctrl?.formDataUser.name}
-                    onChange={ctrl?.handleChange}
+                    value={ctrl?.name}
+                    onChange={(e) => ctrl?.setName(e.target.value)}
                   />
                 </Grid>
                 <Grid size={6}>
@@ -100,8 +118,8 @@ const AddUserPage = () => {
                     label="Surname"
                     variant="outlined"
                     name="surname"
-                    value={ctrl?.formDataUser.surname}
-                    onChange={ctrl?.handleChange}
+                    value={ctrl?.surname}
+                    onChange={(e) => ctrl.setSurname(e.target.value)}
                   />
                 </Grid>
                 <Grid size={6}>
@@ -110,8 +128,8 @@ const AddUserPage = () => {
                     label="Phone Number"
                     variant="outlined"
                     name="phoneNumber"
-                    value={ctrl?.formDataUser.phoneNumber}
-                    onChange={ctrl?.handleChange}
+                    value={ctrl.phoneNumber}
+                    onChange={(e) => ctrl.setPhonenumber(e.target.value)}
                   />
                 </Grid>
                 <Grid size={6}>
@@ -121,8 +139,8 @@ const AddUserPage = () => {
                     variant="outlined"
                     name="email"
                     type="email"
-                    value={ctrl?.formDataUser.email}
-                    onChange={ctrl?.handleChange}
+                    value={ctrl.email}
+                    onChange={(e) => ctrl.setEmail(e.target.value)}
                     required
                   />
                 </Grid>
@@ -132,8 +150,8 @@ const AddUserPage = () => {
                     label="Username"
                     variant="outlined"
                     name="username"
-                    value={ctrl?.formDataUser.username}
-                    onChange={ctrl?.handleChange}
+                    value={ctrl.username}
+                    onChange={(e) => ctrl.setUsername(e.target.value)}
                     required
                   />
                 </Grid>
@@ -144,8 +162,8 @@ const AddUserPage = () => {
                     variant="outlined"
                     type="password"
                     name="password"
-                    value={ctrl?.formDataUser.password}
-                    onChange={ctrl?.handleChange}
+                    value={ctrl.password}
+                    onChange={(e) => ctrl.setPassword(e.target.value)}
                     required
                   />
                 </Grid>
@@ -155,8 +173,8 @@ const AddUserPage = () => {
                     label="Company"
                     variant="outlined"
                     name="company"
-                    value={ctrl?.formDataUser.company}
-                    onChange={ctrl?.handleChange}
+                    value={ctrl.company}
+                    onChange={(e) => ctrl.setCompany(e.target.value)}
                   />
                 </Grid>
                 <Grid size={6}>
@@ -166,12 +184,12 @@ const AddUserPage = () => {
                     label="Role"
                     variant="outlined"
                     name="role"
-                    value={ctrl?.formDataUser.role}
-                    onChange={ctrl?.handleRoleChange}
+                    value={ctrl.role}
+                    onChange={(e) => ctrl.setRole(e.target.value)}
                   >
-                    {ctrl?.roles.map((role) => (
-                      <MenuItem key={role} value={role}>
-                        {role}
+                    {Object.values(ctrl.roles).map((roleOption) => (
+                      <MenuItem key={roleOption} value={roleOption}>
+                        {roleOption}
                       </MenuItem>
                     ))}
                   </TextField>
@@ -184,8 +202,11 @@ const AddUserPage = () => {
                 variant="contained"
                 color="primary"
                 sx={{ mt: 3 }}
+              // disabled={ctrl?.loading}  // disable submit when loading
+
               >
                 ບັນທຶກ
+                {/* {ctrl?.loading ? "ກຳລັງບັນທຶກ..." : "ບັນທຶກ"} */}
               </Button>
             </form>
           </Item>

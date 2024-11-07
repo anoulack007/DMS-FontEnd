@@ -1,7 +1,9 @@
 import { ADD_USER_PATH, USER_DETAIL_PATH } from "../../routes/paths";
 
 import {
-  Paper, Box, IconButton, Menu, MenuItem, Typography, Toolbar, InputBase, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, TablePagination, Button,
+  Paper, Box, IconButton, Menu, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, TablePagination, Button,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 
 
@@ -12,41 +14,85 @@ import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import UseMainController from './controllers';
 import AddIcon from '@mui/icons-material/Add';
+import FilterIcon from '@mui/icons-material/FilterList';
 
 //Component
 import CustomMenu from './components/custom-menu';
 import PopupDialog from "./components/modal-popup";
+import { useState } from "react";
 
 
 export default function DataTable() {
   const ctrl = UseMainController();
   const open = Boolean(ctrl?.anchorEl);
 
+  const [filterRoles, setfilterRoles] = useState("all");
+
+  const RolesOption = [
+    { value: "all", label: "All Roles" },
+    { value: "TeamLeader", label: "TeamLeader" },
+    { value: "UXUI", label: "UX/UI" },
+    { value: "FrontEnd", label: "FrontEnd" },
+    { value: "BackEnd", label: "BackEnd" },
+    { value: "Tester", label: "Tester" },
+    { value: "CheifTechnologyOfficer", label: "Cheif Technology Officer" },
+  ]
+
   return (
     <Box>
-      
+
       {/* Add User & Search */}
-      <Box sx={{ flexGrow: 1, width: '100%', height: 89 }}>
-        <Toolbar>
-          <Typography variant="h5" component="div" sx={{ flexGrow: 1, color: '#838383', marginTop: 1 }}>
-            <Button onClick={() => ctrl?.handleAddUserClick(ADD_USER_PATH)} variant="contained" startIcon={<AddIcon />}>
-              Add User
-            </Button>
-          </Typography>
-          <Paper
-            component="form"
-            sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 300, borderRadius: 6, marginTop: 3 }}
-          >
-            <InputBase
-              sx={{ ml: 1, flex: 1 }}
-              placeholder="Search"
-              inputProps={{ 'aria-label': 'search' }}
-            />
-            <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
-              <SearchIcon />
-            </IconButton>
-          </Paper>
-        </Toolbar>
+      <Box sx={{
+        display: "flex",
+        gap: 2,
+        mb: 4,
+        flexWrap: "wrap",
+        alignItems: "center",
+      }}>
+        <Button onClick={() => ctrl?.handleAddUserClick(ADD_USER_PATH)}
+          variant="contained"
+          startIcon={<AddIcon />}
+          sx={{ height: 50 }}>
+
+          Add User
+        </Button>
+
+        <TextField
+          placeholder="Search Users..."
+          value={''}
+          sx={{ flexGrow: 1, bgcolor: "white" }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          size="medium"
+        />
+
+        <TextField
+          select
+          value={filterRoles}
+          onChange={(e) => setfilterRoles(e.target.value)}
+          sx={{ minWidth: 150, bgcolor: "white" }}
+          size="medium"
+          label="Roles"
+        >
+          {RolesOption.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
+        <Button
+          variant="contained"
+          startIcon={<FilterIcon />}
+          // onClick={handleSearch}
+          sx={{ height: 50 }}
+        >
+          Apply Filters
+        </Button>
       </Box>
 
       {ctrl?.selectedIds.length > 0 && (

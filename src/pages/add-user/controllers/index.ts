@@ -1,123 +1,152 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { UserModel } from "../../../models/user"
 import axiosInstance from "../../../configs/axios"
 import { CREATE_USER } from "../../../configs/endPoint/login"
 import { useNavigate } from "react-router-dom"
-import { ImageModel } from "../../../models/image"
+import Swal from "sweetalert2"
 
 const UseMainController = () => {
 
   const [data, setData] = useState<UserModel[]>([])
-  const [anchorElProfile, setAnchorElProfile] = useState<null | HTMLElement>(null);  //
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const [ProfileImg, setProfileImg] = useState<File | null>(null);
+  const [previewProfile, setPreviewProfile] = useState<string>(null!);
+  const [_imageLink, setImageLink] = useState<string>('');
+
+  const [name, setName] = useState<string>(null!)
+  const [surname, setSurname] = useState<string>('')
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
+  const [phoneNumber, setPhonenumber] = useState<string>('');
+  const [company, setCompany] = useState<string>('');
+  const [role, setRole] = useState<string>('TeamLeader');
 
   const navigate = useNavigate();
 
   const roles = ['TeamLeader', 'UXUI', 'FrontEnd', 'BackEnd', 'Tester', 'CheifTechnologyOfficer'];
-
-  const [formDataUser, setFormDataUser] = useState({
-    username: '',
-    email: '',
-    password: '',
-    name: '',
-    surname: '',
-    phoneNumber: '',
-    company: '',
-    role: '',
-    image: { url: '', path: '', fileName: '', mimetype: '' } as ImageModel,
-  });
-
-  // Post Data
-  const handlePostData = async () => {
-    try {
-      const res = await axiosInstance.post(CREATE_USER, formDataUser)
-      setData(res?.data?.data)
-      setFormDataUser({
-        username: '',
-        email: '',
-        password: '',
-        name: '',
-        surname: '',
-        phoneNumber: '',
-        company: '',
-        role: '',
-        image: { url: '', path: '', fileName: '', mimetype: '' },
-      });
-
-    } catch (error: any) {
-      if (error.response) {
-        console.error("API Error:", error.response.data); // แสดงรายละเอียดข้อผิดพลาดจากเซิร์ฟเวอร์
-      } else {
-        console.error("Error:", error.message);
-      }
-    }
-  }
-  useEffect(() => {
-    handlePostData()
-  }, [])
-  
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const image: ImageModel = {
-          url: reader.result as string,  // แปลงเป็น Base64
-          path: `images/profile/${file.name}`,  // เก็บ path ของไฟล์
-          fileName: file.name,                // ชื่อไฟล์
-          mimetype: file.type,                // ชนิดของไฟล์
-        };
-        setFormDataUser({
-          ...formDataUser,
-          image: image,  // อัปเดตข้อมูลภาพ
-        });
-      };
-      reader.readAsDataURL(file); // อ่านไฟล์เป็น Base64
-    }
-  };
-
-
-
-  // Profile menu
-  const handleProfileMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElProfile(event.currentTarget);
-  };
-  const handleCloseProfileMenu = () => {
-    setAnchorElProfile(null);
-  };
 
   // Add user button
   const handleSwitchPageClick = (path: string) => {
     navigate(path);
   };
 
-  // จัดการการเปลี่ยนแปลงข้อมูลในฟอร์ม
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormDataUser({ ...formDataUser, [event.target.name]: event.target.value });
+  // แสดงรูปตัวอย่างเมื่อเลือกไฟล์
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setProfileImg(file);
+      const previewURL = URL.createObjectURL(file);
+      setPreviewProfile(previewURL);
+
+      // Cleanup
+      return () => URL.revokeObjectURL(previewURL);
+    }
   };
 
-  const handleRoleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormDataUser({ ...formDataUser, role: event.target.value });
-  };
-
-  const handleSubmit = (event: React.FormEvent) => {
+  // ฟังก์ชันจัดการการส่งฟอร์ม
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log("Form Data:", formDataUser); // เพิ่มเพื่อตรวจสอบข้อมูล
-    handlePostData();
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to submit the form?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, submit it!",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("surname", surname);
+      formData.append("phoneNumber", phoneNumber);
+      formData.append("email", email);
+      formData.append("username", username);
+      formData.append("password", password);
+      formData.append("company", company);
+      formData.append("role", role);
+
+      // Append image if exists
+      if (ProfileImg) {
+        formData.append('image', ProfileImg);
+      }
+
+      // const config = { headers: { "Content-Type": "multipart/form-data" } };
+      const res = await axiosInstance.post(CREATE_USER, formData);
+
+      setData(res?.data?.data);
+
+      if (res.data?.data?.imageLink) {
+        setImageLink(res.data.data.imageLink);
+
+        if (previewProfile) {
+          URL.revokeObjectURL(previewProfile);
+        }
+      }
+
+      // Show success message
+      Swal.fire({
+        title: "Success!",
+        text: "Your form has been submitted successfully.",
+        icon: "success",
+        confirmButtonText: "Okay",
+      });
+
+    } catch (error: any) {
+      if (error.response) {
+        console.error("Error response from API:", error.response);
+        Swal.fire({
+          title: "Error",
+          text: error.response.data.message || "Something went wrong.",
+          icon: "error",
+          confirmButtonText: "Okay",
+        });
+      } else {
+        console.error("Error:", error.message);
+        Swal.fire({
+          title: "Error",
+          text: error.message,
+          icon: "error",
+          confirmButtonText: "Okay",
+        });
+    }
+    }
   };
 
   return {
     data,
-    anchorElProfile,
-    handleSwitchPageClick,
-    handleCloseProfileMenu,
-    handlePostData,
-    handleProfileMenu,
+    name,
+    surname,
+    email,
+    password,
+    username,
+    phoneNumber,
+    company,
+    role,
     roles,
-    handleRoleChange,
+    loading,
+    setName,
+    setSurname,
+    setEmail,
+    setPassword,
+    setUsername,
+    setPhonenumber,
+    setCompany,
+    setRole,
+    handleSwitchPageClick,
     handleSubmit,
-    handleChange,
-    formDataUser,
-    handleImageUpload
+    handleImageUpload,
+    previewProfile,
   }
 }
 
