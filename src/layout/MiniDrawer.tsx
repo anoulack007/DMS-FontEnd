@@ -36,7 +36,7 @@ import Upload_ic from "../assets/Image/Document Arrow Up.svg";
 import Upload_ic2 from "../assets/Image/Folder Arrow Up.svg";
 import FoldeImage from "../assets/Image/image 11.png";
 import axiosInstance from "../configs/axios";
-import { CREATE_FOLDER_END_POINT } from "../configs/endPoint/crud";
+import { CREATE_FOLDER_END_POINT } from "../configs/endPoint/folder-endpoint";
 import Swal from "sweetalert2";
 
 const openedMixin = (theme: Theme): CSSObject => ({

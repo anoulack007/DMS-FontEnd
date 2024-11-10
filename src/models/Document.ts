@@ -3,6 +3,7 @@ export interface Document {
   name: string;
   path: string;
   documentId: string;
+  type: string
   modified: string;
   fileSize: string;
   status: string;

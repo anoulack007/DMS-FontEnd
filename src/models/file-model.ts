@@ -1,0 +1,28 @@
+interface owner{
+    company: string
+    name: string
+    email: string
+    username: string
+}
+export interface FileModel {
+    id: string
+    name: string
+    path: string
+    folderId: string
+    folder: string
+    pathLocal: string
+    type: string
+    size: string
+    status: string
+    owner: owner
+    ownerId: string
+    url: boolean
+    isDeleted: boolean
+    pin: boolean
+    isDelete: boolean
+    createdAt: string
+    updatedAt: string
+}
+
+
+
