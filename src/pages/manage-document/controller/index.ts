@@ -8,6 +8,8 @@ import { SelectChangeEvent } from "@mui/material";
 import { ErrorResponse } from "../../../utils/functions/Error";
 import { ErrorModel } from "../../../models/Error";
 import { CREATE_FOLDER_END_POINT, GET_ALL_FOLDER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
+import { IconType } from "../../../enums/icon-enums";
+import { GET_ALL_ROOT_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
@@ -19,6 +21,7 @@ interface Document {
   documentId: string;
   modified: string;
   size: string;
+  type: IconType;
   status: STATUS_ENUMS;
   isFolder: boolean;
   parentId: string
@@ -116,13 +119,29 @@ const UseMainController = () => {
     setCollapseOpen(false);
   };
 
-  const handleGetData = async () => { 
+  const handleGetData = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const res = await axiosInstance.get(GET_ALL_FOLDER_END_POINT);
-      setDocuments(res?.data?.data);
+      // Fetch folders
+      const foldersRes = await axiosInstance.get(GET_ALL_FOLDER_END_POINT);
+      const folders = foldersRes?.data?.data?.map((folder: any) => ({
+        ...folder,
+        itemType: 'folder'  // Add type identifier
+      }));
+      
+      // Fetch files
+      const filesRes = await axiosInstance.get(GET_ALL_ROOT_FILE_END_POINT);
+      const files = filesRes?.data?.data?.map((file: any) => ({
+        ...file,
+        itemType: 'file'  // Add type identifier
+      }));
+      
+      // Combine and set both files and folders
+      const combinedItems = [...folders, ...files];
+      setDocuments(combinedItems);
+      
     } catch (error) {
       console.error("API error:", error);
       setError("An error occurred while fetching data");

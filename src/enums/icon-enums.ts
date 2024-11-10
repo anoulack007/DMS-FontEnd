@@ -5,7 +5,7 @@ export enum IconType {
     DOCS = 'docs',
     XLSX = 'xlsx',
     IMAGE = 'image',
-    JPEG = 'jpeg',
+    JPG = 'jpg',
     PPT = 'ppt',
     MP3 = 'mp3',
     VIDEO = 'video',

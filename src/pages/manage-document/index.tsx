@@ -74,7 +74,7 @@ const getIconByType = (type: string) => {
       return <img src={XlsxImage} alt="xlsx" />;
     case IconType.IMAGE:
       return <img src={ImageImage} alt="image" />;
-    case IconType.JPEG:
+    case IconType.JPG:
       return <img height={45} src={JpegImage} alt="jpeg" />;
     case IconType.PPT:
       return <img src={PptImage} alt="ppt" />;

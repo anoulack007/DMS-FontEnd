@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   Box,
   Button,
@@ -30,13 +29,12 @@ import Add_ic from "../assets/Image/Add.svg";
 import Upload_ic from "../assets/Image/Document Arrow Up.svg";
 import Upload_ic2 from "../assets/Image/Folder Arrow Up.svg";
 import FoldeImage from "../assets/Image/image 11.png";
-import axiosInstance from "../configs/axios";
-import { CREATE_FOLDER_END_POINT } from "../configs/endPoint/folder-endpoint";
-import Swal from "sweetalert2";
+import UseDrawerController from "./controllers/Drawer";
+import FileUploadDialog from "./components/dilog-uploadFile";
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open",
-})(({ theme, open }) => ({
+})(() => ({
   width: DRAWER_WIDTH,
   flexShrink: 0,
   whiteSpace: "nowrap",
@@ -48,86 +46,20 @@ const Drawer = styled(MuiDrawer, {
 }));
 
 const MiniDrawer = () => {
+  const ctrl = UseDrawerController();
   const location = useLocation();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [open, setOpen] = useState<boolean>(true);
-
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [folderName, setFolderName] = useState<string>(null!);
-
-  const [anchorEl, setAnchorEl] = useState<null>(null!);
-  const opening = Boolean(anchorEl);
-
-  const handleClick = (event: any) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleOpenDialog = () => {
-    setOpenDialog(true);
-    handleClose();
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const handleCreateFolder = async () => {
-    try {
-      setLoading(true);
-      const data = {
-        name: folderName,
-      };
-  
-      const res = await axiosInstance.post(CREATE_FOLDER_END_POINT, data);
-  
-      // On success, show SweetAlert2 success alert
-      Swal.fire({
-        title: 'Success!',
-        text: 'Folder created successfully.',
-        icon: 'success',
-        confirmButtonText: 'OK',
-        customClass: {
-          confirmButton: 'your-custom-button-class', // You can add custom styles here if needed
-        },
-      });
-
-      handleCloseDialog();
-  
-    } catch (error) {
-      // On error, show SweetAlert2 error alert
-      Swal.fire({
-        title: 'Error!',
-        text: 'Failed to create folder. Please try again.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-        customClass: {
-          confirmButton: 'your-custom-button-class',
-        },
-      });
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const currentPath = location.pathname;
 
   return (
     <Box sx={{ position: "relative" }}>
       <CssBaseline />
-      <Drawer
-        variant="permanent"
-        open={open}
-      >
+      <Drawer variant="permanent" open={ctrl?.open}>
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: 'center',
+            justifyContent: "center",
             py: 0.5,
             px: 1,
           }}
@@ -151,15 +83,15 @@ const MiniDrawer = () => {
               alignItems: "center",
               justifyContent: "flex-start",
             }}
-            onClick={handleClick} // Change to onClick
+            onClick={ctrl?.handleClick} // Change to onClick
           >
             <img src={Add_ic} alt="Add" style={{ marginRight: 8 }} />
             Upload Files
           </Button>
           <Menu
-            anchorEl={anchorEl}
-            open={opening} // Change this line
-            onClose={handleClose}
+            anchorEl={ctrl?.anchorEl}
+            open={ctrl?.opening} // Change this line
+            onClose={ctrl?.handleClose}
             PaperProps={{
               style: {
                 borderRadius: "10px",
@@ -175,13 +107,13 @@ const MiniDrawer = () => {
 
             <Divider />
 
-            <MenuItem sx={{ my: 1 }} onClick={handleClose}>
+            <MenuItem sx={{ my: 1 }} onClick={ctrl?.handleOpenUploadDialog}>
               <ListItemIcon>
                 <img src={Upload_ic} alt="" />
               </ListItemIcon>
               <Typography variant="inherit">Files upload</Typography>
             </MenuItem>
-            <MenuItem onClick={handleOpenDialog}>
+            <MenuItem onClick={ctrl?.handleOpenDialog}>
               <ListItemIcon>
                 <img src={Upload_ic2} alt="upload" />
               </ListItemIcon>
@@ -189,18 +121,25 @@ const MiniDrawer = () => {
             </MenuItem>
           </Menu>
 
+          <FileUploadDialog
+            open={ctrl.openUploadDialog}
+            onClose={ctrl.handleCloseUploadDialog}
+          />
+
           <Dialog
             maxWidth="sm"
             fullWidth
-            open={openDialog}
-            onClose={handleCloseDialog}
+            open={ctrl?.openDialog}
+            onClose={ctrl?.handleCloseDialog}
           >
-            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between'}}>
+            <DialogTitle
+              sx={{ display: "flex", justifyContent: "space-between" }}
+            >
               Create a folder
               <IconButton
                 edge="end"
                 color="inherit"
-                onClick={handleCloseDialog}
+                onClick={ctrl?.handleCloseDialog}
                 aria-label="close"
               >
                 <CloseIcon />
@@ -215,23 +154,31 @@ const MiniDrawer = () => {
                 type="text"
                 fullWidth
                 variant="outlined"
-                value={folderName ?? ''}
-                onChange={(e) => setFolderName(e.target.value)}
+                value={ctrl?.folderName ?? ""}
+                onChange={(e) => ctrl?.setFolderName(e.target.value)}
               />
             </DialogContent>
             <DialogActions>
-              <Button sx={{ textTransform: 'none'}} onClick={handleCloseDialog} color="primary">
+              <Button
+                sx={{ textTransform: "none" }}
+                onClick={ctrl?.handleCloseDialog}
+                color="primary"
+              >
                 Cancel
               </Button>
               <Button
-              sx={{ textTransform: 'none'}}
+                sx={{ textTransform: "none" }}
                 type="submit"
-                onClick={handleCreateFolder}
+                onClick={ctrl?.handleCreateFolder}
                 color="primary"
                 variant="contained"
-                disabled={!folderName}
+                disabled={!ctrl?.folderName}
               >
-                {loading ? <CircularProgress color="primary" size={20} /> : "Create"}
+                {ctrl?.loading ? (
+                  <CircularProgress color="primary" size={20} />
+                ) : (
+                  "Create"
+                )}
               </Button>
             </DialogActions>
           </Dialog>
@@ -242,7 +189,7 @@ const MiniDrawer = () => {
             <NavItem
               key={item.path}
               item={item}
-              open={open}
+              open={ctrl?.open}
               active={
                 currentPath === "" ? index === 0 : currentPath === item.path
               }
