@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Box,
   Button,
@@ -14,51 +15,24 @@ import {
   Menu,
   MenuItem,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import { styled, Theme, CSSObject } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import MuiDrawer from "@mui/material/Drawer";
-import LockOpenIcon from "@mui/icons-material/LockOpen";
-import LockIcon from "@mui/icons-material/Lock";
 import NavItem from "./components/NavItem";
 import { useLocation } from "react-router-dom";
-import { COLLAPSED_SPACE, DRAWER_WIDTH, MENU_ITEM_LISTS } from "./config";
-import { useState } from "react";
-
-//images
-import Logo from "../assets/logo/JOB_LOGO.png";
-import Add_ic from "../assets/Image/Add.svg";
+import { DRAWER_WIDTH, MENU_ITEM_LISTS } from "./config";
 import CloseIcon from "@mui/icons-material/Close";
 
-//icons
+//images
+import Logo from "../assets/logo/IQURI.svg";
+import Add_ic from "../assets/Image/Add.svg";
 import Upload_ic from "../assets/Image/Document Arrow Up.svg";
 import Upload_ic2 from "../assets/Image/Folder Arrow Up.svg";
 import FoldeImage from "../assets/Image/image 11.png";
 import axiosInstance from "../configs/axios";
 import { CREATE_FOLDER_END_POINT } from "../configs/endPoint/folder-endpoint";
 import Swal from "sweetalert2";
-
-const openedMixin = (theme: Theme): CSSObject => ({
-  width: DRAWER_WIDTH,
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
-  overflowX: "hidden",
-});
-
-const closedMixin = (theme: Theme): CSSObject => ({
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  overflowX: "hidden",
-  width: `calc(${theme.spacing(COLLAPSED_SPACE)} + 1px)`,
-  [theme.breakpoints.up("sm")]: {
-    width: `calc(${theme.spacing(COLLAPSED_SPACE)} + 1px)`,
-  },
-});
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open",
@@ -67,21 +41,16 @@ const Drawer = styled(MuiDrawer, {
   flexShrink: 0,
   whiteSpace: "nowrap",
   boxSizing: "border-box",
-  ...(open && {
-    ...openedMixin(theme),
-    "& .MuiDrawer-paper": openedMixin(theme),
-  }),
-  ...(!open && {
-    ...closedMixin(theme),
-    "& .MuiDrawer-paper": closedMixin(theme),
-  }),
+  "& .MuiDrawer-paper": {
+    width: DRAWER_WIDTH,
+    boxSizing: "border-box",
+  },
 }));
 
 const MiniDrawer = () => {
   const location = useLocation();
   const [loading, setLoading] = useState<boolean>(false);
-  const [open, setOpen] = useState<boolean>(false);
-  const [locked, setLocked] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(true);
 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [folderName, setFolderName] = useState<string>(null!);
@@ -145,10 +114,6 @@ const MiniDrawer = () => {
     }
   };
 
-  const handleDrawerOpen = () => !locked && !open && setOpen(true);
-  const handleDrawerClose = () => !locked && open && setOpen(false);
-  const toggleLock = () => setLocked(!locked);
-
   const currentPath = location.pathname;
 
   return (
@@ -157,23 +122,16 @@ const MiniDrawer = () => {
       <Drawer
         variant="permanent"
         open={open}
-        onMouseEnter={handleDrawerOpen}
-        onMouseLeave={handleDrawerClose}
       >
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-evenly",
             alignItems: "center",
+            justifyContent: 'center',
             py: 0.5,
             px: 1,
           }}
         >
-          <Tooltip title={locked ? "Unlock drawer" : "Lock drawer"}>
-            <IconButton onClick={toggleLock} size="small">
-              {locked ? <LockIcon /> : <LockOpenIcon />}
-            </IconButton>
-          </Tooltip>
           <img height={70} width={70} src={Logo} alt="Freelancer" />
         </Box>
         <Divider />

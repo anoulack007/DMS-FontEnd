@@ -1,7 +1,6 @@
 import { useRoutes } from "react-router-dom";
 import {
   DOCUMENT_DETAIL_PATH,
-  HOME_PATH,
   LOGIN_PATH,
   MANAGE_DOC_PATH,
   MANAGE_USER_PATH,
@@ -9,9 +8,10 @@ import {
   REPORT_RECYCLE_PATH,
   REPORT_SHARE_PATH,
   SEARCH_DOC_PATH,
+  ADD_USER_PATH,
+  USER_DETAIL_PATH,
 } from "./paths";
 import MainLayout from "../layout";
-import HomePage from "../pages/home";
 import LoginPage from "../pages/login";
 import NotFoundPage from "../404";
 import SearchDocumentPage from "../pages/search_document";
@@ -22,6 +22,8 @@ import ReportRecyclePage from "../pages/report";
 import ManageUserPage from "../pages/manage-user";
 import DocumentDetailPage from "../pages/document-detail";
 import ProtectedRoutes from "./ProtectedRoute";
+import UserDetailPage from "../pages/user-detail";
+import AddUserPage from "../pages/add-user";
 
 const RoutesComponent = () => {
   return useRoutes([
@@ -33,10 +35,6 @@ const RoutesComponent = () => {
         </ProtectedRoutes>
       ),
       children: [
-        {
-          path: HOME_PATH,
-          element: <HomePage />,
-        },
         {
           path: MANAGE_DOC_PATH,
           element: <ManageDocumentPage />,
@@ -65,6 +63,14 @@ const RoutesComponent = () => {
           path: `${DOCUMENT_DETAIL_PATH}/:id`,
           element: <DocumentDetailPage />,
         },
+        {
+          path: ADD_USER_PATH,
+          element: <AddUserPage />,
+        },
+        {
+          path: USER_DETAIL_PATH,
+          element: <UserDetailPage />
+        }
       ],
     },
 
