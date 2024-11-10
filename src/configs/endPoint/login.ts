@@ -5,3 +5,7 @@ export const GET_PROFILE_BY_TOKEN: string = '/user/get-one';
 export const REFRESH_TOKEN: string = '/auth/refresh';
 
 export const GET_ALL_USER: string = '/user/get-all';
+
+export const CREATE_USER: string = '/user/create';
+
+export const DELETE_USER: string = 'user/delete/'

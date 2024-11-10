@@ -1,91 +1,153 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { UserModel } from "../../../models/user"
 import axiosInstance from "../../../configs/axios"
-import { GET_ALL_USER } from "../../../configs/endPoint/login"
+import { CREATE_USER } from "../../../configs/endPoint/login"
 import { useNavigate } from "react-router-dom"
+import Swal from "sweetalert2"
 
 const UseMainController = () => {
 
-    const [data, setData] = useState<UserModel[]>([])
-    const [auth, setAuth] = useState(true);
-    const [anchorElProfile, setAnchorElProfile] = useState<null | HTMLElement>(null);  //
+  const [data, setData] = useState<UserModel[]>([])
+  const [loading, setLoading] = useState<boolean>(false);
 
-    const navigate = useNavigate();
+  const [ProfileImg, setProfileImg] = useState<File | null>(null);
+  const [previewProfile, setPreviewProfile] = useState<string>(null!);
+  const [_imageLink, setImageLink] = useState<string>('');
 
-    // Get Data
-    const handleGetData = async () => {
-        try {
-            const res = await axiosInstance.get(GET_ALL_USER)
-            setData(res?.data?.data)
+  const [name, setName] = useState<string>(null!)
+  const [surname, setSurname] = useState<string>('')
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
+  const [phoneNumber, setPhonenumber] = useState<string>('');
+  const [company, setCompany] = useState<string>('');
+  const [role, setRole] = useState<string>('TeamLeader');
 
-        } catch (error) {
-            console.log(error)
-        }
+  const navigate = useNavigate();
+
+  const roles = ['TeamLeader', 'UXUI', 'FrontEnd', 'BackEnd', 'Tester', 'CheifTechnologyOfficer'];
+
+  // Add user button
+  const handleSwitchPageClick = (path: string) => {
+    navigate(path);
+  };
+
+  // แสดงรูปตัวอย่างเมื่อเลือกไฟล์
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setProfileImg(file);
+      const previewURL = URL.createObjectURL(file);
+      setPreviewProfile(previewURL);
+
+      // Cleanup
+      return () => URL.revokeObjectURL(previewURL);
     }
-    useEffect(() => {
-        handleGetData()
-    }, [])
-
-
-    // Profile menu
-    const handleProfileMenu = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorElProfile(event.currentTarget);
-    };
-    const handleCloseProfileMenu = () => {
-        setAnchorElProfile(null);
-    };
-
-    // Add user button
-    const handleSwitchPageClick = (path: string) => {
-        navigate(path);
-    };
-
-    // สไตล์ AvatarUpload ที่ใช้จัดการการอัพโหลดรูปภาพโปรไฟล์
-  
-  const roles = ['Admin', 'User'];
-
-  const [formDataUser, setFormDataUser] = useState({
-    name: '',
-    surname: '',
-    phoneNumber: '',
-    email: '',
-    username: '',
-    password: '',
-    company: '',
-    role: 'Admin',
-    image: ''
-  });
-
-  // จัดการการเปลี่ยนแปลงข้อมูลในฟอร์ม
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormDataUser({ ...formDataUser, [event.target.name]: event.target.value });
   };
 
-  const handleRoleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormDataUser({ ...formDataUser, role: event.target.value });
-  };
-
-  const handleSubmit = (event: React.FormEvent) => {
+  // ฟังก์ชันจัดการการส่งฟอร์ม
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log('Form Data Submitted:', formDataUser);
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to submit the form?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, submit it!",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("surname", surname);
+      formData.append("phoneNumber", phoneNumber);
+      formData.append("email", email);
+      formData.append("username", username);
+      formData.append("password", password);
+      formData.append("company", company);
+      formData.append("role", role);
+
+      // Append image if exists
+      if (ProfileImg) {
+        formData.append('image', ProfileImg);
+      }
+
+      // const config = { headers: { "Content-Type": "multipart/form-data" } };
+      const res = await axiosInstance.post(CREATE_USER, formData);
+
+      setData(res?.data?.data);
+
+      if (res.data?.data?.imageLink) {
+        setImageLink(res.data.data.imageLink);
+
+        if (previewProfile) {
+          URL.revokeObjectURL(previewProfile);
+        }
+      }
+
+      // Show success message
+      Swal.fire({
+        title: "Success!",
+        text: "Your form has been submitted successfully.",
+        icon: "success",
+        confirmButtonText: "Okay",
+      });
+
+    } catch (error: any) {
+      if (error.response) {
+        console.error("Error response from API:", error.response);
+        Swal.fire({
+          title: "Error",
+          text: error.response.data.message || "Something went wrong.",
+          icon: "error",
+          confirmButtonText: "Okay",
+        });
+      } else {
+        console.error("Error:", error.message);
+        Swal.fire({
+          title: "Error",
+          text: error.message,
+          icon: "error",
+          confirmButtonText: "Okay",
+        });
+    }
+    }
   };
 
-    return {
-        data,
-        open,
-        auth,
-        anchorElProfile,
-        handleSwitchPageClick,
-        handleCloseProfileMenu,
-        handleGetData,
-        handleProfileMenu,
-
-        roles,
-        handleRoleChange,
-        handleSubmit,
-        handleChange,
-        formDataUser
-    }
+  return {
+    data,
+    name,
+    surname,
+    email,
+    password,
+    username,
+    phoneNumber,
+    company,
+    role,
+    roles,
+    loading,
+    setName,
+    setSurname,
+    setEmail,
+    setPassword,
+    setUsername,
+    setPhonenumber,
+    setCompany,
+    setRole,
+    handleSwitchPageClick,
+    handleSubmit,
+    handleImageUpload,
+    previewProfile,
+  }
 }
 
 export default UseMainController

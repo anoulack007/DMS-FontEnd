@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { UserModel } from "../../../models/user"
 import axiosInstance from "../../../configs/axios"
-import { GET_ALL_USER } from "../../../configs/endPoint/login"
+import { DELETE_USER, GET_ALL_USER } from "../../../configs/endPoint/login"
 import { useNavigate } from "react-router-dom"
 
 const UseMainController = () => {
@@ -26,6 +26,8 @@ const UseMainController = () => {
     const handleGetData = async () => {
         try {
             const res = await axiosInstance.get(GET_ALL_USER)
+            console.log('data=>', res?.data?.data)
+
             setData(res?.data?.data)
 
         } catch (error) {
@@ -35,6 +37,21 @@ const UseMainController = () => {
     useEffect(() => {
         handleGetData()
     }, [])
+
+    // ฟังก์ชันลบข้อมูลผู้ใช้ตาม userId
+    const handleConfirmDelete = async () => {
+        if (userToDelete) {
+            try {
+                await axiosInstance.delete(`${DELETE_USER}${userToDelete.id}`);  // ลบผู้ใช้จากฐานข้อมูล
+                setData((prevData) => prevData.filter((user) => user?.id !== userToDelete?.id)); // อัปเดตข้อมูลใน state ให้แสดงผลลัพธ์ที่ลบแล้ว
+            } catch (error) {
+                console.error("Error deleting user:", error); // แสดงข้อผิดพลาดหากการลบไม่สำเร็จ
+            }
+            setOpenDialog(false); // ปิด dialog
+            setUserToDelete(null); // เคลียร์ข้อมูลผู้ใช้ที่ถูกเลือก
+        }
+    };
+    
 
 
     // ChangeTablePage
@@ -83,27 +100,17 @@ const UseMainController = () => {
     const handleEditUserClick = (path: string) => {
         navigate(path);
     };
-    // Delete User Button
     // Delete User Button -> เปิด Dialog และเก็บข้อมูลผู้ใช้ที่ต้องการลบ
     const handleDeleteUserClick = (user: UserModel) => {
-        setUserToDelete(user); // เก็บผู้ใช้ที่เลือก
-        setOpenDialog(true);   // เปิด dialog
+        setUserToDelete(user); // เก็บผู้ใช้ที่เลือกไว้ใน state userToDelete
+        setOpenDialog(true);   // เปิด dialog เพื่อให้ผู้ใช้ยืนยันการลบ
     };
+    
 
     // Close Dialog
     const handleCloseDialog = () => {
         setOpenDialog(false);
         setUserToDelete(null); // เคลียร์ข้อมูลหลังปิด dialog
-    };
-
-    // Confirm Delete User
-    const handleConfirmDelete = () => {
-        if (userToDelete) {
-            // ใส่ logic สำหรับลบผู้ใช้ที่เลือกได้ที่นี่
-            console.log("Deleted user:", userToDelete);
-            setOpenDialog(false); // ปิด dialog
-            setUserToDelete(null);
-        }
     };
 
     // Select
