@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DOCUMENT_DETAIL_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
-import { CREATE_FOLDER_END_POINT, GET_ALL_FOLDER_END_POINT } from "../../../configs/endPoint/crud";
 import Swal from "sweetalert2";
 import { STATUS_ENUMS } from "../../../enums/status-enum";
 import { SelectChangeEvent } from "@mui/material";
 import { ErrorResponse } from "../../../utils/functions/Error";
 import { ErrorModel } from "../../../models/Error";
+import { CREATE_FOLDER_END_POINT, GET_ALL_FOLDER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
