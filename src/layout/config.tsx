@@ -1,7 +1,6 @@
-import { HOME_PATH, MANAGE_DOC_PATH, MANAGE_USER_PATH, RECYCLE_PATH, REPORT_RECYCLE_PATH, REPORT_SHARE_PATH, SEARCH_DOC_PATH } from '../routes/paths';
+import { MANAGE_DOC_PATH, MANAGE_USER_PATH, RECYCLE_PATH, REPORT_RECYCLE_PATH, REPORT_SHARE_PATH, SEARCH_DOC_PATH } from '../routes/paths';
 
 //icons
-import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard';
 import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
@@ -22,12 +21,6 @@ export const LIST_PADDING_X: number = 1;
 export const DRAWER_TITLE: string = 'Test';
 
 export const MENU_ITEM_LISTS: MENU_ITEM_LISTS_PROPS[] = [
-  {
-
-    label: 'ໜ້າຫຼັກ',
-    path: HOME_PATH,
-    icon: <SpaceDashboardIcon />,
-  },
   {
     label: 'ຈັດການເອກະສານ',
     path: MANAGE_DOC_PATH,

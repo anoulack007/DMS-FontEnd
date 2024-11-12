@@ -1,4 +1,3 @@
-export const HOME_PATH: string = '/'
 export const REPORT_RECYCLE_PATH: string = '/report-recycle'
 export const SEARCH_DOC_PATH: string = '/seach-document'
 export const LOGIN_PATH: string = '/login'

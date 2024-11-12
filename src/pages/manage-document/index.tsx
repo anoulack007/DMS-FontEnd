@@ -27,12 +27,11 @@ import {
   InputLabel,
   Select,
 } from "@mui/material";
-import FoldeImage from "../../assets/Image/image 11.png";
+
 import Invite_IC from "../../assets/logo/invite_ic.svg";
 import Access_IC from "../../assets/logo/access_ic.svg";
 
 //icons
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -43,21 +42,58 @@ import UseMainController from "./controller";
 import CustomMenu from "./components/custom-menu";
 import { STATUS_ENUMS } from "../../enums/status-enum";
 
-interface Document {
-  id: string;
-  name: string;
-  path: string;
-  documentId: string;
-  modified: string;
-  size: string;
-  status: string;
-  isFolder: boolean;
-  parentId: string;
-  isPinned: boolean;
-  isDelete: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+//icons
+import FoldeImage from "../../assets/Image/image 11.png";
+import ZipImage from "../../assets/logo/zip_ic.svg";
+import PngImage from "../../assets/logo/png.svg";
+import DocsImage from "../../assets/logo/doc_ic.svg";
+import XlsxImage from "../../assets/logo/excel_ic.svg";
+import ImageImage from "../../assets/logo/image_ic.svg";
+import JpegImage from "../../assets/logo/jpg.svg.svg";
+import PptImage from "../../assets/logo/ptt_ic.svg";
+import Mp3Image from "../../assets/logo/music_ic.svg";
+import VideoImage from "../../assets/logo/video_ic.svg";
+import PdfImage from "../../assets/logo/pdf_ic.svg";
+import TxtImage from "../../assets/logo/txt.svg.svg";
+import SvgImage from "../../assets/logo/svg.svg.svg";
+import ExeImage from "../../assets/logo/exe.svg.svg";
+
+import { IconType } from "../../enums/icon-enums";
+
+const getIconByType = (type: string) => {
+  switch (type) {
+    // case IconType.FOLDER:
+    //   return <img src={FoldeImage} alt="folder" />;
+    case IconType.ZIP:
+      return <img src={ZipImage} alt="zip" />;
+    case IconType.PNG:
+      return <img height={45} src={PngImage} alt="png" />;
+    case IconType.DOCS:
+      return <img src={DocsImage} alt="docs" />;
+    case IconType.XLSX:
+      return <img src={XlsxImage} alt="xlsx" />;
+    case IconType.IMAGE:
+      return <img src={ImageImage} alt="image" />;
+    case IconType.JPEG:
+      return <img height={45} src={JpegImage} alt="jpeg" />;
+    case IconType.PPT:
+      return <img src={PptImage} alt="ppt" />;
+    case IconType.MP3:
+      return <img src={Mp3Image} alt="mp3" />;
+    case IconType.VIDEO:
+      return <img src={VideoImage} alt="video" />;
+    case IconType.PDF:
+      return <img src={PdfImage} alt="pdf" />;
+    case IconType.TXT:
+      return <img height={45} src={TxtImage} alt="txt" />;
+    case IconType.SVG:
+      return <img height={45} src={SvgImage} alt="svg" />;
+    case IconType.EXE:
+      return <img height={45} src={ExeImage} alt="exe" />;
+    default:
+      return <img src={FoldeImage} alt="folder" />;
+  }
+};
 
 const getStatusColor = (status: string): string => {
   switch (status.toLowerCase()) {
@@ -207,11 +243,11 @@ const ManageDocumentPage = () => {
                     />
                   </TableCell>
                   {renderSortableHeader("name", "Document Name")}
+                  <TableCell>Type</TableCell>
                   <TableCell>ID Document</TableCell>
                   {renderSortableHeader("modified", "Modified")}
                   {renderSortableHeader("size", "File Size")}
                   {renderSortableHeader("status", "Status")}
-                  <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -228,26 +264,29 @@ const ManageDocumentPage = () => {
                     </TableCell>
                   </TableRow>
                 ) : ctrl?.documents.length > 0 ? (
-                  ctrl?.documents.map((doc) => (
+                  ctrl?.documents.map((item) => (
                     <TableRow
-                      key={doc?.id}
-                      selected={ctrl?.isSelected(doc.id)}
+                      key={item?.id}
+                      selected={ctrl?.isSelected(item.id)}
                       sx={{
                         "&:last-child td, &:last-child th": { border: 0 },
                         "&:hover": {
-                          backgroundColor: "rgba(0, 0, 0, 0.04)", // Light gray hover color
-                          transition: "background-color 0.2s ease", // Smooth transition effect
+                          backgroundColor: "rgba(0, 0, 0, 0.04)",
+                          transition: "background-color 0.2s ease",
                         },
-                        cursor: "pointer", // Changes cursor to pointer on hover
+                        cursor: "pointer",
                       }}
-                      onDoubleClick={(e) => ctrl.handleFolderClick(e, doc)}
+                      // onDoubleClick={(e) =>
+                      //   item.type === "folder"
+                      //     ? ctrl.handleFolderClick(e, item)
+                      //     : ctrl.handleFileClick(e, item)
+                      // }
                     >
-                      {/* Rest of your TableRow content remains the same */}
                       <TableCell padding="checkbox">
                         <Checkbox
                           icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
-                          checked={ctrl?.isSelected(doc?.id)}
-                          onChange={() => ctrl?.handleSelectItem(doc?.id)}
+                          checked={ctrl?.isSelected(item?.id)}
+                          onChange={() => ctrl?.handleSelectItem(item?.id)}
                           checkedIcon={
                             <CheckCircleIcon sx={{ color: "blue" }} />
                           }
@@ -262,41 +301,37 @@ const ManageDocumentPage = () => {
                             cursor: "pointer",
                           }}
                         >
-                          <img src={FoldeImage} alt="folder" />
+                          {getIconByType(item?.type)}
                           <Box>
-                            <Typography>{doc?.name}</Typography>
+                            <Typography>{item?.name}</Typography>
                           </Box>
                         </Box>
                       </TableCell>
-                      <TableCell>{doc?.documentId}</TableCell>
+                      <TableCell>{item?.type}</TableCell>
+                      <TableCell>{item?.id}</TableCell>
                       <TableCell>
-                        {doc?.createdAt
-                          ? new Date(doc?.createdAt).toLocaleString()
+                        {item?.createdAt
+                          ? new Date(item?.createdAt).toLocaleString()
                           : ""}
                       </TableCell>
-                      <TableCell>{doc?.size}</TableCell>
+                      <TableCell>{item?.size}</TableCell>
                       <TableCell>
                         <Chip
-                          label={doc?.status}
+                          label={item?.status}
                           sx={{
-                            backgroundColor: getStatusColor(doc?.status),
+                            backgroundColor: getStatusColor(item?.status),
                             borderRadius: "4px",
                             fontWeight: "normal",
                             color: "white",
                           }}
                         />
                       </TableCell>
-                      <TableCell>
-                        <IconButton>
-                          <MoreHorizIcon />
-                        </IconButton>
-                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} align="center">
-                      No documents found
+                      No files or folders found
                     </TableCell>
                   </TableRow>
                 )}
@@ -361,7 +396,7 @@ const ManageDocumentPage = () => {
                     <Select
                       labelId="status-select-label"
                       id="status-select"
-                      value={ctrl?.selectedDocument?.status ?? ''}
+                      value={ctrl?.selectedDocument?.status ?? ""}
                       label="Status"
                       onChange={ctrl.handleChangeStatus}
                     >

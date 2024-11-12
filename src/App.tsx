@@ -50,15 +50,15 @@ function App() {
 
   return (
     <>
-      {/* {!isLoggedIn ? (
+      {!isLoggedIn ? (
         <LinearProgress />
       ) : isAuth ? (
         <RoutesComponent />
       ) : (
         <LoginPage />
-      )} */}
+      )}
 
-      <RoutesComponent />
+      {/* <RoutesComponent /> */}
     </>
   );
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DOCUMENT_DETAIL_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
-import { GET_ALL_FOLDER_END_POINT } from "../../../configs/endPoint/crud";
+import { GET_ALL_FOLDER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";

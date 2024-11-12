@@ -8,17 +8,25 @@ import {
 } from "../configs/endPoint/login";
 import { decode, encode } from "../utils/functions/HashString";
 import axiosInstance from "../configs/axios";
+import { ErrorResponse } from "../utils/functions/Error";
+import { ErrorModel } from "../models/Error";
 
 export const LoginService = async (
   emailOrUsername: string,
   password: string
 ): Promise<AdminModel> => {
   try {
+
+    const configs = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
     // Login request
-    const res = await axios.post(LOGIN_END_POINT, {
+    const res = await axios.post(LOGIN_END_POINT,{
       emailOrUsername,
       password,
-    });
+    },  configs, );
     console.log(res)
     const accessToken: string = res?.data?.data?.access_token;
     const refreshToken: string = res?.data?.data?.refresh_token;
@@ -36,7 +44,7 @@ export const LoginService = async (
     // Return the profile data
     return getProfile?.data?.data;
   } catch (error) {
-    console.error("LoginService error:", error);
+    ErrorResponse(error as ErrorModel);
     throw error;
   }
 };

@@ -2,13 +2,13 @@
 import { FormEvent, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { HOME_PATH } from "../../../routes/paths";
-import { loginFailed, loginSuccess } from "../../../store/authenticationSlice";
+import { loginSuccess } from "../../../store/authenticationSlice";
 // import axiosInstance from "../../../configs/axios";
 // import { LOGIN_END_POINT } from "../../../configs/endPoint/login";
 import { LoginService } from "../../../service/Login";
 import { ErrorModel } from "../../../models/Error";
 import { ErrorResponse } from "../../../utils/functions/Error";
+import { MANAGE_DOC_PATH } from "../../../routes/paths";
 
 const UseMainController = () => {
   const dispatch = useDispatch();
@@ -87,7 +87,7 @@ const UseMainController = () => {
       const passwordInput = password.current.value;
       const resUserLogin = await LoginService(userInput, passwordInput);
       dispatch(loginSuccess(resUserLogin));
-      navigate(HOME_PATH);
+      navigate(MANAGE_DOC_PATH);
     } catch (error) {
       console.log(error);
 

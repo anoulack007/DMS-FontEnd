@@ -120,7 +120,24 @@ export default function MainLayout() {
           ) : (
             <Box sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
               <Typography alignContent={'center'}>No user data available</Typography>
-              <Avatar />
+              <IconButton
+                onClick={handleClick}
+                size="small"
+                aria-controls={open ? "account-menu" : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? "true" : undefined}
+              >
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    cursor: "pointer",
+                    "&:hover": {
+                      opacity: 0.8,
+                    },
+                  }}
+                />
+              </IconButton>
             </Box>
           )}
 
