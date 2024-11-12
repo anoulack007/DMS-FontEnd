@@ -50,8 +50,11 @@ const UseMainController = () => {
 
   // const [status, setStatus] = useState<STATUS_ENUMS>()
   const [newName, setNewName] = useState<string>(null!);
+
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState<boolean>(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
 
   const handleChangeStatus = async (event: SelectChangeEvent<STATUS_ENUMS>) => {
     const newStatus = event.target.value as STATUS_ENUMS;
@@ -327,19 +330,33 @@ const UseMainController = () => {
     }
   };
   
-
   const handleChangeName = (value: string) => {
     setNewName(value);
   };
 
+  const handleShare = async () => {
 
+    try {
+      // const res = await axiosInstance.post(`${CREATE_FOLDER_END_POINT}/${selectedDocument?.id}/share`, {
+        
+      // })
+    } catch (error) {
+      
+    }
+  }
 
-  
+  const handleCloseShareDialog = () => {
+    setShareDialogOpen(false); // Close the dialog
+  };
+
   return {
+    shareDialogOpen,
+    setShareDialogOpen,
+    inviteDialogOpen,
+    setInviteDialogOpen,
     setIsSubmitting,
     isSubmitting,
     newName,
-    // handleChangeName: (value: string) => setNewName(value),
     setRenameDialogOpen,
     renameDialogOpen,
     status,
@@ -370,8 +387,9 @@ const UseMainController = () => {
     handleRenameFolder,
     handleChangeName,
     handleDeleteFolder,
-    handleChangeStatus
-    
+    handleChangeStatus,
+    handleShare,
+    handleCloseShareDialog
 
   };
 };

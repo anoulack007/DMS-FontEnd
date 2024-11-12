@@ -8,7 +8,7 @@ export enum IconType {
     JPG = 'jpg',
     PPT = 'ppt',
     MP3 = 'mp3',
-    VIDEO = 'video',
+    MP4 = 'mp4',
     PDF = 'pdf',
     TXT = 'txt',
     SVG = 'svg',

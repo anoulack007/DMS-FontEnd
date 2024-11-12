@@ -14,14 +14,16 @@ interface Props {
   selectedCount: number;
   onDetailsClick: () => void; // Update the prop to accept a document
   hanldeFolderRename: () => void;
+  handleShare: () => void;
   handleDelete: (e: React.FormEvent) => void;
 }
 
-const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename, handleDelete }: Props) => {
+const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename, handleDelete, handleShare }: Props) => {
   const ListMenu = [
     {
       label: "Share",
       icon: <ShareIcon />,
+      onclick: handleShare
     },
     {
       label: "Delete",

@@ -11,8 +11,12 @@ import {
   Alert,
   Snackbar,
 } from "@mui/material";
+
+//icons
 import CloseIcon from "@mui/icons-material/Close";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+
+
 import axios from "axios";
 import { CREATE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
 import axiosInstance from "../../../configs/axios";

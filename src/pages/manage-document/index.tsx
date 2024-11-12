@@ -26,16 +26,20 @@ import {
   FormControl,
   InputLabel,
   Select,
+  InputAdornment,
 } from "@mui/material";
 
 import Invite_IC from "../../assets/logo/invite_ic.svg";
 import Access_IC from "../../assets/logo/access_ic.svg";
+import Person_IC from "../../assets/logo/Person.svg";
 
 //icons
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CloseIcon from "@mui/icons-material/Close";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import SendIcon from "@mui/icons-material/Send";
 
 //controllers
 import UseMainController from "./controller";
@@ -59,6 +63,7 @@ import SvgImage from "../../assets/logo/svg.svg.svg";
 import ExeImage from "../../assets/logo/exe.svg.svg";
 
 import { IconType } from "../../enums/icon-enums";
+import DialogInviteMember from "./components/dialog-inviteMember";
 
 const getIconByType = (type: string) => {
   switch (type) {
@@ -80,7 +85,7 @@ const getIconByType = (type: string) => {
       return <img src={PptImage} alt="ppt" />;
     case IconType.MP3:
       return <img src={Mp3Image} alt="mp3" />;
-    case IconType.VIDEO:
+    case IconType.MP4:
       return <img src={VideoImage} alt="video" />;
     case IconType.PDF:
       return <img src={PdfImage} alt="pdf" />;
@@ -111,26 +116,12 @@ type SortField = "name" | "modified" | "size" | "status";
 const ManageDocumentPage = () => {
   const ctrl = UseMainController();
 
-  // const handleFilter = (field: SortField, value: string) => {
-  //   let filteredDocuments = [...ctrl?.documents];
-
-  //   switch (field) {
-  //     case "modified":
-  //       // Implement date filtering logic
-  //       break;
-  //     case "fileSize":
-  //       // Implement file size filtering logic
-  //       break;
-  //     case "status":
-  //       filteredDocuments = ctrl?.documents.filter(
-  //         (doc) => doc.status === value
-  //       );
-  //       break;
-  //   }
-
-  //   ctrl?.setDocuments(filteredDocuments);
-  //   ctrl?.handleFilterClose(field);
-  // };
+  const formatFileSize = (sizeInBytes: any) => {
+    if (sizeInBytes === 0) return "0 B";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(sizeInBytes) / Math.log(1024));
+    return `${(sizeInBytes / Math.pow(1024, i)).toFixed(2)} ${units[i]}`;
+  };
 
   const getFilterMenuItems = (field: SortField) => {
     switch (field) {
@@ -193,7 +184,7 @@ const ManageDocumentPage = () => {
         </IconButton>
       </Box>
       <Menu
-        anchorEl={ctrl?.filterAnchorEl[field]}
+        anchorEl={ctrl?.filterAnchorEl[field]}  
         open={Boolean(ctrl?.filterAnchorEl[field])}
         onClose={() => ctrl?.handleFilterClose(field)}
       >
@@ -210,6 +201,7 @@ const ManageDocumentPage = () => {
           onDetailsClick={ctrl.handleDetailsClick}
           hanldeFolderRename={() => ctrl?.setRenameDialogOpen(true)}
           handleDelete={ctrl?.handleDeleteFolder}
+          handleShare={() => ctrl?.setShareDialogOpen(true)}
         />
       )}
 
@@ -314,7 +306,9 @@ const ManageDocumentPage = () => {
                           ? new Date(item?.createdAt).toLocaleString()
                           : ""}
                       </TableCell>
-                      <TableCell>{item?.size}</TableCell>
+                      <TableCell>
+                        {item?.size ? formatFileSize(item.size) : "N/A"}
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={item?.status}
@@ -352,7 +346,7 @@ const ManageDocumentPage = () => {
               backgroundColor: "white",
               boxShadow: 2,
               overflow: "auto",
-              minHeight: 865, // Fixed height
+              minHeight: 1200,
             }}
           >
             <Box
@@ -364,7 +358,16 @@ const ManageDocumentPage = () => {
               }}
             >
               <img src={FoldeImage} alt="folder" />
-              <Typography variant="h5">
+              <Typography
+                variant="h5"
+                title={ctrl?.selectedDocument?.name}
+                sx={{
+                  whiteSpace: "nowrap", // Prevents text from wrapping to the next line
+                  overflow: "hidden", // Hides overflowing text
+                  textOverflow: "ellipsis", // Adds ellipsis at the end of the truncated text
+                  maxWidth: "100%", // Ensures the element has a maximum width to trigger truncation
+                }}
+              >
                 {ctrl?.selectedDocument?.name}
               </Typography>
 
@@ -412,7 +415,9 @@ const ManageDocumentPage = () => {
                     <Typography>Has access</Typography>
 
                     <Box sx={{ mt: 2, display: "flex" }}>
-                      <IconButton>
+                      <IconButton
+                        onClick={() => ctrl?.setInviteDialogOpen(true)}
+                      >
                         <img src={Invite_IC} alt="invite" />
                       </IconButton>
 
@@ -445,7 +450,10 @@ const ManageDocumentPage = () => {
                     : "-"}
                 </Typography>
                 <Typography>
-                  <strong>Size:</strong> {ctrl?.selectedDocument?.size}
+                  <strong>Size:</strong>{" "}
+                  {ctrl?.selectedDocument?.size
+                    ? formatFileSize(ctrl.selectedDocument.size)
+                    : "N/A"}
                 </Typography>
               </Box>
             )}
@@ -487,6 +495,65 @@ const ManageDocumentPage = () => {
             </DialogActions>
           </form>
         </Dialog>
+
+        <Dialog
+          open={ctrl?.shareDialogOpen}
+          onClose={ctrl.handleCloseShareDialog}
+          maxWidth="xs"
+          fullWidth 
+        >
+          <form>
+            <DialogTitle>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <IconButton onClick={ctrl.handleCloseShareDialog}>
+                  <ArrowBackIcon />
+                </IconButton>
+                <Typography variant="h6" sx={{ ml: 1 }}>
+                  Share "Documents"
+                </Typography>
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Add a name or email"
+                InputProps={{
+                  style: { borderRadius: 20 },
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <img src={Person_IC} alt="person" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mt: 2, borderRadius: 20 }}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button
+                variant="contained"
+                color="error"
+                fullWidth
+                startIcon={<SendIcon />}
+                sx={{
+                  backgroundColor: "maroon",
+                  color: "white",
+                  textTransform: "none",
+                  maxWidth: 100,
+                  height: 40,
+                  borderRadius: 3,
+                }}
+              >
+                Send
+              </Button>
+            </DialogActions>
+          </form>
+        </Dialog>
+
+        <DialogInviteMember
+          open={ctrl?.inviteDialogOpen}
+          onClose={() => ctrl?.setInviteDialogOpen(false)}
+        />
       </Box>
     </Box>
   );
