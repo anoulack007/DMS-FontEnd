@@ -67,8 +67,8 @@ import DialogInviteMember from "./components/dialog-inviteMember";
 
 const getIconByType = (type: string) => {
   switch (type) {
-    // case IconType.FOLDER:
-    //   return <img src={FoldeImage} alt="folder" />;
+    case IconType.FOLDER:
+      return <img src={FoldeImage} alt="folder" />;
     case IconType.ZIP:
       return <img src={ZipImage} alt="zip" />;
     case IconType.PNG:
@@ -184,7 +184,7 @@ const ManageDocumentPage = () => {
         </IconButton>
       </Box>
       <Menu
-        anchorEl={ctrl?.filterAnchorEl[field]}  
+        anchorEl={ctrl?.filterAnchorEl[field]}
         open={Boolean(ctrl?.filterAnchorEl[field])}
         onClose={() => ctrl?.handleFilterClose(field)}
       >
@@ -202,6 +202,7 @@ const ManageDocumentPage = () => {
           hanldeFolderRename={() => ctrl?.setRenameDialogOpen(true)}
           handleDelete={ctrl?.handleDeleteFolder}
           handleShare={() => ctrl?.setShareDialogOpen(true)}
+          handleDownload={ctrl?.handleDownload}
         />
       )}
 
@@ -500,7 +501,7 @@ const ManageDocumentPage = () => {
           open={ctrl?.shareDialogOpen}
           onClose={ctrl.handleCloseShareDialog}
           maxWidth="xs"
-          fullWidth 
+          fullWidth
         >
           <form>
             <DialogTitle>
@@ -531,6 +532,7 @@ const ManageDocumentPage = () => {
             </DialogContent>
             <DialogActions>
               <Button
+                type="submit"
                 variant="contained"
                 color="error"
                 fullWidth
@@ -553,6 +555,9 @@ const ManageDocumentPage = () => {
         <DialogInviteMember
           open={ctrl?.inviteDialogOpen}
           onClose={() => ctrl?.setInviteDialogOpen(false)}
+          handleInviteMember={ctrl.handleIviteMember}
+          email={ctrl?.email}
+          setEmail={ctrl?.handleChangeEmail}
         />
       </Box>
     </Box>

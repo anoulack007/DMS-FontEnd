@@ -7,9 +7,20 @@ import { STATUS_ENUMS } from "../../../enums/status-enum";
 import { SelectChangeEvent } from "@mui/material";
 import { ErrorResponse } from "../../../utils/functions/Error";
 import { ErrorModel } from "../../../models/Error";
-import { CREATE_FOLDER_END_POINT, GET_ALL_FOLDER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
+import {
+  CREATE_FOLDER_END_POINT,
+  GET_ALL_FOLDER_END_POINT,
+  INVITE_MEMBER_FOLDER_END_POINT,
+  UPDATE_FOLDER_END_POINT,
+} from "../../../configs/endPoint/folder-endpoint";
 import { IconType } from "../../../enums/icon-enums";
-import { GET_ALL_ROOT_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
+import {
+  DELETE_FILE_END_POINT,
+  DELETE_FOLDER_END_POINT,
+  GET_ALL_ROOT_FILE_END_POINT,
+  INVITE_MEMBER_FILE_END_POINT,
+  UPDATE_FILE_END_POINT,
+} from "../../../configs/endPoint/files-endpoint";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
@@ -17,24 +28,24 @@ type SortOrder = "asc" | "desc";
 interface Document {
   id: string;
   name: string;
-  path: string
+  path: string;
   documentId: string;
   modified: string;
   size: string;
   type: IconType;
   status: STATUS_ENUMS;
+  url: string;
   isFolder: boolean;
-  parentId: string
-  isPinned: boolean
-  isDelete: boolean
-  createdAt: string
-  updatedAt: string
+  parentId: string;
+  isPinned: boolean;
+  isDelete: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const UseMainController = () => {
-
-    const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>("name");
@@ -45,72 +56,80 @@ const UseMainController = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null
+  );
   const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
 
   // const [status, setStatus] = useState<STATUS_ENUMS>()
   const [newName, setNewName] = useState<string>(null!);
 
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState<boolean>(false);
   const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>(null!);
 
   const handleChangeStatus = async (event: SelectChangeEvent<STATUS_ENUMS>) => {
     const newStatus = event.target.value as STATUS_ENUMS;
-    
+
     if (!selectedDocument) {
       await Swal.fire({
-        icon: 'warning',
-        title: 'No Document Selected',
-        text: 'Please select a document to change the status.',
+        icon: "warning",
+        title: "No Document Selected",
+        text: "Please select a document to change the status.",
       });
       return;
     }
 
     try {
-      const res = await axiosInstance.patch(`${CREATE_FOLDER_END_POINT}/${selectedDocument.id}`, {
-        status: newStatus
-      });
+      let endpoint;
+      let payload;
+
+      if (selectedDocument?.type === "folder") {
+        endpoint = `${UPDATE_FOLDER_END_POINT}/${selectedDocument?.id}`;
+        payload = { status: newStatus };
+      } else {
+        endpoint = `${UPDATE_FILE_END_POINT}/${selectedDocument?.id}`;
+        payload = { status: newStatus };
+      }
+
+      const res = await axiosInstance.patch(endpoint, payload);
 
       // Update selected document
       setSelectedDocument({ ...selectedDocument, status: newStatus });
-      
+
       // Update documents list
-      setDocuments(prevDocs => 
-        prevDocs.map(doc => 
-          doc.id === selectedDocument.id 
-            ? { ...doc, status: newStatus }
-            : doc
+      setDocuments((prevDocs) =>
+        prevDocs.map((doc) =>
+          doc.id === selectedDocument.id ? { ...doc, status: newStatus } : doc
         )
       );
 
       await Swal.fire({
-        icon: 'success',
-        title: 'Status Updated!',
+        icon: "success",
+        title: "Status Updated!",
         text: `The document status has been updated to "${newStatus}" successfully.`,
       });
     } catch (error) {
-      console.error('Error updating status:', error);
-      
+      console.error("Error updating status:", error);
+
       await Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Failed to update status. Please try again.',
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to update status. Please try again.",
       });
     }
   };
-
 
   const handleDetailsClick = () => {
     if (selectedDocument) {
       setCollapseOpen(true); // Open the collapse
-      setSearchParams({ docId: selectedDocument.id, action: 'collapse' });
+      setSearchParams({ docId: selectedDocument.id, action: "collapse" });
     } else {
       console.log("No document selected.");
     }
   };
-  
 
   const handleFolderClick = (e: React.MouseEvent, doc: Document) => {
     e.preventDefault();
@@ -126,25 +145,24 @@ const UseMainController = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Fetch folders
       const foldersRes = await axiosInstance.get(GET_ALL_FOLDER_END_POINT);
       const folders = foldersRes?.data?.data?.map((folder: any) => ({
         ...folder,
-        itemType: 'folder'  // Add type identifier
+        itemType: "folder", // Add type identifier
       }));
-      
+
       // Fetch files
       const filesRes = await axiosInstance.get(GET_ALL_ROOT_FILE_END_POINT);
       const files = filesRes?.data?.data?.map((file: any) => ({
         ...file,
-        itemType: 'file'  // Add type identifier
+        itemType: "file", // Add type identifier
       }));
-      
+
       // Combine and set both files and folders
       const combinedItems = [...folders, ...files];
       setDocuments(combinedItems);
-      
     } catch (error) {
       console.error("API error:", error);
       setError("An error occurred while fetching data");
@@ -223,44 +241,58 @@ const UseMainController = () => {
     handleFilterClose(field);
   };
 
-
   useEffect(() => {
-    const action = searchParams.get('action');
-    setCollapseOpen(action === 'collapse');
+    const action = searchParams.get("action");
+    setCollapseOpen(action === "collapse");
   }, [searchParams]);
 
   const handleDeleteFolder = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault(); // Prevent the default form submission behavior
-  
-    // Confirm deletion
+    e.preventDefault();
+
+    console.log("Initial itemType:", selectedDocument?.type);
+
     const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'This action will permanently delete the folder.',
-      icon: 'warning',
+      title: "Are you sure?",
+      text: "This action will permanently delete the item.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Delete',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
     });
-  
+
     if (result.isConfirmed) {
       try {
-        const res = await axiosInstance.delete(`${CREATE_FOLDER_END_POINT}/${selectedDocument?.id}`);
-  
-        // Show success alert
+        const isFolder = selectedDocument?.type === "folder";
+
+        let endPoint;
+        let payload;
+
+        if (isFolder) {
+          endPoint = DELETE_FOLDER_END_POINT;
+          payload = { folderId: selectedDocument?.id };
+        } else {
+          endPoint = DELETE_FILE_END_POINT;
+          payload = { fileId: selectedDocument?.id };
+        }
+
+        // Send POST request with payload
+        const res = await axiosInstance.post(endPoint, payload);
+
         await Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'The folder has been deleted successfully.',
+          icon: "success",
+          title: "Deleted!",
+          text: `The ${
+            isFolder ? "folder" : "file"
+          } has been deleted successfully.`,
         });
 
         handleGetData();
       } catch (error) {
-        console.error(error);
-        // Show error alert
+        console.error("Delete error:", error);
         await Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: 'Failed to delete folder. Please try again.',
+          icon: "error",
+          title: "Oops...",
+          text: "Failed to delete item. Please try again.",
         });
       }
     }
@@ -270,86 +302,208 @@ const UseMainController = () => {
     e.preventDefault();
 
     setRenameDialogOpen(false);
-  
+
     if (!selectedDocument) {
       await Swal.fire({
-        icon: 'warning',
-        title: 'No Document Selected',
-        text: 'Please select a document to rename the folder.',
+        icon: "warning",
+        title: "No Document Selected",
+        text: "Please select a document to rename the folder.",
       });
       return;
     }
-  
-    if (!newName || newName.trim() === '') {
+
+    if (!newName || newName.trim() === "") {
       await Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Name',
-        text: 'Please enter a valid name for the folder.',
+        icon: "warning",
+        title: "Invalid Name",
+        text: "Please enter a valid name for the folder.",
       });
       return;
     }
-  
+
     // Show confirmation dialog first
     const result = await Swal.fire({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       text: `Do you really want to rename the folder to "${newName}"?`,
-      icon: 'question',
+      icon: "question",
       showCancelButton: true,
-      confirmButtonText: 'Yes, rename it!',
-      cancelButtonText: 'No, keep it',
+      confirmButtonText: "Yes, rename it!",
+      cancelButtonText: "No, keep it",
     });
-  
+
     // If the user cancels, do nothing
     if (!result.isConfirmed) {
       return;
     }
-  
+
     try {
       setIsSubmitting(true);
-  
+
       // Proceed with the rename only if the user confirmed
-      const res = await axiosInstance.patch(`${CREATE_FOLDER_END_POINT}/${selectedDocument.id}`, {
-        name: newName,
-      });
-  
+      const res = await axiosInstance.patch(
+        `${CREATE_FOLDER_END_POINT}/${selectedDocument.id}`,
+        {
+          name: newName,
+        }
+      );
+
       // Update the selected document with the new data from the API response
       setSelectedDocument(res.data);
-  
+
       await Swal.fire({
-        icon: 'success',
-        title: 'Folder Renamed!',
+        icon: "success",
+        title: "Folder Renamed!",
         text: `The folder has been renamed to "${newName}" successfully.`,
       });
-  
+
       handleGetData();
     } catch (error) {
       console.error(error);
-      ErrorResponse(error as ErrorModel)
+      ErrorResponse(error as ErrorModel);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   const handleChangeName = (value: string) => {
     setNewName(value);
   };
 
   const handleShare = async () => {
-
     try {
       // const res = await axiosInstance.post(`${CREATE_FOLDER_END_POINT}/${selectedDocument?.id}/share`, {
-        
       // })
+    } catch (error) {}
+  };
+
+  const handleIviteMember = async () => {
+    setInviteDialogOpen(false);
+
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to invite this member?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, invite!",
+        cancelButtonText: "Cancel",
+      });
+
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: "Sending Invite...",
+          text: "Please wait while the invite is being sent.",
+          icon: "info",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
+        let endpoint;
+        let payload;
+
+        if (selectedDocument?.type === "folder") {
+          endpoint = INVITE_MEMBER_FOLDER_END_POINT;
+          payload = {
+            folderId: selectedDocument?.id,
+            email: email,
+          };
+        } else {
+          endpoint = INVITE_MEMBER_FILE_END_POINT;
+          payload = {
+            fileId: selectedDocument?.id,
+            email: email,
+          };
+        }
+
+        // Simulating API call with axios
+        await axiosInstance.post(endpoint, payload);
+
+        Swal.fire({
+          title: "Success!",
+          text: "Member has been successfully invited.",
+          icon: "success",
+        });
+      }
     } catch (error) {
-      
+      ErrorResponse(error as ErrorModel);
     }
-  }
+  };
 
   const handleCloseShareDialog = () => {
     setShareDialogOpen(false); // Close the dialog
   };
 
+  const handleDownload = async () => {
+    try {
+      if (!selectedDocument || !selectedDocument.url) {
+        Swal.fire({
+          title: 'Warning!',
+          text: 'Cannot download folders. Please select a file.',
+          icon: 'warning',
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        return;
+      }
+  
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: `Do you want to download ${selectedDocument.name}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, download it!',
+        cancelButtonText: 'Cancel',
+      });
+  
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'Downloading...',
+          text: `Downloading ${selectedDocument.name}`,
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+  
+        const response = await fetch(selectedDocument.url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+  
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', selectedDocument.name);
+        document.body.appendChild(link);
+        link.click();
+  
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+  
+        Swal.fire({
+          title: 'Success!',
+          text: 'File downloaded successfully',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        title: 'Error!',
+        text: 'Something went wrong while downloading the file',
+        icon: 'error',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      console.error('Download error:', error);
+    }
+  };
+  
+
   return {
+    email,
+    handleChangeEmail: (value: string) => setEmail(value),
     shareDialogOpen,
     setShareDialogOpen,
     inviteDialogOpen,
@@ -389,8 +543,9 @@ const UseMainController = () => {
     handleDeleteFolder,
     handleChangeStatus,
     handleShare,
-    handleCloseShareDialog
-
+    handleCloseShareDialog,
+    handleIviteMember,
+    handleDownload
   };
 };
 

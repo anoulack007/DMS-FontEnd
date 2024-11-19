@@ -16,7 +16,7 @@ export interface FileModel {
     status: string
     owner: owner
     ownerId: string
-    url: boolean
+    url: string
     isDeleted: boolean
     pin: boolean
     isDelete: boolean

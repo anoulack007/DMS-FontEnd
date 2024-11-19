@@ -15,10 +15,11 @@ interface Props {
   onDetailsClick: () => void; // Update the prop to accept a document
   hanldeFolderRename: () => void;
   handleShare: () => void;
+  handleDownload: () => void;
   handleDelete: (e: React.FormEvent) => void;
 }
 
-const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename, handleDelete, handleShare }: Props) => {
+const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename, handleDelete, handleShare, handleDownload  }: Props) => {
   const ListMenu = [
     {
       label: "Share",
@@ -37,6 +38,7 @@ const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename, handleD
     {
       label: "Download",
       icon: <DownloadIcon />,
+      onclick: handleDownload
     },
     {
       label: "Rename",

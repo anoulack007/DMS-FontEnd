@@ -31,6 +31,7 @@ import Upload_ic2 from "../assets/Image/Folder Arrow Up.svg";
 import FoldeImage from "../assets/Image/image 11.png";
 import UseDrawerController from "./controllers/Drawer";
 import FileUploadDialog from "./components/dilog-uploadFile";
+import { MANAGE_DOC_PATH } from "../routes/paths";
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open",
@@ -48,6 +49,8 @@ const Drawer = styled(MuiDrawer, {
 const MiniDrawer = () => {
   const ctrl = UseDrawerController();
   const location = useLocation();
+
+  const isManageDocument = location.pathname.includes(MANAGE_DOC_PATH);
 
   const currentPath = location.pathname;
 
@@ -70,6 +73,7 @@ const MiniDrawer = () => {
 
         <Box sx={{ p: 1 }}>
           <Button
+            disabled={!isManageDocument}
             fullWidth
             sx={{
               p: 3,
@@ -82,6 +86,11 @@ const MiniDrawer = () => {
               display: "flex",
               alignItems: "center",
               justifyContent: "flex-start",
+              '&.Mui-disabled': {
+                bgcolor: '#95A5A6',
+                color: 'rgba(255, 255, 255, 0.7)',
+                cursor: 'not-allowed',
+              }
             }}
             onClick={ctrl?.handleClick} // Change to onClick
           >
