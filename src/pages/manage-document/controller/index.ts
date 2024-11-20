@@ -8,7 +8,6 @@ import { SelectChangeEvent } from "@mui/material";
 import { ErrorResponse } from "../../../utils/functions/Error";
 import { ErrorModel } from "../../../models/Error";
 import {
-  CREATE_FOLDER_END_POINT,
   GET_ALL_FOLDER_END_POINT,
   INVITE_MEMBER_FOLDER_END_POINT,
   UPDATE_FOLDER_END_POINT,
@@ -33,6 +32,7 @@ interface Document {
   modified: string;
   size: string;
   type: IconType;
+  itemType: string;
   status: STATUS_ENUMS;
   url: string;
   isFolder: boolean;
@@ -249,7 +249,6 @@ const UseMainController = () => {
   const handleDeleteFolder = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
-    console.log("Initial itemType:", selectedDocument?.type);
 
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -337,15 +336,19 @@ const UseMainController = () => {
     }
 
     try {
-      setIsSubmitting(true);
+      setIsSubmitting(true);  
 
-      // Proceed with the rename only if the user confirmed
-      const res = await axiosInstance.patch(
-        `${CREATE_FOLDER_END_POINT}/${selectedDocument.id}`,
-        {
-          name: newName,
-        }
-      );
+      let endPoint;
+
+      if(selectedDocument.itemType === "folder") {
+        endPoint = `${UPDATE_FOLDER_END_POINT}/${selectedDocument.id}`
+      } else {
+        endPoint = `${UPDATE_FILE_END_POINT}/${selectedDocument.id}`
+      }
+
+      const res = await axiosInstance.patch(endPoint, {
+        name: newName,
+      });
 
       // Update the selected document with the new data from the API response
       setSelectedDocument(res.data);
