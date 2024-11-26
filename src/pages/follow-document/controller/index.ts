@@ -4,11 +4,9 @@ import { DOCUMENT_DETAIL_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
 import Swal from "sweetalert2";
 import { STATUS_ENUMS } from "../../../enums/status-enum";
-import { SelectChangeEvent } from "@mui/material";
 import { ErrorResponse } from "../../../utils/functions/Error";
 import { ErrorModel } from "../../../models/Error";
 import {
-  GET_ALL_FOLDER_END_POINT,
   INVITE_MEMBER_FOLDER_END_POINT,
   UPDATE_FOLDER_END_POINT,
 } from "../../../configs/endPoint/folder-endpoint";
@@ -16,10 +14,11 @@ import { IconType } from "../../../enums/icon-enums";
 import {
   DELETE_FILE_END_POINT,
   DELETE_FOLDER_END_POINT,
-  GET_ALL_ROOT_FILE_END_POINT,
   INVITE_MEMBER_FILE_END_POINT,
   UPDATE_FILE_END_POINT,
 } from "../../../configs/endPoint/files-endpoint";
+import { FollowDocumentModel } from "../../../models/follow-document";
+import { GET_ALL_FOLLOW_DOCUMENT_END_POINT } from "../../../configs/endPoint/follow-documnet-endpoint";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
@@ -41,6 +40,11 @@ interface Document {
   isDelete: boolean;
   createdAt: string;
   updatedAt: string;
+  event: string;
+  followDocument: FollowDocumentModel;
+  docName: string;
+  ownerName: string;
+  company: string;
 }
 
 const UseMainController = () => {
@@ -48,6 +52,7 @@ const UseMainController = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  console.log(selectedItems);
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [filterAnchorEl, setFilterAnchorEl] = useState<{
@@ -59,7 +64,7 @@ const UseMainController = () => {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null
   );
-  console.log(selectedDocument)
+  console.log(documents);
   const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
 
   // const [status, setStatus] = useState<STATUS_ENUMS>()
@@ -71,62 +76,35 @@ const UseMainController = () => {
   const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
   const [email, setEmail] = useState<string>(null!);
 
-  const handleChangeStatus = async (event: SelectChangeEvent<STATUS_ENUMS>) => {
-    const newStatus = event.target.value as STATUS_ENUMS;
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-    if (!selectedDocument) {
-      await Swal.fire({
-        icon: "warning",
-        title: "No Document Selected",
-        text: "Please select a document to change the status.",
-      });
-      return;
-    }
-
+  const handleGetData = async () => {
     try {
-      let endpoint;
-      let payload;
-
-      if (selectedDocument?.type === "folder") {
-        endpoint = `${UPDATE_FOLDER_END_POINT}/${selectedDocument?.id}`;
-        payload = { status: newStatus };
-      } else {
-        endpoint = `${UPDATE_FILE_END_POINT}/${selectedDocument?.id}`;
-        payload = { status: newStatus };
-      }
-
-      const res = await axiosInstance.patch(endpoint, payload);
-
-      // Update selected document
-      setSelectedDocument({ ...selectedDocument, status: newStatus });
-
-      // Update documents list
-      setDocuments((prevDocs) =>
-        prevDocs.map((doc) =>
-          doc.id === selectedDocument.id ? { ...doc, status: newStatus } : doc
-        )
-      );
-
-      await Swal.fire({
-        icon: "success",
-        title: "Status Updated!",
-        text: `The document status has been updated to "${newStatus}" successfully.`,
+      setLoading(true);
+      const res = await axiosInstance.get(GET_ALL_FOLLOW_DOCUMENT_END_POINT, {
+        params: {
+          page: page,
+          limit: pageSize,
+        },
       });
+      setDocuments(res?.data?.data);
+      setTotalPages(Math.ceil(res?.data?.total / pageSize));
+      console.log(res?.data?.data);
     } catch (error) {
-      console.error("Error updating status:", error);
-
-      await Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Failed to update status. Please try again.",
-      });
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
+ 
+
   const handleDetailsClick = () => {
-    if (selectedDocument) {
+    if (selectedItems) {
       setCollapseOpen(true); // Open the collapse
-      setSearchParams({ docId: selectedDocument.id, action: "collapse" });
+      setSearchParams({ docId: selectedItems[0], action: "collapse" });
     } else {
       console.log("No document selected.");
     }
@@ -142,40 +120,6 @@ const UseMainController = () => {
     setCollapseOpen(false);
   };
 
-  const handleGetData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Fetch folders
-      const foldersRes = await axiosInstance.get(GET_ALL_FOLDER_END_POINT);
-      const folders = foldersRes?.data?.data?.map((folder: any) => ({
-        ...folder,
-        itemType: "folder", // Add type identifier
-      }));
-
-      // Fetch files
-      const filesRes = await axiosInstance.get(GET_ALL_ROOT_FILE_END_POINT);
-      const files = filesRes?.data?.data?.map((file: any) => ({
-        ...file,
-        itemType: "file", // Add type identifier
-      }));
-
-      // Combine and set both files and folders
-      const combinedItems = [...folders, ...files];
-      setDocuments(combinedItems);
-    } catch (error) {
-      console.error("API error:", error);
-      setError("An error occurred while fetching data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    handleGetData();
-  }, []);
-
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       setSelectedItems(documents.map((doc) => doc.id));
@@ -189,6 +133,7 @@ const UseMainController = () => {
     if (doc) {
       setSelectedDocument(doc);
     }
+
     setSelectedItems((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
@@ -242,14 +187,10 @@ const UseMainController = () => {
     handleFilterClose(field);
   };
 
-  useEffect(() => {
-    const action = searchParams.get("action");
-    setCollapseOpen(action === "collapse");
-  }, [searchParams]);
+  
 
   const handleDeleteFolder = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-
 
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -285,8 +226,6 @@ const UseMainController = () => {
             isFolder ? "folder" : "file"
           } has been deleted successfully.`,
         });
-
-        handleGetData();
       } catch (error) {
         console.error("Delete error:", error);
         await Swal.fire({
@@ -337,14 +276,14 @@ const UseMainController = () => {
     }
 
     try {
-      setIsSubmitting(true);  
+      setIsSubmitting(true);
 
       let endPoint;
 
-      if(selectedDocument.itemType === "folder") {
-        endPoint = `${UPDATE_FOLDER_END_POINT}/${selectedDocument.id}`
+      if (selectedDocument.itemType === "folder") {
+        endPoint = `${UPDATE_FOLDER_END_POINT}/${selectedDocument.id}`;
       } else {
-        endPoint = `${UPDATE_FILE_END_POINT}/${selectedDocument.id}`
+        endPoint = `${UPDATE_FILE_END_POINT}/${selectedDocument.id}`;
       }
 
       const res = await axiosInstance.patch(endPoint, {
@@ -359,8 +298,6 @@ const UseMainController = () => {
         title: "Folder Renamed!",
         text: `The folder has been renamed to "${newName}" successfully.`,
       });
-
-      handleGetData();
     } catch (error) {
       console.error(error);
       ErrorResponse(error as ErrorModel);
@@ -443,69 +380,83 @@ const UseMainController = () => {
     try {
       if (!selectedDocument || !selectedDocument.url) {
         Swal.fire({
-          title: 'Warning!',
-          text: 'Cannot download folders. Please select a file.',
-          icon: 'warning',
+          title: "Warning!",
+          text: "Cannot download folders. Please select a file.",
+          icon: "warning",
           timer: 2000,
           showConfirmButton: false,
         });
         return;
       }
-  
+
       const result = await Swal.fire({
-        title: 'Are you sure?',
+        title: "Are you sure?",
         text: `Do you want to download ${selectedDocument.name}?`,
-        icon: 'question',
+        icon: "question",
         showCancelButton: true,
-        confirmButtonText: 'Yes, download it!',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: "Yes, download it!",
+        cancelButtonText: "Cancel",
       });
-  
+
       if (result.isConfirmed) {
         Swal.fire({
-          title: 'Downloading...',
+          title: "Downloading...",
           text: `Downloading ${selectedDocument.name}`,
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
           },
         });
-  
+
         const response = await fetch(selectedDocument.url);
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-  
-        const link = document.createElement('a');
+
+        const link = document.createElement("a");
         link.href = url;
-        link.setAttribute('download', selectedDocument.name);
+        link.setAttribute("download", selectedDocument.name);
         document.body.appendChild(link);
         link.click();
-  
+
         window.URL.revokeObjectURL(url);
         document.body.removeChild(link);
-  
+
         Swal.fire({
-          title: 'Success!',
-          text: 'File downloaded successfully',
-          icon: 'success',
+          title: "Success!",
+          text: "File downloaded successfully",
+          icon: "success",
           timer: 2000,
           showConfirmButton: false,
         });
       }
     } catch (error) {
       Swal.fire({
-        title: 'Error!',
-        text: 'Something went wrong while downloading the file',
-        icon: 'error',
+        title: "Error!",
+        text: "Something went wrong while downloading the file",
+        icon: "error",
         timer: 2000,
         showConfirmButton: false,
       });
-      console.error('Download error:', error);
+      console.error("Download error:", error);
     }
   };
-  
+
+  useEffect(() => {
+    handleGetData();
+  }, []);
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    setCollapseOpen(action === "collapse");
+  }, [searchParams]);
 
   return {
+    totalPages,
+    page,
+    pageSize,
+    setPage,
+    setTotalPages,
+    setPageSize,
     email,
     handleChangeEmail: (value: string) => setEmail(value),
     shareDialogOpen,
@@ -545,11 +496,10 @@ const UseMainController = () => {
     handleRenameFolder,
     handleChangeName,
     handleDeleteFolder,
-    handleChangeStatus,
     handleShare,
     handleCloseShareDialog,
     handleIviteMember,
-    handleDownload
+    handleDownload,
   };
 };
 

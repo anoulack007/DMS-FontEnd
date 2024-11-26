@@ -13,4 +13,5 @@ export interface Document {
   isDelete: boolean;
   createdAt: string;
   updatedAt: string;
+  event: string;
 }

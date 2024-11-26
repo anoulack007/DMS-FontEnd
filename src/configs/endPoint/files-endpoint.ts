@@ -14,3 +14,5 @@ export const DELETE_FOLDER_END_POINT: string = '/recycle-bin/folder/delete'
 export const RESTORE_FILE_END_POINT: string = '/recycle-bin/file/restore'
 
 export const INVITE_MEMBER_FILE_END_POINT: string = '/files/invite'
+
+export const GET_FILE_HISTORY_END_POINT: string = '/files-history'

@@ -10,6 +10,7 @@ import {
   SEARCH_DOC_PATH,
   ADD_USER_PATH,
   USER_DETAIL_PATH,
+  FOLLOW_DOCUMENT_PATH,
 } from "./paths";
 import MainLayout from "../layout";
 import LoginPage from "../pages/login";
@@ -24,6 +25,7 @@ import DocumentDetailPage from "../pages/document-detail";
 import ProtectedRoutes from "./ProtectedRoute";
 import UserDetailPage from "../pages/user-detail";
 import AddUserPage from "../pages/add-user";
+import FollowDocumentPage from "../pages/follow-document";
 
 const RoutesComponent = () => {
   return useRoutes([
@@ -70,6 +72,10 @@ const RoutesComponent = () => {
         {
           path: USER_DETAIL_PATH,
           element: <UserDetailPage />
+        },
+        {
+          path: FOLLOW_DOCUMENT_PATH,
+          element: <FollowDocumentPage />
         }
       ],
     },

@@ -13,3 +13,5 @@ export const RESTORE_FOLDER_END_POINT: string = '/recycle-bin/folder/restore'
 
 export const INVITE_MEMBER_FOLDER_END_POINT: string = '/folders/invite'
 
+export const GET_FOLDER_HISTORY_END_POINT: string = '/folder-history'
+
