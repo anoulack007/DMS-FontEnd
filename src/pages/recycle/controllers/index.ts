@@ -186,6 +186,7 @@ const UseMainController = () => {
         }
   
         const res = await axiosInstance.delete(endpoint);
+        console.log(res?.data.data)
   
         // Show success alert
         await Swal.fire({
@@ -233,6 +234,7 @@ const UseMainController = () => {
         }
   
         const res = await axiosInstance.post(endpoint, data);
+        console.log(res?.data?.data)
   
         // Show success alert
         await Swal.fire({

@@ -56,7 +56,7 @@ const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename, handleD
         bgcolor: "white", // Background color similar to the image
         borderRadius: 1, // For slightly rounded corners
         gap: 5,
-        boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
+        boxShadow: 2,
         mb: 3,
       }}
     >

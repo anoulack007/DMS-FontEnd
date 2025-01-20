@@ -15,3 +15,5 @@ export const INVITE_MEMBER_FOLDER_END_POINT: string = '/folders/invite'
 
 export const GET_FOLDER_HISTORY_END_POINT: string = '/folder-history'
 
+export const GET_ONE_FOLDER_HISTORT_END_POINT: string = '/folder-history/get-folder-history'
+

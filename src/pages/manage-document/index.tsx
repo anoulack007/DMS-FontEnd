@@ -13,7 +13,6 @@ import {
   Typography,
   Chip,
   TableSortLabel,
-  Menu,
   MenuItem,
   Collapse,
   Divider,
@@ -27,6 +26,7 @@ import {
   InputLabel,
   Select,
   InputAdornment,
+  Avatar,
 } from "@mui/material";
 
 import Invite_IC from "../../assets/logo/invite_ic.svg";
@@ -34,12 +34,12 @@ import Access_IC from "../../assets/logo/access_ic.svg";
 import Person_IC from "../../assets/logo/Person.svg";
 
 //icons
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SendIcon from "@mui/icons-material/Send";
+import SearchIcon from "@mui/icons-material/Search";
 
 //controllers
 import UseMainController from "./controller";
@@ -61,9 +61,11 @@ import PdfImage from "../../assets/logo/pdf_ic.svg";
 import TxtImage from "../../assets/logo/txt.svg.svg";
 import SvgImage from "../../assets/logo/svg.svg.svg";
 import ExeImage from "../../assets/logo/exe.svg.svg";
+import RarImage from "../../assets/logo/rar_ic.svg";
 
 import { IconType } from "../../enums/icon-enums";
 import DialogInviteMember from "./components/dialog-inviteMember";
+import BreadcrumbCustom from "./components/breadcrumbs";
 
 const getIconByType = (type: string) => {
   switch (type) {
@@ -73,8 +75,8 @@ const getIconByType = (type: string) => {
       return <img src={ZipImage} alt="zip" />;
     case IconType.PNG:
       return <img height={45} src={PngImage} alt="png" />;
-    case IconType.DOCS:
-      return <img src={DocsImage} alt="docs" />;
+    case IconType.DOCX:
+      return <img src={DocsImage} alt="docx" />;
     case IconType.XLSX:
       return <img src={XlsxImage} alt="xlsx" />;
     case IconType.IMAGE:
@@ -95,6 +97,8 @@ const getIconByType = (type: string) => {
       return <img height={45} src={SvgImage} alt="svg" />;
     case IconType.EXE:
       return <img height={45} src={ExeImage} alt="exe" />;
+    case IconType.RAR:
+      return <img height={45} src={RarImage} alt="rar" />;
     default:
       return <img src={FoldeImage} alt="folder" />;
   }
@@ -103,11 +107,22 @@ const getIconByType = (type: string) => {
 const getStatusColor = (status: string): string => {
   switch (status.toLowerCase()) {
     case "public":
-      return "#03994D"; // Light red
+      return "#36B37E29"; // Light red
     case "private":
-      return "#91040B"; // Light orange
+      return "#91040B1A"; // Light orange
     default:
       return "transparent";
+  }
+};
+
+const getTextColor = (status: string): string => {
+  switch (status.toLowerCase()) {
+    case "public":
+      return "#1B806A";
+    case "private":
+      return "#91040B";
+    default:
+      return "white";
   }
 };
 
@@ -123,49 +138,6 @@ const ManageDocumentPage = () => {
     return `${(sizeInBytes / Math.pow(1024, i)).toFixed(2)} ${units[i]}`;
   };
 
-  const getFilterMenuItems = (field: SortField) => {
-    switch (field) {
-      case "modified":
-        return [
-          <MenuItem
-            key="today"
-            onClick={() => ctrl?.handleFilter(field, "Today")}
-          >
-            Today
-          </MenuItem>,
-          <MenuItem
-            key="this-week"
-            onClick={() => ctrl?.handleFilter(field, "This week")}
-          >
-            This week
-          </MenuItem>,
-          <MenuItem
-            key="this-month"
-            onClick={() => ctrl?.handleFilter(field, "This month")}
-          >
-            This month
-          </MenuItem>,
-        ];
-      case "status":
-        return [
-          <MenuItem
-            key="private"
-            onClick={() => ctrl?.handleFilter(field, "Confidential")}
-          >
-            Private
-          </MenuItem>,
-          <MenuItem
-            key="public"
-            onClick={() => ctrl.handleFilter(field, "Public")}
-          >
-            Public
-          </MenuItem>,
-        ];
-      default:
-        return [];
-    }
-  };
-
   const renderSortableHeader = (field: SortField, label: string) => (
     <TableCell>
       <Box sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
@@ -173,28 +145,56 @@ const ManageDocumentPage = () => {
           active={ctrl?.sortField === field}
           direction={ctrl?.sortField === field ? ctrl?.sortOrder : "asc"}
           onClick={() => ctrl?.handleSort(field)}
+          sx={{ fontWeight: "bold" }}
         >
           {label}
         </TableSortLabel>
-        <IconButton
-          size="small"
-          onClick={(e) => ctrl?.handleFilterClick(e, field)}
-        >
-          <ArrowDropDownIcon />
-        </IconButton>
       </Box>
-      <Menu
-        anchorEl={ctrl?.filterAnchorEl[field]}
-        open={Boolean(ctrl?.filterAnchorEl[field])}
-        onClose={() => ctrl?.handleFilterClose(field)}
-      >
-        {getFilterMenuItems(field)}
-      </Menu>
     </TableCell>
   );
 
+  const isAnyItemSelected = ctrl?.selectedItems?.length > 0;
+
   return (
     <Box>
+      <Typography color="#838383" variant="h5" fontWeight={700}>
+        <p>ຈັດການເອກະສານ</p>
+      </Typography>
+
+      <Box sx={{ justifyContent: "space-between", display: "flex" }} my={3}>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <BreadcrumbCustom />
+        </Box>
+        <TextField
+          value={ctrl?.searchTerm}
+          placeholder="Search..."
+          onChange={(e) => ctrl.handleSearch(e.target.value)}
+          sx={{
+            fontFamily: "NotoSansLao-Regular",
+            borderRadius: 24,
+            bgcolor: "#F6F6F6",
+            "& .MuiOutlinedInput-root": {
+              border: "none",
+            },
+            "& .MuiOutlinedInput-notchedOutline": {
+              border: "none",
+            },
+          }}
+          InputProps={{
+            style: {
+              borderRadius: 24,
+            },
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton>
+                  <SearchIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+
       {ctrl?.selectedItems.length > 0 && (
         <CustomMenu
           selectedCount={ctrl.selectedItems.length}
@@ -213,37 +213,55 @@ const ManageDocumentPage = () => {
           flexDirection: "row",
           gap: 2,
           width: "100%",
+          position: "relative",
         }}
       >
-        <Box sx={{ flexGrow: 1 }}>
-          <TableContainer component={Paper}>
+        <Box sx={{ flexGrow: 1, display: "flex" }}>
+          <TableContainer
+            sx={{
+              boxShadow: 3,
+              borderRadius: 3,
+              minHeight: "calc(100vh - 250px)", // Adjust value based on your layout
+            }}
+            component={Paper}
+          >
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
-                      checkedIcon={<CheckCircleIcon sx={{ color: "blue" }} />}
-                      indeterminate={
-                        ctrl?.selectedItems.length > 0 &&
-                        ctrl?.selectedItems.length < ctrl?.documents.length
-                      }
-                      checked={
-                        ctrl?.documents.length > 0 &&
-                        ctrl?.selectedItems.length === ctrl?.documents.length
-                      }
-                      onChange={ctrl?.handleSelectAll}
-                    />
+                  {isAnyItemSelected && (
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
+                        checkedIcon={<CheckCircleIcon sx={{ color: "blue" }} />}
+                        indeterminate={
+                          ctrl?.selectedItems.length > 0 &&
+                          ctrl?.selectedItems.length < ctrl?.documents.length
+                        }
+                        checked={
+                          ctrl?.documents.length > 0 &&
+                          ctrl?.selectedItems.length === ctrl?.documents.length
+                        }
+                        onChange={ctrl?.handleSelectAll}
+                      />
+                    </TableCell>
+                  )}
+                  {renderSortableHeader("name", "ຊື່ເອກະສານ")}
+                  <TableCell>
+                    <p style={{ fontWeight: "bold" }}>ປະເພດ</p>
                   </TableCell>
-                  {renderSortableHeader("name", "Document Name")}
-                  <TableCell>Type</TableCell>
-                  <TableCell>ID Document</TableCell>
-                  {renderSortableHeader("modified", "Modified")}
-                  {renderSortableHeader("size", "File Size")}
-                  {renderSortableHeader("status", "Status")}
+                  <TableCell>
+                    <p style={{ fontWeight: "bold" }}>ລະຫັດເອກະສານ</p>
+                  </TableCell>
+                  {renderSortableHeader("modified", "ວັນທີແກ້ໄຂ")}
+                  <TableCell>
+                    <p style={{ fontWeight: "bold" }}>ຂະໜາດຟໄຟລ໌</p>
+                  </TableCell>
+                  <TableCell>
+                    <p style={{ fontWeight: "bold" }}>ສະຖານະ</p>
+                  </TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody>
+              <TableBody sx={{ borderBottom: "1px solid #919EAB3D" }}>
                 {ctrl?.loading ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center">
@@ -261,31 +279,39 @@ const ManageDocumentPage = () => {
                     <TableRow
                       key={item?.id}
                       selected={ctrl?.isSelected(item.id)}
+                      onClick={() => ctrl.handleSelectItem(item?.id)}
+                      onDoubleClick={() => {
+                        if (item.itemType === "folder") {
+                          ctrl.handleFolderDoubleClick(item);
+                        }
+                      }}
                       sx={{
                         "&:last-child td, &:last-child th": { border: 0 },
                         "&:hover": {
                           backgroundColor: "rgba(0, 0, 0, 0.04)",
                           transition: "background-color 0.2s ease",
                         },
-                        cursor: "pointer",
+                        cursor: item.type === "folder" ? "pointer" : "default",
                       }}
-                      // onDoubleClick={(e) =>
-                      //   item.type === "folder"
-                      //     ? ctrl.handleFolderClick(e, item)
-                      //     : ctrl.handleFileClick(e, item)
-                      // }
                     >
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
-                          checked={ctrl?.isSelected(item?.id)}
-                          onChange={() => ctrl?.handleSelectItem(item?.id)}
-                          checkedIcon={
-                            <CheckCircleIcon sx={{ color: "blue" }} />
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>
+                      {(isAnyItemSelected || ctrl?.isSelected(item?.id)) && (
+                        <TableCell
+                          sx={{ borderBottom: "none" }}
+                          padding="checkbox"
+                        >
+                          <Checkbox
+                            icon={
+                              <PanoramaFishEyeIcon sx={{ color: "gray" }} />
+                            }
+                            checked={ctrl?.isSelected(item?.id)}
+                            onChange={() => ctrl?.handleSelectItem(item?.id)}
+                            checkedIcon={
+                              <CheckCircleIcon sx={{ color: "blue" }} />
+                            }
+                          />
+                        </TableCell>
+                      )}
+                      <TableCell sx={{ borderBottom: "none" }}>
                         <Box
                           sx={{
                             display: "flex",
@@ -300,24 +326,28 @@ const ManageDocumentPage = () => {
                           </Box>
                         </Box>
                       </TableCell>
-                      <TableCell>{item?.type}</TableCell>
-                      <TableCell>{item?.id}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {item?.type}
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {item?.id}
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
                         {item?.createdAt
                           ? new Date(item?.createdAt).toLocaleString()
                           : ""}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
                         {item?.size ? formatFileSize(item.size) : "N/A"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
                         <Chip
                           label={item?.status}
                           sx={{
                             backgroundColor: getStatusColor(item?.status),
                             borderRadius: "4px",
                             fontWeight: "normal",
-                            color: "white",
+                            color: getTextColor(item?.status),
                           }}
                         />
                       </TableCell>
@@ -332,6 +362,8 @@ const ManageDocumentPage = () => {
                 )}
               </TableBody>
             </Table>
+
+            {/* <TablePagination component="div" count={100} /> */}
           </TableContainer>
         </Box>
 
@@ -339,15 +371,21 @@ const ManageDocumentPage = () => {
           in={ctrl.collapeOpen}
           timeout="auto"
           unmountOnExit
-          sx={{ maxWidth: 350, width: "100%" }}
+          sx={{
+            maxWidth: 350,
+            width: "100%",
+            position: "sticky",
+            top: 0,
+            height: "calc(100vh - 250px)", // Match TableContainer height
+          }}
         >
           <Paper
             sx={{
               p: 3,
               backgroundColor: "white",
               boxShadow: 2,
+              height: "100%",
               overflow: "auto",
-              minHeight: 1200,
             }}
           >
             <Box
@@ -358,7 +396,12 @@ const ManageDocumentPage = () => {
                 gap: 2,
               }}
             >
-              <img src={FoldeImage} alt="folder" />
+              {/* <img src={FoldeImage} alt="folder" /> */}
+              {ctrl?.selectedDocument?.type ? (
+                getIconByType(ctrl.selectedDocument.type)
+              ) : (
+                <img src={FoldeImage} alt="default" />
+              )}
               <Typography
                 variant="h5"
                 title={ctrl?.selectedDocument?.name}
@@ -422,6 +465,14 @@ const ManageDocumentPage = () => {
                         <img src={Invite_IC} alt="invite" />
                       </IconButton>
 
+                      {ctrl?.filteredMembers.map((member) => (
+                        <Avatar
+                          key={member.id}
+                          src={member?.user?.image?.url}
+                          alt={member?.user?.name}
+                        />
+                      ))}
+
                       <IconButton>
                         <img src={Access_IC} alt="access" />
                       </IconButton>
@@ -434,16 +485,17 @@ const ManageDocumentPage = () => {
                 <Typography>Details</Typography>
 
                 <Typography>
-                  <strong>Name:</strong> {ctrl.selectedDocument.name}
+                  <strong>Name:</strong> <br /> {ctrl.selectedDocument.name}
                 </Typography>
                 <Typography>
-                  <strong>Owner:</strong>
+                  <strong>Owner:</strong> <br />{" "}
+                  {ctrl?.selectedDocument?.owner?.name}
                 </Typography>
                 <Typography>
-                  <strong>ID:</strong> {ctrl.selectedDocument?.documentId}
+                  <strong>ID:</strong> <br /> {ctrl.selectedDocument?.id}
                 </Typography>
                 <Typography>
-                  <strong>Created:</strong>{" "}
+                  <strong>Created:</strong> <br />{" "}
                   {ctrl?.selectedDocument?.createdAt
                     ? new Date(
                         ctrl?.selectedDocument?.createdAt
@@ -451,11 +503,42 @@ const ManageDocumentPage = () => {
                     : "-"}
                 </Typography>
                 <Typography>
-                  <strong>Size:</strong>{" "}
+                  <strong>Size:</strong> <br />{" "}
                   {ctrl?.selectedDocument?.size
                     ? formatFileSize(ctrl.selectedDocument.size)
                     : "N/A"}
                 </Typography>
+
+                <Typography mt={2} fontWeight={700}>
+                  <strong>version and Modification</strong>
+                </Typography>
+
+                <Typography mt={2} fontWeight={700}>
+                  <strong>History Event</strong>
+                </Typography>
+                {ctrl?.fileHistory.length > 0 ? (
+                  <Box>
+                    {ctrl?.fileHistory.map((history, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: 'center'
+                        }}
+                      >
+                        <Typography mb={1}>{history?.event}</Typography>
+                        <Typography>
+                          {history.createdAt
+                            ? new Date(history?.createdAt).toLocaleDateString()
+                            : ""}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography mt={2}>No history available</Typography>
+                )}
               </Box>
             )}
           </Paper>

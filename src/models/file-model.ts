@@ -14,6 +14,7 @@ export interface FileModel {
     type: string
     size: string
     status: string
+    version: Version[]
     owner: owner
     ownerId: string
     url: string
@@ -23,6 +24,17 @@ export interface FileModel {
     createdAt: string
     updatedAt: string
 }
+
+export interface Version {
+    id: string;
+    version: string;
+    modifiedBy: string;
+    modifiedAt: string;
+    createdAt: string;
+    updateBy: string;
+    event: string;
+  }
+  
 
 
 

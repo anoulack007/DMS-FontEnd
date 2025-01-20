@@ -20,14 +20,14 @@ import { styled } from "@mui/material/styles";
 import MuiDrawer from "@mui/material/Drawer";
 import NavItem from "./components/NavItem";
 import { useLocation } from "react-router-dom";
-import { DRAWER_WIDTH, MENU_ITEM_LISTS } from "./config";
+import { DRAWER_WIDTH, FOLLOW_DOCUMENT_LISTS, MENU_ITEM_LISTS, USER_MANAGE_LISTS } from "./config";
 import CloseIcon from "@mui/icons-material/Close";
 
 //images
 import Logo from "../assets/logo/IQURI.svg";
 import Add_ic from "../assets/Image/Add.svg";
 import Upload_ic from "../assets/Image/Document Arrow Up.svg";
-import Upload_ic2 from "../assets/Image/Folder Arrow Up.svg";
+// import Upload_ic2 from "../assets/Image/Folder Arrow Up.svg";
 import FoldeImage from "../assets/Image/image 11.png";
 import UseDrawerController from "./controllers/Drawer";
 import FileUploadDialog from "./components/dilog-uploadFile";
@@ -50,7 +50,8 @@ const MiniDrawer = () => {
   const ctrl = UseDrawerController();
   const location = useLocation();
 
-  const isManageDocument = location.pathname.includes(MANAGE_DOC_PATH);
+  const isManageDocument =
+    location.pathname === MANAGE_DOC_PATH || location.pathname === "/";
 
   const currentPath = location.pathname;
 
@@ -63,13 +64,12 @@ const MiniDrawer = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            py: 0.5,
+            py: 4,
             px: 1,
           }}
         >
           <img height={70} width={70} src={Logo} alt="Freelancer" />
         </Box>
-        <Divider />
 
         <Box sx={{ p: 1 }}>
           <Button
@@ -86,11 +86,11 @@ const MiniDrawer = () => {
               display: "flex",
               alignItems: "center",
               justifyContent: "flex-start",
-              '&.Mui-disabled': {
-                bgcolor: '#95A5A6',
-                color: 'rgba(255, 255, 255, 0.7)',
-                cursor: 'not-allowed',
-              }
+              "&.Mui-disabled": {
+                bgcolor: "#95A5A6",
+                color: "rgba(255, 255, 255, 0.7)",
+                cursor: "not-allowed",
+              },
             }}
             onClick={ctrl?.handleClick} // Change to onClick
           >
@@ -109,10 +109,12 @@ const MiniDrawer = () => {
               },
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, p: 2 }}>
-              <img height={30} src={FoldeImage} alt="Folder" />
-              <Typography variant="inherit">Folder</Typography>
-            </Box>
+            <MenuItem  onClick={ctrl?.handleOpenDialog}>
+              <ListItemIcon>
+                <img height={30} src={FoldeImage} alt="Folder" />
+              </ListItemIcon>
+              <Typography variant="inherit">Create folders</Typography>
+            </MenuItem>
 
             <Divider />
 
@@ -122,12 +124,12 @@ const MiniDrawer = () => {
               </ListItemIcon>
               <Typography variant="inherit">Files upload</Typography>
             </MenuItem>
-            <MenuItem onClick={ctrl?.handleOpenDialog}>
+            {/* <MenuItem onClick={ctrl?.handleOpenDialog}>
               <ListItemIcon>
                 <img src={Upload_ic2} alt="upload" />
               </ListItemIcon>
-              <Typography variant="inherit">Folder upload</Typography>
-            </MenuItem>
+              <Typography variant="inherit">Folder Uploads</Typography>
+            </MenuItem> */}
           </Menu>
 
           <FileUploadDialog
@@ -190,21 +192,63 @@ const MiniDrawer = () => {
                 )}
               </Button>
             </DialogActions>
-          </Dialog>
+          </Dialog> 
         </Box>
 
-        <List>
-          {MENU_ITEM_LISTS.map((item: any, index: number) => (
-            <NavItem
-              key={item.path}
-              item={item}
-              open={ctrl?.open}
-              active={
-                currentPath === "" ? index === 0 : currentPath === item.path
-              }
-            />
-          ))}
-        </List>
+        <Box sx={{ ml: 1, bgcolor: 'white', borderRadius: '8px' }}>
+          <Box sx={{ px: '8px', py: '24px' }}>
+            <Typography sx={{ pl: '16px', color: '#746E6E' }}>
+              ຈັດການເອກະສານ
+            </Typography>
+            <List>
+              {MENU_ITEM_LISTS.map((item, index) => {
+                const isItemActive = currentPath === item.path || (currentPath === '' && index === 0);
+                return (
+                  <NavItem
+                    key={item.path}
+                    item={item}
+                    open={isItemActive}
+                    active={isItemActive}
+                  />
+                );
+              })}
+            </List>
+
+            <Typography sx={{ pl: '16px', color: '#746E6E' }}>
+              ຕິດຕາມເອກະສານ
+            </Typography>
+            <List>
+              {FOLLOW_DOCUMENT_LISTS.map((item, index) => {
+                const isItemActive = currentPath === item.path || (currentPath === '' && index === 0);
+                return (
+                  <NavItem
+                    key={item.path}
+                    item={item}
+                    open={isItemActive}
+                    active={isItemActive}
+                  />
+                );
+              })}
+            </List>
+
+            <Typography sx={{ pl: '16px', color: '#746E6E' }}>
+              ຈັດການຜູ້ໃຊ້
+            </Typography>
+            <List sx={{ marginBottom: '24px' }}>
+              {USER_MANAGE_LISTS.map((item, index) => {
+                const isItemActive = currentPath === item.path || (currentPath === '' && index === 0);
+                return (
+                  <NavItem
+                    key={item.path}
+                    item={item}
+                    open={isItemActive}
+                    active={isItemActive}
+                  />
+                );
+              })}
+            </List>
+          </Box>
+        </Box>
       </Drawer>
     </Box>
   );

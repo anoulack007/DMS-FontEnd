@@ -1,7 +1,6 @@
 export const REPORT_RECYCLE_PATH: string = '/report-recycle'
-export const SEARCH_DOC_PATH: string = '/seach-document'
 export const LOGIN_PATH: string = '/login'
-export const MANAGE_DOC_PATH: string = '/manage-document'
+export const MANAGE_DOC_PATH: string = '/'
 export const REGISTER_PATH: string = '/register'
 export const RECYCLE_PATH: string = '/recycle'
 export const REPORT_SHARE_PATH: string = '/report-share'

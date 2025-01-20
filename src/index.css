@@ -1,6 +1,24 @@
+@font-face {
+  font-family: 'NotoSansLao-Regular';
+  src: url(assets/fonts/NotoSansLao-Regular.ttf);
+  unicode-range: U+0E80- U+0EFF, U+1E00- U+1EFF;
+}
 
-*{
-    font-family: "Noto Sans Lao", sans-serif;
-    font-optical-sizing: auto;
-    font-style: normal;
+@font-face {
+  font-family: 'Roboto';
+  src: url(assets/fonts/Roboto-Regular.ttf);
+  unicode-range: U+0E80-U+0EFF;  
+  font-weight: 700;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: 'NotoSansLao-Regular';
+}
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+body {
+  background-color: white;
 }

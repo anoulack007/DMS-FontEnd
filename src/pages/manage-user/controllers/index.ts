@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom"
 const UseMainController = () => {
 
     const [data, setData] = useState<UserModel[]>([])
-    const [auth, setAuth] = useState(true);
+    const [auth, _setAuth] = useState(true);
     const [anchorElProfile, setAnchorElProfile] = useState<null | HTMLElement>(null);  // แยกตัวแปรสำหรับโปรไฟล์
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null); // แยกตัวแปรสำหรับแต่ละ Action Menu
     const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -55,7 +55,7 @@ const UseMainController = () => {
 
 
     // ChangeTablePage
-    const handleChangePage = (event: unknown, newPage: number) => {
+    const handleChangePage = (_event: unknown, newPage: number) => {
         setPage(newPage);
     };
     // ChangeRowsPerPage

@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom"
 const UseMainController = () => {
 
     const [data, setData] = useState<UserModel[]>([])
-    const [auth, setAuth] = useState(true);
+    const [auth, _setAuth] = useState(true);
     const [anchorElProfile, setAnchorElProfile] = useState<null | HTMLElement>(null);  //
 
     const navigate = useNavigate();

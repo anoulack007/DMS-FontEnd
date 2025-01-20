@@ -60,11 +60,10 @@ const UseMainController = () => {
   }>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [error, _setError] = useState<string | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null
   );
-  console.log(documents);
   const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
 
   // const [status, setStatus] = useState<STATUS_ENUMS>()
@@ -98,8 +97,6 @@ const UseMainController = () => {
       setLoading(false);
     }
   };
-
- 
 
   const handleDetailsClick = () => {
     if (selectedItems) {
@@ -218,6 +215,7 @@ const UseMainController = () => {
 
         // Send POST request with payload
         const res = await axiosInstance.post(endPoint, payload);
+        console.log(res?.data?.data)
 
         await Swal.fire({
           icon: "success",

@@ -2,7 +2,6 @@
 import {
   Avatar,
   Box,
-  Divider,
   IconButton,
   Menu,
   MenuItem,
@@ -70,9 +69,6 @@ export default function MainLayout() {
         sx={{
           flexGrow: 1,
           p: 2,
-          zIndex: 1,
-          borderRadius: 5,
-          bgcolor: "#eef2f6",
         }}
       >
         <Toolbar
@@ -83,7 +79,7 @@ export default function MainLayout() {
             justifyContent: "flex-end",
             flexDirection: "row",
             borderRadius: 1,
-            boxShadow: 1,
+            boxShadow: 3,
           }}
         >
           {adminData ? (

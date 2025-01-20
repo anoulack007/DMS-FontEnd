@@ -51,6 +51,7 @@ import PdfImage from "../../assets/logo/pdf_ic.svg";
 import TxtImage from "../../assets/logo/txt.svg.svg";
 import SvgImage from "../../assets/logo/svg.svg.svg";
 import ExeImage from "../../assets/logo/exe.svg.svg";
+import RarImage from '../../assets/logo/rar_ic.svg';
 
 import { IconType } from "../../enums/icon-enums";
 import CustomMenu from "../manage-document/components/custom-menu";
@@ -63,7 +64,7 @@ const getIconByType = (type: string) => {
       return <img src={ZipImage} alt="zip" />;
     case IconType.PNG:
       return <img height={45} src={PngImage} alt="png" />;
-    case IconType.DOCS:
+    case IconType.DOCX:
       return <img src={DocsImage} alt="docs" />;
     case IconType.XLSX:
       return <img src={XlsxImage} alt="xlsx" />;
@@ -85,6 +86,8 @@ const getIconByType = (type: string) => {
       return <img height={45} src={SvgImage} alt="svg" />;
     case IconType.EXE:
       return <img height={45} src={ExeImage} alt="exe" />;
+      case IconType.RAR:
+        return <img height={45} src={RarImage} alt="rar" />;
     default:
       return <img src={FoldeImage} alt="folder" />;
   }
@@ -246,7 +249,7 @@ const FollowDocumentPage = () => {
             component="div"
             count={ctrl?.totalPages * ctrl?.pageSize} 
             page={ctrl?.page - 1}
-            onPageChange={(event, newPage) => ctrl?.setPage(newPage + 1)}
+            onPageChange={(_event, newPage) => ctrl?.setPage(newPage + 1)}
             rowsPerPage={ctrl?.pageSize}
             rowsPerPageOptions={[10, 25, 50]}
             onRowsPerPageChange={(event) =>

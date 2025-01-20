@@ -7,7 +7,7 @@ const UseDrawerController = () => {
   const [openUploadDialog, setOpenUploadDialog] = useState<boolean>(false);
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [open, setOpen] = useState<boolean>(true);
+  const [open, _setOpen] = useState<boolean>(true);
 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [folderName, setFolderName] = useState<string>(null!);
@@ -30,6 +30,7 @@ const UseDrawerController = () => {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setFolderName("");
   };
 
   const handleCreateFolder = async () => {
@@ -40,6 +41,7 @@ const UseDrawerController = () => {
       };
 
       const res = await axiosInstance.post(CREATE_FOLDER_END_POINT, data);
+      console.log(res?.data?.data)
 
       // On success, show SweetAlert2 success alert
       Swal.fire({

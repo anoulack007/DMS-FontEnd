@@ -47,7 +47,7 @@ const getIconByType = (type: string) => {
       return <img src={ZipImage} alt="zip" />;
     case IconType.PNG:
       return <img height={45} src={PngImage} alt="png" />;
-    case IconType.DOCS:
+    case IconType.DOCX:
       return <img src={DocsImage} alt="docs" />;
     case IconType.XLSX:
       return <img src={XlsxImage} alt="xlsx" />;

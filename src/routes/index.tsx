@@ -7,7 +7,6 @@ import {
   RECYCLE_PATH,
   REPORT_RECYCLE_PATH,
   REPORT_SHARE_PATH,
-  SEARCH_DOC_PATH,
   ADD_USER_PATH,
   USER_DETAIL_PATH,
   FOLLOW_DOCUMENT_PATH,
@@ -15,7 +14,6 @@ import {
 import MainLayout from "../layout";
 import LoginPage from "../pages/login";
 import NotFoundPage from "../404";
-import SearchDocumentPage from "../pages/search_document";
 import ManageDocumentPage from "../pages/manage-document";
 import RecyclePage from "../pages/recycle";
 import ReportSharePage from "../pages/report-share";
@@ -52,10 +50,6 @@ const RoutesComponent = () => {
         {
           path: RECYCLE_PATH,
           element: <RecyclePage />,
-        },
-        {
-          path: SEARCH_DOC_PATH,
-          element: <SearchDocumentPage />,
         },
         {
           path: MANAGE_USER_PATH,

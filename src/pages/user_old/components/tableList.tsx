@@ -1,4 +1,3 @@
-import * as react from 'react';
 import {
   randomColor,
   randomEmail,
@@ -8,8 +7,6 @@ import {
 import {
   DataGrid,
   GridColDef,
-  GridActionsCellItem,
-  GridRowParams
 } from '@mui/x-data-grid';
 
 import { renderEmail } from './cell-renderers/email';
@@ -23,7 +20,7 @@ const columns: GridColDef<(typeof rows)[number]>[] = [
     headerName: 'Avatar',
     display: 'flex',
     renderCell: renderAvatar,
-    valueGetter: (value, row) =>
+    valueGetter: (_value, row) =>
       row.name == null || row.avatar == null
         ? null
         : { name: row.name, color: row.avatar },
