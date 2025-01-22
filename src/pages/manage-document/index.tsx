@@ -327,7 +327,7 @@ const ManageDocumentPage = () => {
                         </Box>
                       </TableCell>
                       <TableCell sx={{ borderBottom: "none" }}>
-                        {item?.type}
+                        {item?.type ? item?.type : "folder"}
                       </TableCell>
                       <TableCell sx={{ borderBottom: "none" }}>
                         {item?.id}
@@ -524,7 +524,7 @@ const ManageDocumentPage = () => {
                         sx={{
                           display: "flex",
                           justifyContent: "space-between",
-                          alignItems: 'center'
+                          alignItems: "center",
                         }}
                       >
                         <Typography mb={1}>{history?.event}</Typography>
@@ -602,13 +602,15 @@ const ManageDocumentPage = () => {
                 fullWidth
                 variant="outlined"
                 placeholder="Add a name or email"
-                InputProps={{
-                  style: { borderRadius: 20 },
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <img src={Person_IC} alt="person" />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    style: { borderRadius: 20 },
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <img src={Person_IC} alt="person" />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
                 sx={{ mt: 2, borderRadius: 20 }}
               />
