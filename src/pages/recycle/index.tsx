@@ -11,6 +11,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   Typography,
 } from "@mui/material";
@@ -33,7 +34,7 @@ import SvgImage from "../../assets/logo/svg.svg.svg";
 import ExeImage from "../../assets/logo/exe.svg.svg";
 import { IconType } from "../../enums/icon-enums";
 import CustomMenu from "./components/custom-menu";
-import NoData from '../../assets/logo/NotData.svg'
+import NoData from "../../assets/logo/NotData.svg";
 
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -98,7 +99,12 @@ const RecyclePage = () => {
         }}
       >
         <Box sx={{ flexGrow: 1 }}>
-          <TableContainer component={Paper}>
+          <TableContainer
+            sx={{
+              boxShadow: 3,
+              borderRadius: 3,
+            }}
+          >
             <Table>
               <TableHead>
                 <TableRow>
@@ -117,13 +123,13 @@ const RecyclePage = () => {
                       onChange={ctrl?.handleSelectAll}
                     />
                   </TableCell>
-                  <TableCell>Document Name</TableCell>
-                  <TableCell>ID Document</TableCell>
-                  <TableCell>User deleted</TableCell>
-                  <TableCell>Date deleted</TableCell>
+                  <TableCell>ຊື່ເອກະສານ</TableCell>
+                  <TableCell>ລະຫັດເອກະສານ</TableCell>
+                  <TableCell>ຊື່ຜູ້ລົບ</TableCell>
+                  <TableCell>ລົບໃນວັນທິ</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody>
+              <TableBody sx={{ borderBottom: "1px solid #919EAB3D" }}>
                 {ctrl?.loading ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center">
@@ -136,8 +142,8 @@ const RecyclePage = () => {
                       {ctrl?.error}
                     </TableCell>
                   </TableRow>
-                ) : ctrl?.documents.length > 0 ? (
-                  ctrl?.documents.map((item) => (
+                ) : ctrl.getPaginatedData().length > 0 ? (
+                  ctrl.getPaginatedData().map((item) => (
                     <TableRow
                       key={item?.id}
                       selected={ctrl?.isSelected(item.id)}
@@ -146,32 +152,44 @@ const RecyclePage = () => {
                         "&:hover": {
                           backgroundColor: "rgba(0, 0, 0, 0.04)",
                           transition: "background-color 0.2s ease",
+                          "& .checkbox-cell": {
+                            opacity: 1,
+                            visibility: "visible",
+                          },
                         },
                         cursor: "pointer",
                       }}
-                      // onDoubleClick={(e) =>
-                      //   item.type === "folder"
-                      //     ? ctrl.handleFolderClick(e, item)
-                      //     : ctrl.handleFileClick(e, item)
-                      // }
+                      onClick={() => ctrl?.handleSelectItem(item?.id)}
                     >
-                      <TableCell padding="checkbox">
+                      <TableCell
+                        padding="checkbox"
+                        sx={{
+                          borderBottom: "none",
+                          "& .MuiCheckbox-root": {
+                            transition: "opacity 0.2s, visibility 0.2s",
+                            opacity: ctrl?.isSelected(item?.id) ? 1 : 0,
+                            visibility: ctrl?.isSelected(item?.id)
+                              ? "visible"
+                              : "hidden",
+                          },
+                        }}
+                        className="checkbox-cell"
+                      >
                         <Checkbox
                           icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
                           checked={ctrl?.isSelected(item?.id)}
-                          onChange={() => ctrl?.handleSelectItem(item?.id)}
                           checkedIcon={
                             <CheckCircleIcon sx={{ color: "blue" }} />
                           }
+                          onClick={(e) => e.stopPropagation()}
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
                         <Box
                           sx={{
                             display: "flex",
                             alignItems: "center",
                             gap: 1,
-                            cursor: "pointer",
                           }}
                         >
                           {getIconByType(item?.type)}
@@ -180,9 +198,13 @@ const RecyclePage = () => {
                           </Box>
                         </Box>
                       </TableCell>
-                      <TableCell>{item?.documentId}</TableCell>
-                      <TableCell>{item?.owner?.name}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {item?.documentId}
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {item?.owner?.name}
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
                         {item?.updatedAt
                           ? new Date(item?.updatedAt).toLocaleString()
                           : ""}
@@ -192,7 +214,14 @@ const RecyclePage = () => {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} align="center">
-                      <Box sx={{ minHeight: 500, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <Box
+                        sx={{
+                          minHeight: 500,
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
                         <img src={NoData} alt="data" />
                       </Box>
                     </TableCell>
@@ -201,6 +230,15 @@ const RecyclePage = () => {
               </TableBody>
             </Table>
           </TableContainer>
+          <TablePagination
+            component="div"
+            count={ctrl?.documents.length}
+            page={ctrl.page}
+            onPageChange={ctrl.handleChangePage}
+            rowsPerPage={ctrl.rowsPerPage}
+            onRowsPerPageChange={ctrl.handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+          />
         </Box>
 
         <Collapse
@@ -215,7 +253,6 @@ const RecyclePage = () => {
               backgroundColor: "white",
               boxShadow: 2,
               overflow: "auto",
-              minHeight: 1200,
             }}
           >
             <Box
@@ -226,7 +263,11 @@ const RecyclePage = () => {
                 gap: 2,
               }}
             >
-              <img src={FoldeImage} alt="folder" />
+              {ctrl?.selectedDocument?.type ? (
+                getIconByType(ctrl.selectedDocument.type)
+              ) : (
+                <img src={FoldeImage} alt="default" />
+              )}
               <Typography
                 variant="h5"
                 title={ctrl?.selectedDocument?.name}
