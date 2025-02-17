@@ -26,6 +26,7 @@ interface FileUploadDialogProps {
   onClose: () => void;
   folderId?: string;
   status?: "PRIVATE" | "PUBLIC";
+  documentNumber?: string;
 }
 
 interface UploadError {
@@ -44,6 +45,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
   onClose,
   folderId,
   status = "PRIVATE",
+  documentNumber,
 }) => {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -97,10 +99,20 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
         formData.append("files", file);
       });
 
-      // Add optional folderId if provided
-      if (folderId) {
-        formData.append("folderId", folderId);
+      // Get folderId from URL path or use provided folderId prop
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlFolderId = urlParams.get('folderId');
+      
+      // Add folderId to payload - prioritize URL param, then prop, else null
+      const finalFolderId = urlFolderId || folderId || null;
+      if (finalFolderId) {
+        formData.append("folderId", finalFolderId);
+      } else {
+        formData.append("folderId", ''); // or formData.append("folderId", null);
       }
+
+      // Add documentNumber
+      formData.append("documentNumber", documentNumber || "");
 
       // Add status
       formData.append("status", status);

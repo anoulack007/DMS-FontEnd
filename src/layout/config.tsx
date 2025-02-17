@@ -11,7 +11,6 @@ import {
 import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
 // import RecyclingOutlinedIcon from "@mui/icons-material/RecyclingOutlined";
 // import ScreenShareOutlinedIcon from "@mui/icons-material/ScreenShareOutlined";
-import PlagiarismIcon from "@mui/icons-material/Plagiarism";
 import SvgColor from "./components/SvgColor";
 import DOC_MANAGE_IC from '../assets/logo/mange_doc.svg'
 import USER_MANAGE_IC from '../assets/logo/user_manage.svg'

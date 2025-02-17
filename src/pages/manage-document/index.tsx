@@ -1,27 +1,12 @@
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   Box,
-  CircularProgress,
   IconButton,
-  Checkbox,
   Typography,
-  Chip,
-  TableSortLabel,
   MenuItem,
   Collapse,
   Divider,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
   FormControl,
   InputLabel,
   Select,
@@ -34,11 +19,7 @@ import Access_IC from "../../assets/logo/access_ic.svg";
 import Person_IC from "../../assets/logo/Person.svg";
 
 //icons
-import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CloseIcon from "@mui/icons-material/Close";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import SendIcon from "@mui/icons-material/Send";
 import SearchIcon from "@mui/icons-material/Search";
 
 //controllers
@@ -66,8 +47,15 @@ import RarImage from "../../assets/logo/rar_ic.svg";
 import { IconType } from "../../enums/icon-enums";
 import DialogInviteMember from "./components/dialog-inviteMember";
 import BreadcrumbCustom from "./components/breadcrumbs";
+import DocumentTable from "./components/table";
+import ShareDocumentDialog from "./components/dialog-shareDocument";
+import RenameDocumentDialog from "./components/dialog-rename";
+import { INVITE_MEMBER_FILE_END_POINT } from "../../configs/endPoint/files-endpoint";
+import { INVITE_MEMBER_FOLDER_END_POINT } from "../../configs/endPoint/folder-endpoint";
+import axiosInstance from "../../configs/axios";
+import { ErrorResponse } from "../../utils/functions/Error";
 
-const getIconByType = (type: string) => {
+export const getIconByType = (type: string) => {
   switch (type) {
     case IconType.FOLDER:
       return <img src={FoldeImage} alt="folder" />;
@@ -126,8 +114,6 @@ const getTextColor = (status: string): string => {
   }
 };
 
-type SortField = "name" | "modified" | "size" | "status";
-
 const ManageDocumentPage = () => {
   const ctrl = UseMainController();
 
@@ -137,23 +123,6 @@ const ManageDocumentPage = () => {
     const i = Math.floor(Math.log(sizeInBytes) / Math.log(1024));
     return `${(sizeInBytes / Math.pow(1024, i)).toFixed(2)} ${units[i]}`;
   };
-
-  const renderSortableHeader = (field: SortField, label: string) => (
-    <TableCell>
-      <Box sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
-        <TableSortLabel
-          active={ctrl?.sortField === field}
-          direction={ctrl?.sortField === field ? ctrl?.sortOrder : "asc"}
-          onClick={() => ctrl?.handleSort(field)}
-          sx={{ fontWeight: "bold" }}
-        >
-          {label}
-        </TableSortLabel>
-      </Box>
-    </TableCell>
-  );
-
-  const isAnyItemSelected = ctrl?.selectedItems?.length > 0;
 
   return (
     <Box>
@@ -167,7 +136,7 @@ const ManageDocumentPage = () => {
         </Box>
         <TextField
           value={ctrl?.searchTerm}
-          placeholder="Search..."
+          placeholder="ຄົ້ນຫາ..."
           onChange={(e) => ctrl.handleSearch(e.target.value)}
           sx={{
             fontFamily: "NotoSansLao-Regular",
@@ -180,17 +149,19 @@ const ManageDocumentPage = () => {
               border: "none",
             },
           }}
-          InputProps={{
-            style: {
-              borderRadius: 24,
+          slotProps={{
+            input: {
+              style: {
+                borderRadius: 24,
+              },
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton>
+                    <SearchIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
             },
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton>
-                  <SearchIcon />
-                </IconButton>
-              </InputAdornment>
-            ),
           }}
         />
       </Box>
@@ -216,156 +187,14 @@ const ManageDocumentPage = () => {
           position: "relative",
         }}
       >
-        <Box sx={{ flexGrow: 1, display: "flex" }}>
-          <TableContainer
-            sx={{
-              boxShadow: 3,
-              borderRadius: 3,
-              minHeight: "calc(100vh - 250px)", // Adjust value based on your layout
-            }}
-            component={Paper}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {isAnyItemSelected && (
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
-                        checkedIcon={<CheckCircleIcon sx={{ color: "blue" }} />}
-                        indeterminate={
-                          ctrl?.selectedItems.length > 0 &&
-                          ctrl?.selectedItems.length < ctrl?.documents.length
-                        }
-                        checked={
-                          ctrl?.documents.length > 0 &&
-                          ctrl?.selectedItems.length === ctrl?.documents.length
-                        }
-                        onChange={ctrl?.handleSelectAll}
-                      />
-                    </TableCell>
-                  )}
-                  {renderSortableHeader("name", "ຊື່ເອກະສານ")}
-                  <TableCell>
-                    <p style={{ fontWeight: "bold" }}>ປະເພດ</p>
-                  </TableCell>
-                  <TableCell>
-                    <p style={{ fontWeight: "bold" }}>ລະຫັດເອກະສານ</p>
-                  </TableCell>
-                  {renderSortableHeader("modified", "ວັນທີແກ້ໄຂ")}
-                  <TableCell>
-                    <p style={{ fontWeight: "bold" }}>ຂະໜາດຟໄຟລ໌</p>
-                  </TableCell>
-                  <TableCell>
-                    <p style={{ fontWeight: "bold" }}>ສະຖານະ</p>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody sx={{ borderBottom: "1px solid #919EAB3D" }}>
-                {ctrl?.loading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      <CircularProgress />
-                    </TableCell>
-                  </TableRow>
-                ) : ctrl?.error ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      {ctrl?.error}
-                    </TableCell>
-                  </TableRow>
-                ) : ctrl?.documents.length > 0 ? (
-                  ctrl?.documents.map((item) => (
-                    <TableRow
-                      key={item?.id}
-                      selected={ctrl?.isSelected(item.id)}
-                      onClick={() => ctrl.handleSelectItem(item?.id)}
-                      onDoubleClick={() => {
-                        if (item.itemType === "folder") {
-                          ctrl.handleFolderDoubleClick(item);
-                        }
-                      }}
-                      sx={{
-                        "&:last-child td, &:last-child th": { border: 0 },
-                        "&:hover": {
-                          backgroundColor: "rgba(0, 0, 0, 0.04)",
-                          transition: "background-color 0.2s ease",
-                        },
-                        cursor: item.type === "folder" ? "pointer" : "default",
-                      }}
-                    >
-                      {(isAnyItemSelected || ctrl?.isSelected(item?.id)) && (
-                        <TableCell
-                          sx={{ borderBottom: "none" }}
-                          padding="checkbox"
-                        >
-                          <Checkbox
-                            icon={
-                              <PanoramaFishEyeIcon sx={{ color: "gray" }} />
-                            }
-                            checked={ctrl?.isSelected(item?.id)}
-                            onChange={() => ctrl?.handleSelectItem(item?.id)}
-                            checkedIcon={
-                              <CheckCircleIcon sx={{ color: "blue" }} />
-                            }
-                          />
-                        </TableCell>
-                      )}
-                      <TableCell sx={{ borderBottom: "none" }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            cursor: "pointer",
-                          }}
-                        >
-                          {getIconByType(item?.type)}
-                          <Box>
-                            <Typography>{item?.name}</Typography>
-                          </Box>
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={{ borderBottom: "none" }}>
-                        {item?.type ? item?.type : "folder"}
-                      </TableCell>
-                      <TableCell sx={{ borderBottom: "none" }}>
-                        {item?.id}
-                      </TableCell>
-                      <TableCell sx={{ borderBottom: "none" }}>
-                        {item?.createdAt
-                          ? new Date(item?.createdAt).toLocaleString()
-                          : ""}
-                      </TableCell>
-                      <TableCell sx={{ borderBottom: "none" }}>
-                        {item?.size ? formatFileSize(item.size) : "N/A"}
-                      </TableCell>
-                      <TableCell sx={{ borderBottom: "none" }}>
-                        <Chip
-                          label={item?.status}
-                          sx={{
-                            backgroundColor: getStatusColor(item?.status),
-                            borderRadius: "4px",
-                            fontWeight: "normal",
-                            color: getTextColor(item?.status),
-                          }}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      No files or folders found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-
-            {/* <TablePagination component="div" count={100} /> */}
-          </TableContainer>
-        </Box>
+        <DocumentTable
+          ctrl={ctrl}
+          isAnyItemSelected={ctrl.selectedItems.length > 0}
+          getIconByType={getIconByType}
+          formatFileSize={formatFileSize}
+          getStatusColor={getStatusColor}
+          getTextColor={getTextColor}
+        />
 
         <Collapse
           in={ctrl.collapeOpen}
@@ -406,10 +235,10 @@ const ManageDocumentPage = () => {
                 variant="h5"
                 title={ctrl?.selectedDocument?.name}
                 sx={{
-                  whiteSpace: "nowrap", // Prevents text from wrapping to the next line
-                  overflow: "hidden", // Hides overflowing text
-                  textOverflow: "ellipsis", // Adds ellipsis at the end of the truncated text
-                  maxWidth: "100%", // Ensures the element has a maximum width to trigger truncation
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: "100%",
                 }}
               >
                 {ctrl?.selectedDocument?.name}
@@ -473,9 +302,9 @@ const ManageDocumentPage = () => {
                         />
                       ))}
 
-                      <IconButton>
+                      {/* <IconButton>
                         <img src={Access_IC} alt="access" />
-                      </IconButton>
+                      </IconButton> */}
                     </Box>
                   </Box>
                 </Box>
@@ -544,105 +373,18 @@ const ManageDocumentPage = () => {
           </Paper>
         </Collapse>
 
-        <Dialog
-          open={ctrl?.renameDialogOpen}
-          onClose={() => ctrl?.setRenameDialogOpen(false)}
-          maxWidth="xs"
-          fullWidth
-        >
-          <form onSubmit={ctrl.handleRenameFolder}>
-            <DialogTitle>Rename Document</DialogTitle>
-            <DialogContent>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="New name"
-                fullWidth
-                value={ctrl?.newName}
-                onChange={(e) => ctrl?.handleChangeName(e.target.value)}
-              />
-            </DialogContent>
-            <DialogActions>
-              {/* <Button onClick={onClose} disabled={ctrl?.isSubmitting}>
-                Cancel
-              </Button> */}
-              <Button
-                type="submit"
-                sx={{
-                  bgcolor: "#2C3E50",
-                  textTransform: "none",
-                  color: "white",
-                }}
-              >
-                {ctrl?.isSubmitting ? <CircularProgress size={24} /> : "Rename"}
-              </Button>
-            </DialogActions>
-          </form>
-        </Dialog>
+        <RenameDocumentDialog ctrl={ctrl} />
 
-        <Dialog
-          open={ctrl?.shareDialogOpen}
-          onClose={ctrl.handleCloseShareDialog}
-          maxWidth="xs"
-          fullWidth
-        >
-          <form>
-            <DialogTitle>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <IconButton onClick={ctrl.handleCloseShareDialog}>
-                  <ArrowBackIcon />
-                </IconButton>
-                <Typography variant="h6" sx={{ ml: 1 }}>
-                  Share "Documents"
-                </Typography>
-              </Box>
-            </DialogTitle>
-            <DialogContent>
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder="Add a name or email"
-                slotProps={{
-                  input: {
-                    style: { borderRadius: 20 },
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <img src={Person_IC} alt="person" />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-                sx={{ mt: 2, borderRadius: 20 }}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button
-                type="submit"
-                variant="contained"
-                color="error"
-                fullWidth
-                startIcon={<SendIcon />}
-                sx={{
-                  backgroundColor: "maroon",
-                  color: "white",
-                  textTransform: "none",
-                  maxWidth: 100,
-                  height: 40,
-                  borderRadius: 3,
-                }}
-              >
-                Send
-              </Button>
-            </DialogActions>
-          </form>
-        </Dialog>
+        <ShareDocumentDialog ctrl={ctrl} personIcon={Person_IC} />
 
         <DialogInviteMember
           open={ctrl?.inviteDialogOpen}
           onClose={() => ctrl?.setInviteDialogOpen(false)}
-          handleInviteMember={ctrl.handleIviteMember}
-          email={ctrl?.email}
-          setEmail={ctrl?.handleChangeEmail}
+          selectedDocument={ctrl?.selectedDocument}
+          INVITE_MEMBER_FOLDER_END_POINT={INVITE_MEMBER_FOLDER_END_POINT}
+          INVITE_MEMBER_FILE_END_POINT={INVITE_MEMBER_FILE_END_POINT}
+          axiosInstance={axiosInstance}
+          ErrorResponse={ErrorResponse}
         />
       </Box>
     </Box>

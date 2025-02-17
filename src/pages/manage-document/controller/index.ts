@@ -9,7 +9,6 @@ import { ErrorModel } from "../../../models/Error";
 import {
   GET_ALL_FOLDER_END_POINT,
   GET_ONE_FOLDER_HISTORT_END_POINT,
-  INVITE_MEMBER_FOLDER_END_POINT,
   UPDATE_FOLDER_END_POINT,
 } from "../../../configs/endPoint/folder-endpoint";
 import { IconType } from "../../../enums/icon-enums";
@@ -19,7 +18,6 @@ import {
   GET_ALL_ROOT_FILE_END_POINT,
   GET_MEMBER_FILE_END_POINT,
   GET_ONE_FILE_HISTORT_END_POINT,
-  INVITE_MEMBER_FILE_END_POINT,
   UPDATE_FILE_END_POINT,
 } from "../../../configs/endPoint/files-endpoint";
 import { MemberModel } from "../../../models/member-model";
@@ -81,7 +79,6 @@ const UseMainController = () => {
   const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState<boolean>(false);
   const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
-  const [email, setEmail] = useState<string>(null!);
 
   const [member, setMember] = useState<MemberModel[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<MemberModel[]>([]);
@@ -92,19 +89,20 @@ const UseMainController = () => {
 
   const handleGetHistory = async () => {
     if (!selectedDocument?.id) return; // Guard clause
-    
+
     try {
       setLoading(true);
       setError(null);
-      
-      const endpoint = selectedDocument.itemType === 'folder'
-        ? `${GET_ONE_FOLDER_HISTORT_END_POINT}/${selectedDocument.id}`
-        : `${GET_ONE_FILE_HISTORT_END_POINT}/${selectedDocument.id}`;
-    
+
+      const endpoint =
+        selectedDocument.itemType === "folder"
+          ? `${GET_ONE_FOLDER_HISTORT_END_POINT}/${selectedDocument.id}`
+          : `${GET_ONE_FILE_HISTORT_END_POINT}/${selectedDocument.id}`;
+
       const res = await axiosInstance.get(endpoint);
       setFileHistory(res.data.data);
     } catch (err) {
-      setError('Failed to fetch history');
+      setError("Failed to fetch history");
       console.error(err);
     } finally {
       setLoading(false);
@@ -199,34 +197,33 @@ const UseMainController = () => {
     try {
       setLoading(true);
       setError(null);
-  
+
       // Fetch folders
       const foldersRes = await axiosInstance.get(GET_ALL_FOLDER_END_POINT);
       const folders = foldersRes?.data?.data?.map((folder: any) => ({
         ...folder,
         itemType: "folder",
       }));
-  
+
       // Fetch files with latest versions only
       const filesRes = await axiosInstance.get(GET_ALL_ROOT_FILE_END_POINT);
-      const files = filesRes?.data?.data
-        .reduce((acc: any[], file: any) => {
-          // Find if we already have a file with the same name
-          const existingFile = acc.find(f => f.name === file.name);
-          
-          // If file exists, update it only if current version is newer
-          if (existingFile) {
-            if (new Date(file.updatedAt) > new Date(existingFile.updatedAt)) {
-              const index = acc.findIndex(f => f.name === file.name);
-              acc[index] = { ...file, itemType: "file" };
-            }
-          } else {
-            // If file doesn't exist, add it
-            acc.push({ ...file, itemType: "file" });
+      const files = filesRes?.data?.data.reduce((acc: any[], file: any) => {
+        // Find if we already have a file with the same name
+        const existingFile = acc.find((f) => f.name === file.name);
+
+        // If file exists, update it only if current version is newer
+        if (existingFile) {
+          if (new Date(file.updatedAt) > new Date(existingFile.updatedAt)) {
+            const index = acc.findIndex((f) => f.name === file.name);
+            acc[index] = { ...file, itemType: "file" };
           }
-          return acc;
-        }, []);
-  
+        } else {
+          // If file doesn't exist, add it
+          acc.push({ ...file, itemType: "file" });
+        }
+        return acc;
+      }, []);
+
       const combinedItems = [...folders, ...files];
       setDocuments(combinedItems);
       setAllDocuments(combinedItems);
@@ -247,11 +244,11 @@ const UseMainController = () => {
   };
 
   const handleSelectItem = async (id: string) => {
-    const doc = documents.find((document) => document.id === id); 
+    const doc = documents.find((document) => document.id === id);
     if (doc) {
       setSelectedDocument(doc);
       await handleGetHistory();
-    }   
+    }
     setSelectedItems((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
@@ -319,6 +316,7 @@ const UseMainController = () => {
 
     if (result.isConfirmed) {
       try {
+        setLoading(true);
         const isFolder = selectedDocument?.itemType === "folder";
 
         let endPoint;
@@ -352,6 +350,8 @@ const UseMainController = () => {
           title: "Oops...",
           text: "Failed to delete item. Please try again.",
         });
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -436,61 +436,6 @@ const UseMainController = () => {
       // const res = await axiosInstance.post(`${CREATE_FOLDER_END_POINT}/${selectedDocument?.id}/share`, {
       // })
     } catch (error) {}
-  };
-
-  const handleIviteMember = async () => {
-    setInviteDialogOpen(false);
-
-    try {
-      const result = await Swal.fire({
-        title: "Are you sure?",
-        text: "Do you want to invite this member?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, invite!",
-        cancelButtonText: "Cancel",
-      });
-
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: "Sending Invite...",
-          text: "Please wait while the invite is being sent.",
-          icon: "info",
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-
-        let endpoint;
-        let payload;
-
-        if (selectedDocument?.itemType === "folder") {
-          endpoint = INVITE_MEMBER_FOLDER_END_POINT;
-          payload = {
-            folderId: selectedDocument?.id,
-            email: email,
-          };
-        } else {
-          endpoint = INVITE_MEMBER_FILE_END_POINT;
-          payload = {
-            fileId: selectedDocument?.id,
-            email: email,
-          };
-        }
-
-        // Simulating API call with axios
-        await axiosInstance.post(endpoint, payload);
-
-        Swal.fire({
-          title: "Success!",
-          text: "Member has been successfully invited.",
-          icon: "success",
-        });
-      }
-    } catch (error) {
-      ErrorResponse(error as ErrorModel);
-    }
   };
 
   const handleCloseShareDialog = () => {
@@ -592,7 +537,7 @@ const UseMainController = () => {
 
   useEffect(() => {
     handleGetData();
-    handleGetFileMember();  
+    handleGetFileMember();
   }, [searchParams]);
 
   useEffect(() => {
@@ -608,8 +553,6 @@ const UseMainController = () => {
     searchTerm,
     filteredMembers,
     member,
-    email,
-    handleChangeEmail: (value: string) => setEmail(value),
     shareDialogOpen,
     setShareDialogOpen,
     inviteDialogOpen,
@@ -619,7 +562,6 @@ const UseMainController = () => {
     newName,
     setRenameDialogOpen,
     renameDialogOpen,
-    status,
     collapeOpen,
     setCollapseOpen,
     searchParams,
@@ -641,7 +583,6 @@ const UseMainController = () => {
     handleFilterClose,
     handleFilter,
     handleDrawerClose,
-    // handleDocumentClick,
     handleFolderDoubleClick,
     handleDetailsClick,
     handleRenameFolder,
@@ -650,7 +591,6 @@ const UseMainController = () => {
     handleChangeStatus,
     handleShare,
     handleCloseShareDialog,
-    handleIviteMember,
     handleDownload,
     handleSearch,
   };

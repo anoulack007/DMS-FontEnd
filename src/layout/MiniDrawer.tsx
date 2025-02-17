@@ -20,7 +20,12 @@ import { styled } from "@mui/material/styles";
 import MuiDrawer from "@mui/material/Drawer";
 import NavItem from "./components/NavItem";
 import { useLocation } from "react-router-dom";
-import { DRAWER_WIDTH, FOLLOW_DOCUMENT_LISTS, MENU_ITEM_LISTS, USER_MANAGE_LISTS } from "./config";
+import {
+  DRAWER_WIDTH,
+  FOLLOW_DOCUMENT_LISTS,
+  MENU_ITEM_LISTS,
+  USER_MANAGE_LISTS,
+} from "./config";
 import CloseIcon from "@mui/icons-material/Close";
 
 //images
@@ -68,7 +73,7 @@ const MiniDrawer = () => {
             px: 1,
           }}
         >
-          <img height={70} width={70} src={Logo} alt="Freelancer" />
+          <img height={70} width={70} src={Logo} alt="iQURi" />
         </Box>
 
         <Box sx={{ p: 1 }}>
@@ -95,25 +100,26 @@ const MiniDrawer = () => {
             onClick={ctrl?.handleClick} // Change to onClick
           >
             <img src={Add_ic} alt="Add" style={{ marginRight: 8 }} />
-            Upload Files
+            ອັບໂຫຼດເອກະສານ
           </Button>
           <Menu
             anchorEl={ctrl?.anchorEl}
             open={ctrl?.opening} // Change this line
             onClose={ctrl?.handleClose}
-            PaperProps={{
-              style: {
-                borderRadius: "10px",
-                padding: "10px",
-                border: "1 dashed purple",
+            slotProps={{
+              paper: {
+                sx: {
+                  borderRadius: "10px",
+                  padding: "10px",
+                },
               },
             }}
           >
-            <MenuItem  onClick={ctrl?.handleOpenDialog}>
+            <MenuItem onClick={ctrl?.handleOpenDialog}>
               <ListItemIcon>
                 <img height={30} src={FoldeImage} alt="Folder" />
               </ListItemIcon>
-              <Typography variant="inherit">Create folders</Typography>
+              <Typography variant="inherit">ສ້າງໂຟເດີ</Typography>
             </MenuItem>
 
             <Divider />
@@ -122,7 +128,7 @@ const MiniDrawer = () => {
               <ListItemIcon>
                 <img src={Upload_ic} alt="" />
               </ListItemIcon>
-              <Typography variant="inherit">Files upload</Typography>
+              <Typography variant="inherit">ອັບໂຫຼດຟາຍ</Typography>
             </MenuItem>
             {/* <MenuItem onClick={ctrl?.handleOpenDialog}>
               <ListItemIcon>
@@ -146,7 +152,7 @@ const MiniDrawer = () => {
             <DialogTitle
               sx={{ display: "flex", justifyContent: "space-between" }}
             >
-              Create a folder
+              ສ້າງໂຟເດີ
               <IconButton
                 edge="end"
                 color="inherit"
@@ -161,7 +167,7 @@ const MiniDrawer = () => {
                 autoFocus
                 margin="dense"
                 id="folderName"
-                label="Enter your folder name"
+                label="ປ້ອນຊື່ໂຟເດີຂອງທ່ານ"
                 type="text"
                 fullWidth
                 variant="outlined"
@@ -175,7 +181,7 @@ const MiniDrawer = () => {
                 onClick={ctrl?.handleCloseDialog}
                 color="primary"
               >
-                Cancel
+                ຍົກເລີກ
               </Button>
               <Button
                 sx={{ textTransform: "none" }}
@@ -188,21 +194,23 @@ const MiniDrawer = () => {
                 {ctrl?.loading ? (
                   <CircularProgress color="primary" size={20} />
                 ) : (
-                  "Create"
+                  "ສ້າງ"
                 )}
               </Button>
             </DialogActions>
-          </Dialog> 
+          </Dialog>
         </Box>
 
-        <Box sx={{ ml: 1, bgcolor: 'white', borderRadius: '8px' }}>
-          <Box sx={{ px: '8px', py: '24px' }}>
-            <Typography sx={{ pl: '16px', color: '#746E6E' }}>
+        <Box sx={{ ml: 1, bgcolor: "white", borderRadius: "8px" }}>
+          <Box sx={{ px: "8px", py: "24px" }}>
+            <Typography sx={{ pl: "16px", color: "#746E6E" }}>
               ຈັດການເອກະສານ
             </Typography>
             <List>
               {MENU_ITEM_LISTS.map((item, index) => {
-                const isItemActive = currentPath === item.path || (currentPath === '' && index === 0);
+                const isItemActive =
+                  currentPath === item.path ||
+                  (currentPath === "" && index === 0);
                 return (
                   <NavItem
                     key={item.path}
@@ -214,12 +222,14 @@ const MiniDrawer = () => {
               })}
             </List>
 
-            <Typography sx={{ pl: '16px', color: '#746E6E' }}>
+            <Typography sx={{ pl: "16px", color: "#746E6E" }}>
               ຕິດຕາມເອກະສານ
             </Typography>
             <List>
               {FOLLOW_DOCUMENT_LISTS.map((item, index) => {
-                const isItemActive = currentPath === item.path || (currentPath === '' && index === 0);
+                const isItemActive =
+                  currentPath === item.path ||
+                  (currentPath === "" && index === 0);
                 return (
                   <NavItem
                     key={item.path}
@@ -231,12 +241,14 @@ const MiniDrawer = () => {
               })}
             </List>
 
-            <Typography sx={{ pl: '16px', color: '#746E6E' }}>
+            <Typography sx={{ pl: "16px", color: "#746E6E" }}>
               ຈັດການຜູ້ໃຊ້
             </Typography>
-            <List sx={{ marginBottom: '24px' }}>
+            <List sx={{ marginBottom: "24px" }}>
               {USER_MANAGE_LISTS.map((item, index) => {
-                const isItemActive = currentPath === item.path || (currentPath === '' && index === 0);
+                const isItemActive =
+                  currentPath === item.path ||
+                  (currentPath === "" && index === 0);
                 return (
                   <NavItem
                     key={item.path}
