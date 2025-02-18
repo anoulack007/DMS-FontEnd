@@ -52,7 +52,6 @@ const UseMainController = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  console.log(selectedItems);
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [filterAnchorEl, setFilterAnchorEl] = useState<{
@@ -75,24 +74,44 @@ const UseMainController = () => {
   const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
   const [email, setEmail] = useState<string>(null!);
 
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const [totalDocuments, setTotalDocuments] = useState<number>(0);
+
+  const handleChangePage = (_event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
+    setPage(0); // Reset to first page when changing rows per page
+  };
 
   const handleGetData = async () => {
     try {
       setLoading(true);
-      const res = await axiosInstance.get(GET_ALL_FOLLOW_DOCUMENT_END_POINT, {
-        params: {
-          page: page,
-          limit: pageSize,
-        },
-      });
-      setDocuments(res?.data?.data);
-      setTotalPages(Math.ceil(res?.data?.total / pageSize));
-      console.log(res?.data?.data);
+      // Calculate skip based on current page and rows per page
+      const skip = page * rowsPerPage;
+      
+      const response = await axiosInstance.get(
+        GET_ALL_FOLLOW_DOCUMENT_END_POINT,
+        {
+          params: {
+            skip: skip,
+            take: rowsPerPage
+          }
+        }
+      );
+
+      if (response?.data) {
+        // Update documents array with new data
+        setDocuments(response.data.data || []);
+        // Update total count from backend
+        setTotalDocuments(response.data.total || 0);
+      }
     } catch (error) {
-      console.log(error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -127,13 +146,19 @@ const UseMainController = () => {
 
   const handleSelectItem = (id: string) => {
     const doc = documents.find((document) => document.id === id);
-    if (doc) {
-      setSelectedDocument(doc);
-    }
 
-    setSelectedItems((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    setSelectedItems((prev) => {
+      const newSelection = prev.includes(id)
+        ? prev.filter((item) => item !== id)
+        : [id]; // Change to single selection
+
+      // Update selected document based on selection
+      if (doc) {
+        setSelectedDocument(newSelection.length > 0 ? doc : null);
+      }
+
+      return newSelection;
+    });
   };
 
   const isSelected = (id: string) => selectedItems.includes(id);
@@ -184,8 +209,6 @@ const UseMainController = () => {
     handleFilterClose(field);
   };
 
-  
-
   const handleDeleteFolder = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
@@ -215,7 +238,7 @@ const UseMainController = () => {
 
         // Send POST request with payload
         const res = await axiosInstance.post(endPoint, payload);
-        console.log(res?.data?.data)
+        console.log(res?.data?.data);
 
         await Swal.fire({
           icon: "success",
@@ -441,7 +464,7 @@ const UseMainController = () => {
 
   useEffect(() => {
     handleGetData();
-  }, []);
+  }, [page, rowsPerPage]);
 
   useEffect(() => {
     const action = searchParams.get("action");
@@ -449,12 +472,12 @@ const UseMainController = () => {
   }, [searchParams]);
 
   return {
-    totalPages,
+    totalDocuments,
+    rowsPerPage,
+    handleChangePage,
+    handleChangeRowsPerPage,
     page,
-    pageSize,
     setPage,
-    setTotalPages,
-    setPageSize,
     email,
     handleChangeEmail: (value: string) => setEmail(value),
     shareDialogOpen,
@@ -466,7 +489,6 @@ const UseMainController = () => {
     newName,
     setRenameDialogOpen,
     renameDialogOpen,
-    status,
     collapeOpen,
     setCollapseOpen,
     searchParams,

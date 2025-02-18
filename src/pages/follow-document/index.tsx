@@ -1,15 +1,8 @@
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   Box,
   CircularProgress,
   IconButton,
-  Checkbox,
   Typography,
   Collapse,
   Divider,
@@ -21,17 +14,13 @@ import {
   Button,
   InputAdornment,
   Chip,
-  TablePagination,
 } from "@mui/material";
 import Person_IC from "../../assets/logo/Person.svg";
 
 //icons
-import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SendIcon from "@mui/icons-material/Send";
-import NoData from "../../assets/logo/NotData.svg";
 
 //controllers
 import UseMainController from "./controller";
@@ -51,10 +40,12 @@ import PdfImage from "../../assets/logo/pdf_ic.svg";
 import TxtImage from "../../assets/logo/txt.svg.svg";
 import SvgImage from "../../assets/logo/svg.svg.svg";
 import ExeImage from "../../assets/logo/exe.svg.svg";
-import RarImage from '../../assets/logo/rar_ic.svg';
+import RarImage from "../../assets/logo/rar_ic.svg";
 
 import { IconType } from "../../enums/icon-enums";
 import CustomMenu from "../manage-document/components/custom-menu";
+import DocumentTable from "./components/table";
+import { getEventChipColor } from "../../utils/constant/eventChipColor";
 
 const getIconByType = (type: string) => {
   switch (type) {
@@ -86,8 +77,8 @@ const getIconByType = (type: string) => {
       return <img height={45} src={SvgImage} alt="svg" />;
     case IconType.EXE:
       return <img height={45} src={ExeImage} alt="exe" />;
-      case IconType.RAR:
-        return <img height={45} src={RarImage} alt="rar" />;
+    case IconType.RAR:
+      return <img height={45} src={RarImage} alt="rar" />;
     default:
       return <img src={FoldeImage} alt="folder" />;
   }
@@ -119,142 +110,17 @@ const FollowDocumentPage = () => {
         }}
       >
         <Box sx={{ flexGrow: 1 }}>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell></TableCell>
-                  <TableCell width={500}>Document Name</TableCell>
-                  <TableCell>Creation Date</TableCell>
-                  <TableCell>User Name</TableCell>
-                  <TableCell>Company</TableCell>
-                  <TableCell>Event</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {ctrl?.loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      <CircularProgress />
-                    </TableCell>
-                  </TableRow>
-                ) : ctrl?.error ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      {ctrl?.error}
-                    </TableCell>
-                  </TableRow>
-                ) : ctrl?.documents.length > 0 ? (
-                  ctrl?.documents
-                    .slice(
-                      (ctrl?.page - 1) * ctrl?.pageSize,
-                      ctrl?.page * ctrl?.pageSize
-                    )
-                    .map((item) => (
-                      <TableRow
-                        key={item?.id}
-                        selected={ctrl?.isSelected(item.id)}
-                        sx={{
-                          "&:last-child td, &:last-child th": { border: 0 },
-                          "&:hover": {
-                            backgroundColor: "rgba(0, 0, 0, 0.04)",
-                            transition: "background-color 0.2s ease",
-                          },
-                          cursor: "pointer",
-                        }}
-                      >
-                        <TableCell padding="checkbox">
-                          <Checkbox
-                            icon={
-                              <PanoramaFishEyeIcon sx={{ color: "gray" }} />
-                            }
-                            checked={ctrl?.isSelected(item?.id)}
-                            onChange={() => ctrl?.handleSelectItem(item?.id)}
-                            checkedIcon={
-                              <CheckCircleIcon sx={{ color: "blue" }} />
-                            }
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
-                              cursor: "pointer",
-                            }}
-                          >
-                            {getIconByType(item?.type)}
-                            <Box
-                              sx={{
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                            >
-                              <Typography>{item?.docName}</Typography>
-                            </Box>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          {item?.createdAt
-                            ? new Date(item?.createdAt).toLocaleString()
-                            : ""}
-                        </TableCell>
-                        <TableCell>{item?.ownerName}</TableCell>
-                        <TableCell>{item?.company}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={item?.event}
-                            sx={{
-                              backgroundColor:
-                                item?.event === "Update"
-                                  ? "#FFB200"
-                                  : item?.event === "Upload"
-                                  ? "#03994D"
-                                  : item?.event === "Delete"
-                                  ? "#91040B"
-                                  : item?.event === "Create"
-                                  ? "#1F509A"
-                                  : "gray",
-                              color:
-                                item?.event === "update" ? "black" : "white", // Adjust text color for visibility
-                              fontWeight: "bold",
-                            }}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      <Box
-                        sx={{
-                          minHeight: 500,
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <img src={NoData} alt="data" />
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <TablePagination
-            component="div"
-            count={ctrl?.totalPages * ctrl?.pageSize} 
-            page={ctrl?.page - 1}
-            onPageChange={(_event, newPage) => ctrl?.setPage(newPage + 1)}
-            rowsPerPage={ctrl?.pageSize}
-            rowsPerPageOptions={[10, 25, 50]}
-            onRowsPerPageChange={(event) =>
-              ctrl?.setPageSize(parseInt(event.target.value, 10))
-            }
+          <DocumentTable
+            documents={ctrl?.documents}
+            loading={ctrl?.loading}
+            error={ctrl?.error}
+            page={ctrl?.page}
+            rowsPerPage={ctrl?.rowsPerPage}
+            totalDocuments={ctrl?.totalDocuments}
+            selectedItems={ctrl?.selectedItems}
+            onPageChange={ctrl?.handleChangePage}
+            onRowsPerPageChange={ctrl?.handleChangeRowsPerPage}
+            onSelectItem={ctrl?.handleSelectItem}
           />
         </Box>
 
@@ -270,7 +136,6 @@ const FollowDocumentPage = () => {
               backgroundColor: "white",
               boxShadow: 2,
               overflow: "auto",
-              minHeight: 1200,
             }}
           >
             <Box
@@ -281,18 +146,22 @@ const FollowDocumentPage = () => {
                 gap: 2,
               }}
             >
-              <img src={FoldeImage} alt="folder" />
+              {ctrl?.selectedDocument?.type ? (
+                getIconByType(ctrl.selectedDocument.type)
+              ) : (
+                <img src={FoldeImage} alt="default" />
+              )}
               <Typography
                 variant="h5"
-                title={ctrl?.selectedDocument?.name}
+                title={ctrl?.selectedDocument?.docName}
                 sx={{
-                  whiteSpace: "nowrap", // Prevents text from wrapping to the next line
-                  overflow: "hidden", // Hides overflowing text
-                  textOverflow: "ellipsis", // Adds ellipsis at the end of the truncated text
-                  maxWidth: "100%", // Ensures the element has a maximum width to trigger truncation
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: "100%",
                 }}
               >
-                {ctrl?.selectedDocument?.name}
+                {ctrl?.selectedDocument?.docName}
               </Typography>
 
               <Box sx={{ ml: "auto" }}>
@@ -312,26 +181,52 @@ const FollowDocumentPage = () => {
 
             {ctrl.selectedDocument && (
               <Box
-                sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 3 }}
+                sx={{ display: "flex", flexDirection: "column", gap: 5, mt: 3 }}
               >
-                <Typography>Details</Typography>
+                <Typography sx={{ fontSize: 16, fontWeight: 600 }}>
+                  details
+                </Typography>
 
                 <Typography>
-                  <strong>Name:</strong> {ctrl.selectedDocument.name}
+                  <strong>
+                    Owner <br /> {ctrl.selectedDocument?.ownerName}
+                  </strong>
                 </Typography>
                 <Typography>
-                  <strong>Owner:</strong>
+                  <strong>
+                    Company <br /> {ctrl.selectedDocument?.company}
+                  </strong>
                 </Typography>
                 <Typography>
-                  <strong>ID:</strong> {ctrl.selectedDocument?.documentId}
-                </Typography>
-                <Typography>
-                  <strong>Created:</strong>{" "}
+                  <strong>
+                    Created <br />
+                  </strong>
                   {ctrl?.selectedDocument?.createdAt
                     ? new Date(
                         ctrl?.selectedDocument?.createdAt
                       ).toLocaleString()
                     : "-"}
+                </Typography>
+                <Typography>
+                  <strong>
+                    Event <br />{" "}
+                  </strong>
+                  <Box sx={{ mt: 1 }}>
+                    <Chip
+                      label={ctrl?.selectedDocument?.event}
+                      sx={{
+                        width: 100,
+                        backgroundColor: getEventChipColor(
+                          ctrl?.selectedDocument?.event
+                        ),
+                        color:
+                          ctrl?.selectedDocument.event === "Update"
+                            ? "black"
+                            : "white",
+                        fontWeight: "bold",
+                      }}
+                    />
+                  </Box>
                 </Typography>
               </Box>
             )}
@@ -372,7 +267,7 @@ const FollowDocumentPage = () => {
               </Button>
             </DialogActions>
           </form>
-        </Dialog>
+        </Dialog> 
 
         <Dialog
           open={ctrl?.shareDialogOpen}
@@ -396,13 +291,15 @@ const FollowDocumentPage = () => {
                 fullWidth
                 variant="outlined"
                 placeholder="Add a name or email"
-                InputProps={{
-                  style: { borderRadius: 20 },
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <img src={Person_IC} alt="person" />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    style: { borderRadius: 20 },
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <img src={Person_IC} alt="person" />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
                 sx={{ mt: 2, borderRadius: 20 }}
               />
