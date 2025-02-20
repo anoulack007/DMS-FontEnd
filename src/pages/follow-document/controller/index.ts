@@ -71,7 +71,6 @@ const UseMainController = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState<boolean>(false);
-  const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
   const [email, setEmail] = useState<string>(null!);
 
   const [page, setPage] = useState<number>(0);
@@ -393,10 +392,6 @@ const UseMainController = () => {
     }
   };
 
-  const handleCloseShareDialog = () => {
-    setShareDialogOpen(false); // Close the dialog
-  };
-
   const handleDownload = async () => {
     try {
       if (!selectedDocument || !selectedDocument.url) {
@@ -480,8 +475,6 @@ const UseMainController = () => {
     setPage,
     email,
     handleChangeEmail: (value: string) => setEmail(value),
-    shareDialogOpen,
-    setShareDialogOpen,
     inviteDialogOpen,
     setInviteDialogOpen,
     setIsSubmitting,
@@ -517,7 +510,6 @@ const UseMainController = () => {
     handleChangeName,
     handleDeleteFolder,
     handleShare,
-    handleCloseShareDialog,
     handleIviteMember,
     handleDownload,
   };

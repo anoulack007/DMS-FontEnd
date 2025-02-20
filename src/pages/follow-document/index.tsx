@@ -12,15 +12,11 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  InputAdornment,
   Chip,
 } from "@mui/material";
-import Person_IC from "../../assets/logo/Person.svg";
 
 //icons
 import CloseIcon from "@mui/icons-material/Close";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import SendIcon from "@mui/icons-material/Send";
 
 //controllers
 import UseMainController from "./controller";
@@ -95,7 +91,6 @@ const FollowDocumentPage = () => {
           onDetailsClick={ctrl.handleDetailsClick}
           hanldeFolderRename={() => ctrl?.setRenameDialogOpen(true)}
           handleDelete={ctrl?.handleDeleteFolder}
-          handleShare={() => ctrl?.setShareDialogOpen(true)}
           handleDownload={ctrl?.handleDownload}
         />
       )}
@@ -264,63 +259,6 @@ const FollowDocumentPage = () => {
                 }}
               >
                 {ctrl?.isSubmitting ? <CircularProgress size={24} /> : "Rename"}
-              </Button>
-            </DialogActions>
-          </form>
-        </Dialog> 
-
-        <Dialog
-          open={ctrl?.shareDialogOpen}
-          onClose={ctrl.handleCloseShareDialog}
-          maxWidth="xs"
-          fullWidth
-        >
-          <form>
-            <DialogTitle>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <IconButton onClick={ctrl.handleCloseShareDialog}>
-                  <ArrowBackIcon />
-                </IconButton>
-                <Typography variant="h6" sx={{ ml: 1 }}>
-                  Share "Documents"
-                </Typography>
-              </Box>
-            </DialogTitle>
-            <DialogContent>
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder="Add a name or email"
-                slotProps={{
-                  input: {
-                    style: { borderRadius: 20 },
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <img src={Person_IC} alt="person" />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-                sx={{ mt: 2, borderRadius: 20 }}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button
-                type="submit"
-                variant="contained"
-                color="error"
-                fullWidth
-                startIcon={<SendIcon />}
-                sx={{
-                  backgroundColor: "maroon",
-                  color: "white",
-                  textTransform: "none",
-                  maxWidth: 100,
-                  height: 40,
-                  borderRadius: 3,
-                }}
-              >
-                Send
               </Button>
             </DialogActions>
           </form>
