@@ -8,7 +8,7 @@ import { DELETE_FOLDER_END_POINT, RESTORE_FOLDER_END_POINT } from "../../../conf
 import { IconType } from "../../../enums/icon-enums";
 import { GET_ALL_RECYCLE_BIN_END_POINT } from "../../../configs/endPoint/recycle-bin-endpoint";
 import { RecycleBinDocument } from "../../../models/recycle-bin-model"; 
-import { DELETE_FILE_END_POINT, RESTORE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
+import { DELETE_FILE_PERMANENT_END_POINT, RESTORE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
 import { ErrorResponse } from "../../../utils/functions/Error";
 import { ErrorModel } from "../../../models/Error";
 
@@ -209,7 +209,7 @@ const UseMainController = () => {
         try {
           const endpoint = selectedDocument?.type === 'folder'
             ? `${DELETE_FOLDER_END_POINT}/${selectedDocument?.id}`
-            : `${DELETE_FILE_END_POINT}/${selectedDocument?.id}`;
+            : `${DELETE_FILE_PERMANENT_END_POINT}/${selectedDocument?.id}`;
     
           await axiosInstance.delete(endpoint);
     

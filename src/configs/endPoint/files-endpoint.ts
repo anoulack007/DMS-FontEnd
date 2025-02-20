@@ -9,6 +9,8 @@ export const DELETE_FILE_END_POINT: string = "/recycle-bin/file/delete"
 
 export const UPDATE_FILE_END_POINT:string = 'files/update'
 
+export const DELETE_FILE_PERMANENT_END_POINT: string = '/files/delete';
+
 export const DELETE_FOLDER_END_POINT: string = '/recycle-bin/folder/delete'
 
 export const RESTORE_FILE_END_POINT: string = '/recycle-bin/file/restore'
