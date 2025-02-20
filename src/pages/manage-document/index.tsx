@@ -7,7 +7,6 @@ import {
 } from "@mui/material";
 
 // import Access_IC from "../../assets/logo/access_ic.svg";
-import Person_IC from "../../assets/logo/Person.svg";
 
 //icons
 import SearchIcon from "@mui/icons-material/Search";
