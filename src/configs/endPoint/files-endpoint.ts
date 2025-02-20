@@ -20,3 +20,5 @@ export const GET_FILE_HISTORY_END_POINT: string = '/files-history'
 export const GET_MEMBER_FILE_END_POINT: string = '/files/get-member/files'
 
 export const GET_ONE_FILE_HISTORT_END_POINT: string = '/files-history/get-file-history'
+
+export const GET_VERSION_FILE_END_POINT: string = '/files/get-version'

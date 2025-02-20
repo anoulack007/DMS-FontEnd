@@ -1,23 +1,25 @@
-import React from 'react';
-import { 
-  Box, 
-  TableContainer, 
-  Table, 
-  TableHead, 
-  TableRow, 
-  TableCell, 
-  TableBody, 
-  Typography, 
-  Checkbox, 
+import React from "react";
+import {
+  Box,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Typography,
+  Checkbox,
   Chip,
   CircularProgress,
-  Paper
-} from '@mui/material';
-import PanoramaFishEyeIcon from '@mui/icons-material/PanoramaFishEye';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+  Paper,
+  TablePagination,
+} from "@mui/material";
+import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import NO_DATA_IC from '../../../assets/logo/NotData.svg';
 
 interface DocumentTableProps {
-  ctrl: any; // Replace with more specific type if possible
+  ctrl: any;
   isAnyItemSelected: boolean;
   getIconByType: (type: string) => React.ReactNode;
   formatFileSize: (size: number) => string;
@@ -26,20 +28,25 @@ interface DocumentTableProps {
 }
 
 const DocumentTable: React.FC<DocumentTableProps> = ({
-  ctrl, 
-  isAnyItemSelected, 
+  ctrl,
+  isAnyItemSelected,
   getIconByType,
   formatFileSize,
   getStatusColor,
-  getTextColor
+  getTextColor,
 }) => {
+  // Get paginated data
+  const paginatedData = ctrl.documents.slice(
+    ctrl.page * ctrl.rowsPerPage,
+    ctrl.page * ctrl.rowsPerPage + ctrl.rowsPerPage
+  );
+
   return (
-    <Box sx={{ flexGrow: 1, display: "flex" }}>
+    <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
       <TableContainer
         sx={{
           boxShadow: 3,
           borderRadius: 3,
-          minHeight: "calc(100vh - 250px)",
         }}
         component={Paper}
       >
@@ -96,8 +103,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   {ctrl?.error}
                 </TableCell>
               </TableRow>
-            ) : ctrl?.documents.length > 0 ? (
-              ctrl?.documents.map((item: any) => (
+            ) : paginatedData.length > 0 ? (
+              paginatedData.map((item: any) => (
                 <TableRow
                   key={item?.id}
                   selected={ctrl?.isSelected(item.id)}
@@ -117,19 +124,12 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   }}
                 >
                   {(isAnyItemSelected || ctrl?.isSelected(item?.id)) && (
-                    <TableCell
-                      sx={{ borderBottom: "none" }}
-                      padding="checkbox"
-                    >
+                    <TableCell sx={{ borderBottom: "none" }} padding="checkbox">
                       <Checkbox
-                        icon={
-                          <PanoramaFishEyeIcon sx={{ color: "gray" }} />
-                        }
+                        icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
                         checked={ctrl?.isSelected(item?.id)}
                         onChange={() => ctrl?.handleSelectItem(item?.id)}
-                        checkedIcon={
-                          <CheckCircleIcon sx={{ color: "blue" }} />
-                        }
+                        checkedIcon={<CheckCircleIcon sx={{ color: "blue" }} />}
                       />
                     </TableCell>
                   )}
@@ -176,15 +176,24 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
+              <TableRow sx={{ height: "200px" }}>
                 <TableCell colSpan={7} align="center">
-                  No files or folders found
+                  <img height={'100px'} src={NO_DATA_IC} alt="No Data" />
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </TableContainer>
+      <TablePagination
+        component="div"
+        count={ctrl.documents.length}
+        page={ctrl.page}
+        onPageChange={ctrl.handleChangePage}
+        rowsPerPage={ctrl.rowsPerPage}
+        onRowsPerPageChange={ctrl.handleChangeRowsPerPage}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+      />
     </Box>
   );
 };

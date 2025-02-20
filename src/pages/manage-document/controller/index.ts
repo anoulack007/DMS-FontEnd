@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import axiosInstance from "../../../configs/axios";
 import Swal from "sweetalert2";
@@ -16,13 +16,13 @@ import {
   DELETE_FILE_END_POINT,
   DELETE_FOLDER_END_POINT,
   GET_ALL_ROOT_FILE_END_POINT,
-  GET_MEMBER_FILE_END_POINT,
   GET_ONE_FILE_HISTORT_END_POINT,
+  GET_VERSION_FILE_END_POINT,
   UPDATE_FILE_END_POINT,
 } from "../../../configs/endPoint/files-endpoint";
-import { MemberModel } from "../../../models/member-model";
-import { useFolderNavigation } from "../components/custom-folder-navigate";
+import { FolderItem, useFolderNavigation } from "../components/custom-folder-navigate";
 import { Version } from "../../../models/file-model";
+import { decode, encode } from "../../../utils/functions/HashString";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
@@ -37,6 +37,7 @@ interface Document {
   type: IconType;
   itemType: string;
   version: string;
+  documentNumber: string;
   status: STATUS_ENUMS;
   owner: {
     company: string;
@@ -78,14 +79,14 @@ const UseMainController = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState<boolean>(false);
-  const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
-
-  const [member, setMember] = useState<MemberModel[]>([]);
-  const [filteredMembers, setFilteredMembers] = useState<MemberModel[]>([]);
-  const [currentFileId, _setCurrentFileId] = useState<string | null>(null);
 
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>(null!);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const [versionDocument, setVersionDocument] = useState<Version[]>([]);
 
   const handleGetHistory = async () => {
     if (!selectedDocument?.id) return; // Guard clause
@@ -106,15 +107,6 @@ const UseMainController = () => {
       console.error(err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGetFileMember = async () => {
-    try {
-      const res = await axiosInstance.get(GET_MEMBER_FILE_END_POINT);
-      setMember(res?.data?.data);
-    } catch (error) {
-      ErrorResponse(error as ErrorModel);
     }
   };
 
@@ -159,6 +151,8 @@ const UseMainController = () => {
         icon: "success",
         title: "Status Updated!",
         text: `The document status has been updated to "${newStatus}" successfully.`,
+        showConfirmButton: false,
+        timer: 2000,
       });
     } catch (error) {
       console.error("Error updating status:", error);
@@ -171,24 +165,23 @@ const UseMainController = () => {
     }
   };
 
-  const handleDetailsClick = () => {
+  const handleDetailsClick = async () => {
     if (selectedDocument) {
-      setCollapseOpen(true); // Open the collapse
+      setCollapseOpen(true);
       setSearchParams({ docId: selectedDocument.id, action: "collapse" });
-    } else {
-      console.log("No document selected.");
+      // Only fetch these when details are opened
+      await handleGetDocumentVersion();
+      await handleGetHistory();
     }
   };
-
-  const handleFolderDoubleClick = (item: any) => {
+  const handleFolderDoubleClick = useCallback((item: FolderItem) => {
     if (item.itemType === "folder") {
-      // Navigate to the selected folder
-      const currentFolder = folderNavigation.getCurrentFolder();
-      const newFolderPath = `${currentFolder}/${item.name}`;
-      folderNavigation.navigateToFolder(newFolderPath);
+      const currentFolder = decode(searchParams.get("folderId") || "root");
+      const newPath = encode(`${currentFolder}/${item.name}`); // Build full path
+      setSearchParams({ folderId: newPath });
     }
-  };
-
+  }, [searchParams, setSearchParams]);
+  
   const handleDrawerClose = () => {
     setCollapseOpen(false);
   };
@@ -243,12 +236,12 @@ const UseMainController = () => {
     }
   };
 
-  const handleSelectItem = async (id: string) => {
+  const handleSelectItem = (id: string) => {
     const doc = documents.find((document) => document.id === id);
     if (doc) {
       setSelectedDocument(doc);
-      await handleGetHistory();
     }
+    setCollapseOpen(false);
     setSelectedItems((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
@@ -340,6 +333,8 @@ const UseMainController = () => {
           text: `The ${
             isFolder ? "folder" : "file"
           } has been deleted successfully.`,
+          showConfirmButton: false,
+          timer: 2000,
         });
 
         handleGetData();
@@ -416,6 +411,8 @@ const UseMainController = () => {
         icon: "success",
         title: "Folder Renamed!",
         text: `The folder has been renamed to "${newName}" successfully.`,
+        showConfirmButton: false,
+        timer: 2000,
       });
 
       handleGetData();
@@ -429,17 +426,6 @@ const UseMainController = () => {
 
   const handleChangeName = (value: string) => {
     setNewName(value);
-  };
-
-  const handleShare = async () => {
-    try {
-      // const res = await axiosInstance.post(`${CREATE_FOLDER_END_POINT}/${selectedDocument?.id}/share`, {
-      // })
-    } catch (error) {}
-  };
-
-  const handleCloseShareDialog = () => {
-    setShareDialogOpen(false); // Close the dialog
   };
 
   const handleDownload = async () => {
@@ -507,15 +493,50 @@ const UseMainController = () => {
     }
   };
 
-  const handleSearch = (searchValue: string) => {
+  const handleSearch = useCallback((searchValue: string) => {
     setSearchTerm(searchValue);
+  }, []);
 
-    if (!searchValue.trim()) {
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleGetDocumentVersion = async () => {
+    try {
+      setLoading(true);
+      const res = await axiosInstance.get(
+        `${GET_VERSION_FILE_END_POINT}/${selectedDocument?.documentNumber}`
+      );
+      setVersionDocument(res?.data?.data || []);
+    } catch (error) {
+      console.error("Error fetching file history:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (!debouncedSearchTerm.trim()) {
       setDocuments(allDocuments);
       return;
     }
 
-    const searchTermLower = searchValue.toLowerCase();
+    const searchTermLower = debouncedSearchTerm.toLowerCase();
     const filteredDocuments = allDocuments.filter((doc) => {
       return (
         doc.name.toLowerCase().includes(searchTermLower) ||
@@ -528,33 +549,29 @@ const UseMainController = () => {
     });
 
     setDocuments(filteredDocuments);
-  };
+  }, [debouncedSearchTerm, allDocuments]);
 
   useEffect(() => {
     const action = searchParams.get("action");
-    setCollapseOpen(action === "collapse");
+    if (action === "collapse") {
+      handleGetHistory();
+      handleGetDocumentVersion();
+    }
   }, [searchParams]);
 
   useEffect(() => {
     handleGetData();
-    handleGetFileMember();
   }, [searchParams]);
 
-  useEffect(() => {
-    if (currentFileId) {
-      const filteredMembers = member.filter((m) => m.fileId === currentFileId);
-      setFilteredMembers(filteredMembers);
-    }
-  }, [member, currentFileId]);
-
   return {
+    versionDocument,
+    handleChangePage,
+    handleChangeRowsPerPage,
+    page,
+    rowsPerPage,
     fileHistory,
     allDocuments,
     searchTerm,
-    filteredMembers,
-    member,
-    shareDialogOpen,
-    setShareDialogOpen,
     inviteDialogOpen,
     setInviteDialogOpen,
     setIsSubmitting,
@@ -589,8 +606,6 @@ const UseMainController = () => {
     handleChangeName,
     handleDeleteFolder,
     handleChangeStatus,
-    handleShare,
-    handleCloseShareDialog,
     handleDownload,
     handleSearch,
   };

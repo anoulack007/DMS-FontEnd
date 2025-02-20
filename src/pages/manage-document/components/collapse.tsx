@@ -1,0 +1,445 @@
+// components/DocumentDetailsPanel.tsx
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Collapse,
+  Paper,
+  Typography,
+  IconButton,
+  Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Avatar,
+  Tooltip,
+  Button,
+  Badge,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import FoldeImage from "../../../assets/Image/image 11.png";
+import Invite_IC from "../../../assets/logo/invite_ic.svg";
+import { Version } from "../../../models/file-model";
+import { MemberModel } from "../../../models/member-model";
+import { STATUS_ENUMS } from "../../../enums/status-enum";
+import { getIconByType } from "..";
+import { formatFileSize } from "../../../utils/functions/formarFile";
+import { VersionListComponent } from "./versionDocList";
+import { FileHistory } from "./historyFile";
+import { IconType } from "../../../enums/icon-enums";
+import axiosInstance from "../../../configs/axios";
+import { GET_MEMBER_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
+import Swal from "sweetalert2";
+import DeleteIcon from "@mui/icons-material/Delete";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import { GET_FOLDER_MEMBER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
+
+interface Document {
+  id: string;
+  name: string;
+  path: string;
+  documentId: string;
+  modified: string;
+  size: string;
+  type: IconType;
+  itemType: string;
+  version: string;
+  documentNumber: string;
+  status: STATUS_ENUMS;
+  owner: {
+    company: string;
+    email: string;
+    name: string;
+    username: string;
+  };
+  url: string;
+  isFolder: boolean;
+  parentId: string;
+  isPinned: boolean;
+  isDelete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface DocumentDetailsPanelProps {
+  ctrl: {
+    collapeOpen: boolean;
+    selectedDocument: Document | null; // Replace 'any' with your document type
+    setCollapseOpen: (open: boolean) => void;
+    setSearchParams: (params: any) => void;
+    handleChangeStatus: (event: any) => void;
+    setInviteDialogOpen: (open: boolean) => void;
+    versionDocument: Version[]; // Replace 'any' with your version type
+    fileHistory: Version[]; // Replace 'any' with your history type
+  };
+}
+
+export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
+  ctrl,
+}) => {
+  const [showAllMembers, setShowAllMembers] = useState(false);
+
+  const toggleMemberDisplay = () => {
+    setShowAllMembers(!showAllMembers);
+  };
+  const [members, setMembers] = useState<MemberModel[]>([]);
+
+  const getMemberData = async () => {
+    const selectedDocument = ctrl.selectedDocument;
+    if (!selectedDocument) return;
+
+    try {
+      let response;
+
+      if (selectedDocument.itemType === "folder") {
+        response = await axiosInstance.get(GET_FOLDER_MEMBER_END_POINT);
+      } else {
+        response = await axiosInstance.get(GET_MEMBER_FILE_END_POINT);
+      }
+
+      const memberData = response?.data?.data;
+
+      if (!Array.isArray(memberData)) {
+        console.error("Invalid member data format received");
+        setMembers([]);
+        return;
+      }
+
+      // Now TypeScript knows selectedDocument can't be null here
+      const filteredMembers = memberData.filter((member: MemberModel) => {
+        if (selectedDocument.itemType === "folder") {
+          return member.folderId === selectedDocument.id;
+        }
+        return member.fileId === selectedDocument.id;
+      });
+
+      setMembers(filteredMembers);
+    } catch (error) {
+      console.error("Error fetching members:", error);
+      // Swal.fire({
+      //   icon: "error",
+      //   title: "Error",
+      //   text: `Failed to fetch ${selectedDocument.itemType} members`,
+      //   timer: 2000,
+      //   showConfirmButton: false,
+      // });
+      setMembers([]);
+    }
+  };
+
+  const handleDeleteMember = async (email: string) => {
+    if (!ctrl.selectedDocument?.id) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "No document selected!",
+      });
+      return;
+    }
+
+    try {
+      // Show confirmation dialog
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "You want to remove this member?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, remove",
+        cancelButtonText: "Cancel",
+      });
+
+      if (result.isConfirmed) {
+        await axiosInstance.delete("files/member/delete", {
+          data: { fileId: ctrl.selectedDocument.id, email },
+        });
+
+        // Show success message
+        Swal.fire({
+          icon: "success",
+          title: "Member removed successfully",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+
+        // Refresh member list
+        getMemberData();
+      }
+    } catch (error) {
+      console.error("Error deleting member:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong while removing the member",
+      });
+    }
+  };
+
+  useEffect(() => {
+    getMemberData();
+  }, [ctrl.selectedDocument]);
+
+  const renderMembers = () => {
+    const displayMembers = showAllMembers ? members : members.slice(0, 4);
+    const remainingCount = members.length - 4;
+
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          p: 1,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        {displayMembers.map((member) => (
+          <Box
+            key={member.id}
+            sx={{
+              my: 1,
+              position: "relative",
+              "&:hover .delete-button": {
+                opacity: 1,
+              },
+            }}
+          >
+            <Avatar
+              src={member?.user?.image?.url}
+              alt={member?.user?.name}
+              sx={{ width: 32, height: 32 }}
+            />
+            <Tooltip title="Remove member">
+              <IconButton
+                className="delete-button"
+                size="small"
+                onClick={() => handleDeleteMember(member.user.email)}
+                sx={{
+                  position: "absolute",
+                  top: -8,
+                  right: -8,
+                  backgroundColor: "white",
+                  opacity: 0,
+                  transition: "opacity 0.2s",
+                  "&:hover": {
+                    backgroundColor: "#f5f5f5",
+                  },
+                  width: 20,
+                  height: 20,
+                }}
+              >
+                <DeleteIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ))}
+
+        {!showAllMembers && members.length > 4 && (
+          <Badge
+            variant="dot"
+            color="error"
+            sx={{
+              "& .MuiBadge-dot": {
+                top: 2,
+                right: 2,
+              },
+            }}
+          >
+            <Button
+              onClick={toggleMemberDisplay}
+              sx={{
+                minWidth: 32,
+                height: 32,
+                p: 0,
+                borderRadius: "50%",
+                color: "black",
+                backgroundColor: "#f5f5f5",
+                "&:hover": {
+                  backgroundColor: "#e0e0e0",
+                },
+              }}
+            >
+              <Tooltip title={`Show ${remainingCount} more members`}>
+                <MoreHorizIcon />
+              </Tooltip>
+            </Button>
+          </Badge>
+        )}
+
+        {showAllMembers && members.length > 3 && (
+          <Button
+            onClick={toggleMemberDisplay}
+            size="small"
+            sx={{
+              fontSize: "0.75rem",
+              textTransform: "none",
+              color: "black",
+              bgcolor: "#f1fbfd",
+              ml: 1,
+              "&:hover": {
+                backgroundColor: "#e0f3f7",
+              },
+            }}
+          >
+            Show less
+          </Button>
+        )}
+      </Box>
+    );
+  };
+  return (
+    <Collapse
+      in={ctrl.collapeOpen}
+      timeout="auto"
+      unmountOnExit
+      sx={{
+        maxWidth: 350,
+        width: "100%",
+        position: "sticky",
+        top: 0,
+        height: "calc(100vh - 250px)",
+      }}
+    >
+      <Paper
+        sx={{
+          p: 3,
+          backgroundColor: "white",
+          boxShadow: 2,
+          height: "100%",
+          overflow: "auto",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            mb: 2,
+            gap: 2,
+          }}
+        >
+          {ctrl?.selectedDocument?.type ? (
+            getIconByType(ctrl.selectedDocument.type)
+          ) : (
+            <img src={FoldeImage} alt="default" />
+          )}
+          <Typography
+            variant="h5"
+            title={ctrl?.selectedDocument?.name}
+            sx={{
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "100%",
+            }}
+          >
+            {ctrl?.selectedDocument?.name}
+          </Typography>
+
+          <Box sx={{ ml: "auto" }}>
+            <IconButton
+              size="small"
+              onClick={() => {
+                ctrl.setCollapseOpen(false);
+                ctrl.setSearchParams({});
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </Box>
+
+        <Divider />
+
+        {ctrl.selectedDocument && (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 3 }}>
+            <Box>
+              <FormControl fullWidth margin="normal" size="medium">
+                <InputLabel id="status-select-label">Status</InputLabel>
+                <Select
+                  labelId="status-select-label"
+                  id="status-select"
+                  value={ctrl?.selectedDocument?.status ?? ""}
+                  label="Status"
+                  onChange={ctrl.handleChangeStatus}
+                >
+                  {Object.values(STATUS_ENUMS).map((status) => (
+                    <MenuItem key={status} value={status}>
+                      {status}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Box sx={{ mt: 1 }}>
+                <Typography>Has access</Typography>
+
+                <Box sx={{ mt: 2, display: "flex" }}>
+                  <IconButton onClick={() => ctrl?.setInviteDialogOpen(true)}>
+                    <img src={Invite_IC} alt="invite" />
+                  </IconButton>
+                </Box>
+                {renderMembers()}
+              </Box>
+            </Box>
+
+            <Divider />
+
+            <strong>Details</strong>
+
+            <Box>
+              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: "8px" }}>
+                Owner
+              </p>
+              <Typography>{ctrl?.selectedDocument?.owner?.name}</Typography>
+            </Box>
+            <Box>
+              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: "8px" }}>
+                Email
+              </p>
+              <Box>{ctrl?.selectedDocument?.owner?.email}</Box>
+            </Box>
+            <Box>
+              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: "8px" }}>
+                ID
+              </p>
+              <Box>{ctrl.selectedDocument?.id}</Box>
+            </Box>
+            <Box>
+              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: "8px" }}>
+                Created
+              </p>
+              <Box>
+                {ctrl?.selectedDocument?.createdAt
+                  ? new Date(ctrl?.selectedDocument?.createdAt).toLocaleString()
+                  : "-"}
+              </Box>
+            </Box>
+            <Box>
+              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: "8px" }}>
+                Size
+              </p>
+              <Box>
+                {ctrl?.selectedDocument?.size
+                  ? formatFileSize(ctrl.selectedDocument.size)
+                  : "N/A"}
+              </Box>
+            </Box>
+
+            <Typography mt={2} fontWeight={700}>
+              <p style={{ fontSize: 16, fontWeight: 700 }}>
+                Version and Modification{" "}
+              </p>
+              <Box sx={{ mt: 2 }}>
+                <VersionListComponent versions={ctrl?.versionDocument || []} />
+              </Box>
+            </Typography>
+
+            <Typography mt={2} fontWeight={700}>
+              <p style={{ fontSize: 16, fontWeight: 700 }}>History Event</p>
+            </Typography>
+            <FileHistory fileHistory={ctrl?.fileHistory || []} />
+          </Box>
+        )}
+      </Paper>
+    </Collapse>
+  );
+};

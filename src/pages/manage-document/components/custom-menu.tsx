@@ -4,7 +4,6 @@ import { Box, Button, Divider } from "@mui/material";
 import DetailI_ic from '../../../assets/Image/Detail_ic.svg'
 
 // Icons
-import ShareIcon from "@mui/icons-material/Share";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoveToInboxIcon from "@mui/icons-material/MoveToInbox";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -14,18 +13,12 @@ interface Props {
   selectedCount: number;
   onDetailsClick: () => void; // Update the prop to accept a document
   hanldeFolderRename: () => void;
-  handleShare: () => void;
   handleDownload: () => void;
   handleDelete: (e: React.FormEvent) => void;
 }
 
-const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename, handleDelete, handleShare, handleDownload  }: Props) => {
+const CustomMenu = ({ selectedCount, onDetailsClick, hanldeFolderRename, handleDelete, handleDownload  }: Props) => {
   const ListMenu = [
-    {
-      label: "Share",
-      icon: <ShareIcon />,
-      onclick: handleShare
-    },
     {
       label: "Delete",
       icon: <DeleteIcon />,

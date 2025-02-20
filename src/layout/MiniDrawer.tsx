@@ -1,19 +1,12 @@
 import {
   Box,
   Button,
-  CircularProgress,
   CssBaseline,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Divider,
-  IconButton,
   List,
   ListItemIcon,
   Menu,
   MenuItem,
-  TextField,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -26,7 +19,6 @@ import {
   MENU_ITEM_LISTS,
   USER_MANAGE_LISTS,
 } from "./config";
-import CloseIcon from "@mui/icons-material/Close";
 
 //images
 import Logo from "../assets/logo/IQURI.svg";
@@ -37,6 +29,7 @@ import FoldeImage from "../assets/Image/image 11.png";
 import UseDrawerController from "./controllers/Drawer";
 import FileUploadDialog from "./components/dilog-uploadFile";
 import { MANAGE_DOC_PATH } from "../routes/paths";
+import CreateFolderDialog from "./components/dialog-createFolder";
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open",
@@ -143,62 +136,14 @@ const MiniDrawer = () => {
             onClose={ctrl.handleCloseUploadDialog}
           />
 
-          <Dialog
-            maxWidth="sm"
-            fullWidth
+          <CreateFolderDialog
             open={ctrl?.openDialog}
+            folderName={ctrl?.folderName ?? ""}
+            loading={ctrl?.loading}
             onClose={ctrl?.handleCloseDialog}
-          >
-            <DialogTitle
-              sx={{ display: "flex", justifyContent: "space-between" }}
-            >
-              ສ້າງໂຟເດີ
-              <IconButton
-                edge="end"
-                color="inherit"
-                onClick={ctrl?.handleCloseDialog}
-                aria-label="close"
-              >
-                <CloseIcon />
-              </IconButton>
-            </DialogTitle>
-            <DialogContent>
-              <TextField
-                autoFocus
-                margin="dense"
-                id="folderName"
-                label="ປ້ອນຊື່ໂຟເດີຂອງທ່ານ"
-                type="text"
-                fullWidth
-                variant="outlined"
-                value={ctrl?.folderName ?? ""}
-                onChange={(e) => ctrl?.setFolderName(e.target.value)}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button
-                sx={{ textTransform: "none" }}
-                onClick={ctrl?.handleCloseDialog}
-                color="primary"
-              >
-                ຍົກເລີກ
-              </Button>
-              <Button
-                sx={{ textTransform: "none" }}
-                type="submit"
-                onClick={ctrl?.handleCreateFolder}
-                color="primary"
-                variant="contained"
-                disabled={!ctrl?.folderName}
-              >
-                {ctrl?.loading ? (
-                  <CircularProgress color="primary" size={20} />
-                ) : (
-                  "ສ້າງ"
-                )}
-              </Button>
-            </DialogActions>
-          </Dialog>
+            onChangeFolderName={(value) => ctrl?.setFolderName(value)}
+            onCreateFolder={ctrl?.handleCreateFolder}
+          />
         </Box>
 
         <Box sx={{ ml: 1, bgcolor: "white", borderRadius: "8px" }}>

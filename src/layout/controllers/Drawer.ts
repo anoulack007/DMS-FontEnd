@@ -41,14 +41,15 @@ const UseDrawerController = () => {
       };
 
       const res = await axiosInstance.post(CREATE_FOLDER_END_POINT, data);
-      console.log(res?.data?.data)
+      console.log(res?.data?.data);
 
       // On success, show SweetAlert2 success alert
       Swal.fire({
         title: "Success!",
         text: "Folder created successfully.",
         icon: "success",
-        confirmButtonText: "OK",
+        showConfirmButton: false,
+        timer: 1500,
         customClass: {
           confirmButton: "your-custom-button-class", // You can add custom styles here if needed
         },
