@@ -54,7 +54,7 @@ const UseMainController = () => {
     const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false);
 
     // Pagination handlers
-    const handleChangePage = (event: unknown, newPage: number) => {
+    const handleChangePage = (_event: unknown, newPage: number) => {
       setPage(newPage);
     };
 
