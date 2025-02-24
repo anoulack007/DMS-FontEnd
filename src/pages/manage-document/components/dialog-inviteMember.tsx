@@ -135,7 +135,7 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
     }
   };
 
-  const handleClose = (event: {}, reason: string) => {
+  const handleClose = (_event: {}, reason: string) => {
     if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
       return; // Do nothing, preventing dialog from closing
     }

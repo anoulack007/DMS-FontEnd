@@ -20,7 +20,7 @@ import {
   GET_VERSION_FILE_END_POINT,
   UPDATE_FILE_END_POINT,
 } from "../../../configs/endPoint/files-endpoint";
-import { FolderItem, useFolderNavigation } from "../components/custom-folder-navigate";
+import { FolderItem } from "../components/custom-folder-navigate";
 import { Version } from "../../../models/file-model";
 import { decode, encode } from "../../../utils/functions/HashString";
 
@@ -56,7 +56,6 @@ interface Document {
 
 const UseMainController = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const folderNavigation = useFolderNavigation();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>("name");
@@ -497,7 +496,7 @@ const UseMainController = () => {
     setSearchTerm(searchValue);
   }, []);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 

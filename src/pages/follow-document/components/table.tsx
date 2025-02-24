@@ -66,7 +66,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   error,
   page,
   rowsPerPage,
-  totalDocuments,
   selectedItems,
   onPageChange,
   onRowsPerPageChange,
