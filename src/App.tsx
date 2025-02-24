@@ -6,7 +6,7 @@ import { RootState } from "./store";
 import { loginFailed, loginSuccess } from "./store/authenticationSlice";
 import LoginPage from "./pages/login";
 import { LinearProgress } from "@mui/material";
-import { getUserByToken } from "./service/Login";
+import { getUserByToken, refreshAuthToken } from "./service/Login";
 import axiosInstance from "./configs/axios";
 
 function App() {
