@@ -24,7 +24,7 @@ export default function MainLayout() {
 
   const dispatch = useDispatch();
   const adminData = useSelector(
-    (state: RootState) => state.authentication.data
+    (state: RootState) => state.auth.data
   ); // Adjust the key based on your store structure
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);

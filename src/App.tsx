@@ -3,62 +3,78 @@ import "./App.css";
 import RoutesComponent from "./routes";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "./store";
-import { AUTH_TOKEN } from "./utils/constant/value";
 import { loginFailed, loginSuccess } from "./store/authenticationSlice";
-import { ErrorModel } from "./models/Error";
 import LoginPage from "./pages/login";
 import { LinearProgress } from "@mui/material";
-import { LoginWithTokenService, RefreshTokenService } from "./service/Login";
+import { getUserByToken } from "./service/Login";
+import axiosInstance from "./configs/axios";
 
 function App() {
+  const auth = useSelector((state: RootState) => state?.auth);
   const dispatch = useDispatch();
-  const isLoggedIn = useSelector(
-    (state: RootState) => state?.authentication?.loggedIn
-  );
-  const isAuth = useSelector((state: RootState) => state?.authentication?.data);
 
-  const handleLoginWithToken = async (): Promise<void> => {
+  // handleLoginByToken in App.tsx
+const handleLoginByToken = async () => {
+  try {
+    const authString = localStorage.getItem("auth");
+    if (!authString) {
+      dispatch(loginFailed());
+      return;
+    }
+
+    const authData = JSON.parse(authString);
+    const accessToken = authData.accessToken;
+    const refreshToken = authData.refreshToken;
+
+    if (!accessToken || !refreshToken) {
+      dispatch(loginFailed());
+      return;
+    }
+
     try {
-      const authToken = JSON.parse(localStorage.getItem(AUTH_TOKEN) || "");
-      if (authToken) {
-        const token: string = authToken?.access_token;
-        const getAdmin = await LoginWithTokenService(token);
-        dispatch(loginSuccess(getAdmin));
-      }
+      // First try using the existing access token
+      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+      const user = await getUserByToken();
+      dispatch(loginSuccess(user));
     } catch (error) {
-      const err = error as ErrorModel;
-      console.log(err);
-
-      if (err.response?.data?.message === "jwt expired") {
-        const storedTokens = JSON.parse(localStorage.getItem(AUTH_TOKEN) || "");
-        console.log(storedTokens);
-
-        const getRefreshToken: string = storedTokens?.refresh_token;
-        if (getRefreshToken) {
-          RefreshTokenService(getRefreshToken);
-        }
+      // If that fails, try refreshing the token
+      const newTokens = await refreshAuthToken(refreshToken);
+      if (newTokens) {
+        // Update the stored auth data with new tokens
+        authData.accessToken = newTokens.accessToken;
+        authData.refreshToken = newTokens.refreshToken;
+        localStorage.setItem('auth', JSON.stringify(authData));
+        
+        // Set the new access token for API calls
+        axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${newTokens.accessToken}`;
+        
+        // Fetch user data with new token
+        const user = await getUserByToken();
+        dispatch(loginSuccess(user));
       } else {
         dispatch(loginFailed());
       }
     }
-  };
+  } catch (err) {
+    console.error("Error in handleLoginByToken:", err);
+    dispatch(loginFailed());
+  }
+};
 
   useEffect(() => {
-    handleLoginWithToken();
+    handleLoginByToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <>
-      {!isLoggedIn ? (
+      {!auth.loggedIn ? (
         <LinearProgress />
-      ) : isAuth ? (
+      ) : auth ? (
         <RoutesComponent />
       ) : (
         <LoginPage />
       )}
-
-      {/* <RoutesComponent /> */}
     </>
   );
 }

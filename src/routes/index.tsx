@@ -11,7 +11,6 @@ import {
   USER_DETAIL_PATH,
   FOLLOW_DOCUMENT_PATH,
 } from "./paths";
-import MainLayout from "../layout";
 import LoginPage from "../pages/login";
 import NotFoundPage from "../404";
 import ManageDocumentPage from "../pages/manage-document";
@@ -20,19 +19,20 @@ import ReportSharePage from "../pages/report-share";
 import ReportRecyclePage from "../pages/report";
 import ManageUserPage from "../pages/manage-user";
 import DocumentDetailPage from "../pages/document-detail";
-import ProtectedRoutes from "./ProtectedRoute";
 import UserDetailPage from "../pages/user-detail";
 import AddUserPage from "../pages/add-user";
 import FollowDocumentPage from "../pages/follow-document";
+import { ProtectedRoute } from "./ProtectedRoute";
+import MainLayout from "../layout";
 
 const RoutesComponent = () => {
   return useRoutes([
     {
       path: "/",
       element: (
-        <ProtectedRoutes>
+        <ProtectedRoute>
           <MainLayout />
-        </ProtectedRoutes>
+        </ProtectedRoute>
       ),
       children: [
         {

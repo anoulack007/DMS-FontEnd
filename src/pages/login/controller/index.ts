@@ -1,14 +1,11 @@
-// import axios from "axios";
-import { FormEvent, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginSuccess } from "../../../store/authenticationSlice";
-// import axiosInstance from "../../../configs/axios";
-// import { LOGIN_END_POINT } from "../../../configs/endPoint/login";
-import { LoginService } from "../../../service/Login";
-import { ErrorModel } from "../../../models/Error";
-import { ErrorResponse } from "../../../utils/functions/Error";
+import { getUserByToken, login } from "../../../service/Login";
 import { MANAGE_DOC_PATH } from "../../../routes/paths";
+import axiosInstance from "../../../configs/axios";
+import Swal from "sweetalert2";
 
 const UseMainController = () => {
   const dispatch = useDispatch();
@@ -16,98 +13,81 @@ const UseMainController = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [ErrorMessage, setErrorMessage] = useState<string>(null!);
 
   const email = useRef<HTMLInputElement>(null!);
   const password = useRef<HTMLInputElement>(null!);
 
-
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-  // const handleLogin = async (email: string, password: string) => {
-  //   try {
-  //     setLoading(true);
-  //     const res = await axiosInstance.post(
-  //       'https://dms-backend-khlo.onrender.com' + LOGIN_END_POINT,
-  //       { emailOrUsername: email, password }
-  //     );
+  // handleLogin in your login component
+const handleLogin = async (e: any) => {
+  e.preventDefault();
+  try {
+    setLoading(true);
+    const resLogin = await login(email.current.value, password.current.value);
+    
+    // Access the nested tokens in the data object
+    const accessToken = resLogin.data.access_token;
+    const refreshToken = resLogin.data.refresh_token;
 
-  //     // Access the tokens from the nested data object
-  //     const token = `Bearer ${res?.data?.data?.access_token}`;
-  //     const refreshToken = `Bearer ${res?.data?.data?.refresh_token}`;
-
-  //     if (!res.data.data.access_token) {
-  //       throw new Error("Access token not received from server");
-  //     }
-
-  //     axios.defaults.headers.common["Authorization"] = token;
-
-  //     localStorage.setItem(
-  //       "authToken",
-  //       JSON.stringify({
-  //         accessToken: token,
-  //         refreshToken: refreshToken,
-  //       })
-  //     );
-
-  //     const userRes = await axiosInstance.get(
-  //       LOGIN_END_POINT
-  //     );
-  //     const userData = userRes.data;
-  //     // Combine all user data into a single object
-  //     const combinedUserData = {
-  //       ...res.data,
-  //       ...userData,
-  //       token,
-  //       refreshToken,
-  //     };
-
-  //     dispatch(loginSuccess(combinedUserData));
-  //     navigate(HOME_PATH);
-  //   } catch (err: any) {
-  //     console.error("Login error:", err);
-  //     setError(
-  //       err?.response?.data?.message ?? "Server error, please try again later"
-  //     );
-  //   } finally {
-  //     setLoading(false);
-  //   }
-
-  //   return { loading, error };
-  // };
-
-  // const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   handleLogin(email, password);
-  // };
-
-  const handleLogin = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      const userInput = email.current.value;
-      const passwordInput = password.current.value;
-      const resUserLogin = await LoginService(userInput, passwordInput);
-      dispatch(loginSuccess(resUserLogin));
-      navigate(MANAGE_DOC_PATH);
-    } catch (error) {
-      console.log(error);
-
-      ErrorResponse(error as ErrorModel);
-    } finally {
-      setLoading(false);
+    if (!accessToken) {
+      throw new Error('No access token received');
     }
-  };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    await handleLogin();
-  };
+    // Set axios default header
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+
+    // Get user details
+    const user = await getUserByToken();
+
+    // Store all auth data in a single 'auth' key
+    const authData = {
+      accessToken,
+      refreshToken,
+      user,
+      isAuthenticated: true
+    };
+
+    localStorage.setItem('auth', JSON.stringify(authData));
+
+    // Update global state
+    dispatch(loginSuccess(user));
+    
+    // Navigate to protected route
+    navigate(MANAGE_DOC_PATH);
+    setErrorMessage("");
+
+  } catch (err: any) {
+    console.error('Login error:', err);
+    const errorMsg = err?.response?.data?.message || "Server error, Please try again";
+    
+    // Show SweetAlert error message
+    Swal.fire({
+      icon: 'error',
+      title: 'Login Failed',
+      text: errorMsg,
+      confirmButtonColor: '#3085d6',
+      confirmButtonText: 'Try Again'
+    });
+    
+    setErrorMessage(errorMsg);
+    
+    // Clear authentication data
+    localStorage.removeItem('auth');
+  } finally {
+    setLoading(false);
+  }
+};
+  
   return {
+    ErrorMessage,
     loading,
     showPassword,
     password,
     email,
     handleClickShowPassword,
-    handleSubmit
+    handleLogin,
   };
 };
 

@@ -1,21 +1,16 @@
-import React from "react";
+import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
-import { Navigate } from "react-router-dom";
 import { LOGIN_PATH } from "./paths";
-import { AdminModel } from "../models/Admin";
 
-interface Props {
-    children: React.ReactNode
-}
+// Protected Route Component
+export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const authData = useSelector((state: RootState) => state?.auth?.data);
+  
+  if (!authData) {
+    return <Navigate to={LOGIN_PATH} replace />;
+  }
+  
+  return <>{children}</>;
+};
 
-const ProtectedRoutes = ({ children }: Props) => {
-    const authData: AdminModel = useSelector((state: RootState) => state?.authentication?.data) || null!;
-
-    if (!authData) {
-        return <Navigate to={LOGIN_PATH} />
-    }
-
-    return <>{children}</>
-}
-export default ProtectedRoutes

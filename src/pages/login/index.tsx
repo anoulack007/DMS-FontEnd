@@ -17,7 +17,7 @@ import UseMainController from "./controller";
 
 //icons
 import EmailIcon from "@mui/icons-material/Email";
-import LockIcon from '@mui/icons-material/Lock';
+import LockIcon from "@mui/icons-material/Lock";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
@@ -43,7 +43,6 @@ const LoginPage = () => {
         }}
       >
         <Grid container>
-
           <Grid item xs={12} md={6}>
             <Box
               sx={{
@@ -62,21 +61,26 @@ const LoginPage = () => {
                 textAlign={"center"}
                 variant="h5"
                 fontWeight={700}
-                sx={{ color: '#2C3E50', fontFamily: 'Noto Sans Lao, sans-serif' }}
+                sx={{
+                  color: "#2C3E50",
+                  fontFamily: "Noto Sans Lao, sans-serif",
+                }}
               >
                 ເຂົ້າສູ່ລະບົບ
               </Typography>
 
-              <form onSubmit={ctrl.handleSubmit}>
+              <form onSubmit={ctrl.handleLogin}>
                 <Box sx={{ p: 5 }}>
                   <TextField
                     inputRef={ctrl?.email}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <EmailIcon />
-                        </InputAdornment>
-                      ),
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmailIcon />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                     placeholder="ປ້ອນຊື່ ຫຼື ອີເມວ"
                     margin="normal"
@@ -116,7 +120,13 @@ const LoginPage = () => {
                   <Box mt={3} sx={{ maxHeight: 50 }}>
                     <Button
                       type="submit"
-                      sx={{ borderRadius: 5, height: "100%", textTransform: 'none', bgcolor: '#2C3E50', fontFamily: 'Noto Sans Lao, sans-serif' }}
+                      sx={{
+                        borderRadius: 5,
+                        height: "100%",
+                        textTransform: "none",
+                        bgcolor: "#2C3E50",
+                        fontFamily: "Noto Sans Lao, sans-serif",
+                      }}
                       fullWidth
                       variant="contained"
                       disabled={ctrl?.email && ctrl?.password ? false : true}

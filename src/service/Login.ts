@@ -1,78 +1,61 @@
-import { AdminModel } from "../models/Admin";
-import axios from "../configs/axios";
-import { AUTH_TOKEN } from "../utils/constant/value";
-import {
-  GET_PROFILE_BY_TOKEN,
-  LOGIN_END_POINT,
-  REFRESH_TOKEN,
-} from "../configs/endPoint/login";
-import { decode, encode } from "../utils/functions/HashString";
+import { LOGIN_END_POINT } from "../configs/endPoint/login";
+import { UserModel } from "../models/user";
 import axiosInstance from "../configs/axios";
-import { ErrorResponse } from "../utils/functions/Error";
-import { ErrorModel } from "../models/Error";
 
-export const LoginService = async (
+interface LoginResponse {
+  message: string;
+  data: {
+    access_token: string;
+    refresh_token: string;
+  };
+  duration: string;
+  statusCode: number;
+}
+
+export const login = async (
   emailOrUsername: string,
   password: string
-): Promise<AdminModel> => {
+): Promise<LoginResponse> => {
   try {
-
-    const configs = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-    // Login request
-    const res = await axios.post(LOGIN_END_POINT,{
+    const response = await axiosInstance.post<LoginResponse>(LOGIN_END_POINT, {
       emailOrUsername,
       password,
-    },  configs, );
-    console.log(res)
-    const accessToken: string = res?.data?.data?.access_token;
-    const refreshToken: string = res?.data?.data?.refresh_token;
-
-    localStorage.setItem(
-      AUTH_TOKEN,
-      JSON.stringify({
-        accessToken: encode(accessToken),
-        refreshToken: encode(refreshToken),
-      })
-    );
-    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-    const getProfile = await axios.get(GET_PROFILE_BY_TOKEN);
-
-    // Return the profile data
-    return getProfile?.data?.data;
+    });
+    return response.data;
   } catch (error) {
-    ErrorResponse(error as ErrorModel);
+    console.error("Error during login:", error);
     throw error;
   }
 };
 
-export const LoginWithTokenService = async (token: string) => {
-  const decodeToken = decode(token);
-  axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${decodeToken}`;
+export const getUserByToken = async (): Promise<UserModel> => {
   try {
-    const getProfile = await axiosInstance.get(GET_PROFILE_BY_TOKEN);
-    return getProfile?.data?.data;
+    const response = await axiosInstance.get('/auth/user-profile');
+    
+    // Assuming the user data is part of the response 
+    const userData: UserModel = response.data.user || response.data;
+    return userData;
   } catch (error) {
-    console.error("LoginWithTokenService error:", error);
+    console.error("Error getting user profile:", error);
     throw error;
   }
 };
 
-export const RefreshTokenService = async (token: string) => {
-  const decodeToken = decode(token);
-  axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${decodeToken}`;
-  const res = await axiosInstance.post(REFRESH_TOKEN);
-  const newAccessToken: string = res?.data?.data?.access_token;
-  const newRefreshToken: string = res?.data?.data?.refresh_token;
-  axiosInstance.defaults.headers.common["Authorization"] = newAccessToken;
-  localStorage.setItem(
-    AUTH_TOKEN,
-    JSON.stringify({
-      accessToken: encode(newAccessToken),
-      refreshToken: encode(newRefreshToken),
-    })
-  );
+export const refreshAuthToken = async (refreshToken: string) => {
+  try {
+    const response = await axiosInstance.post('/auth/refresh', {
+      refresh_token: refreshToken
+    });
+    
+    if (response.data && response.data.access_token) {
+      return {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token || refreshToken // Use new refresh token if provided, otherwise keep the old one
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    return null;
+  }
 };

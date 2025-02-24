@@ -1,42 +1,40 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AUTH_SLICE } from "./config";
-import { LOGIN_PATH } from "../routes/paths";
-import { AdminModel } from "../models/Admin";
+import { UserModel } from "../models/user";
 
-interface AdminInterface {
-  data: AdminModel | null;
+// authenticationSlice.ts
+export interface UserInterface {
+  data: UserModel | null;
   loggedIn: boolean;
 }
 
-const initialState: AdminInterface = {
+const initialState: UserInterface = {
   data: null,
   loggedIn: false,
 };
 
-export const authenticationSlice = createSlice({
-  name: AUTH_SLICE,
+// Create slice with reducers
+export const authSlice = createSlice({
+  name: 'auth',
   initialState,
   reducers: {
-    loginFailed: (state: AdminInterface) => {
+    loginFailed: (state:UserInterface) => {
       state.data = null;
       state.loggedIn = true;
     },
-    loginSuccess: (
-      state: AdminInterface,
-      action: PayloadAction<AdminModel>
-    ) => {
+    loginSuccess: (state:UserInterface, action: PayloadAction<UserModel>) => {
       state.data = action.payload;
       state.loggedIn = true;
     },
-    logout: (state: AdminInterface) => {
+    logout: (state:UserInterface) => {
       localStorage.clear();
-      window.location.href = LOGIN_PATH;
+      window.location.href = '/';
       state.data = null;
       state.loggedIn = false;
     },
   },
 });
 
-export const { loginSuccess, logout, loginFailed } =
-  authenticationSlice.actions;
-export default authenticationSlice.reducer;
+// Export actions and reducer
+export const { loginSuccess, logout, loginFailed } = authSlice.actions;
+export default authSlice.reducer;
+
