@@ -13,10 +13,11 @@ import {
   CircularProgress,
   Paper,
   TablePagination,
+  TableFooter,
 } from "@mui/material";
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import NO_DATA_IC from '../../../assets/logo/NotData.svg';
+import NO_DATA_IC from "../../../assets/logo/NotData.svg";
 
 interface DocumentTableProps {
   ctrl: any;
@@ -178,22 +179,28 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
             ) : (
               <TableRow sx={{ height: "200px" }}>
                 <TableCell colSpan={7} align="center">
-                  <img height={'100px'} src={NO_DATA_IC} alt="No Data" />
+                  <img height={"100px"} src={NO_DATA_IC} alt="No Data" />
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={7} align="right">
+                <TablePagination
+                  component="div"
+                  count={ctrl.documents.length}
+                  page={ctrl.page}
+                  onPageChange={ctrl.handleChangePage}
+                  rowsPerPage={ctrl.rowsPerPage}
+                  onRowsPerPageChange={ctrl.handleChangeRowsPerPage}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                />
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </TableContainer>
-      <TablePagination
-        component="div"
-        count={ctrl.documents.length}
-        page={ctrl.page}
-        onPageChange={ctrl.handleChangePage}
-        rowsPerPage={ctrl.rowsPerPage}
-        onRowsPerPageChange={ctrl.handleChangeRowsPerPage}
-        rowsPerPageOptions={[5, 10, 25, 50]}
-      />
     </Box>
   );
 };
