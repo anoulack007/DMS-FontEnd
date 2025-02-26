@@ -22,7 +22,6 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import AvatarUpload from "./components/UploadAvatar";
 import { Input } from "../../components/Input";
 import { GRAY1_COLOR } from "../../theme/colors";
-import { UserRole } from "../../enums/role";
 
 const Item = styled(Paper)({
   padding: "30px",

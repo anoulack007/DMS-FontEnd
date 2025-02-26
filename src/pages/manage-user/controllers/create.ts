@@ -6,10 +6,6 @@ import { UserRole } from "../../../enums/role";
 import { MANAGE_USER_PATH } from "../../../routes/paths";
 import Swal from "sweetalert2";
 
-const response = {
-    statusCode: 201
-}
-
 const UseCreateController = () => {
   const navigate = useNavigate();
   const [auth, _setAuth] = useState(true);
