@@ -7,9 +7,9 @@ import {
   RECYCLE_PATH,
   REPORT_RECYCLE_PATH,
   REPORT_SHARE_PATH,
-  ADD_USER_PATH,
   USER_DETAIL_PATH,
   FOLLOW_DOCUMENT_PATH,
+  CREATE_USER_PATH,
 } from "./paths";
 import LoginPage from "../pages/login";
 import NotFoundPage from "../404";
@@ -17,13 +17,13 @@ import ManageDocumentPage from "../pages/manage-document";
 import RecyclePage from "../pages/recycle";
 import ReportSharePage from "../pages/report-share";
 import ReportRecyclePage from "../pages/report";
-import ManageUserPage from "../pages/manage-user";
 import DocumentDetailPage from "../pages/document-detail";
 import UserDetailPage from "../pages/user-detail";
-import AddUserPage from "../pages/add-user";
 import FollowDocumentPage from "../pages/follow-document";
 import { ProtectedRoute } from "./ProtectedRoute";
 import MainLayout from "../layout";
+import ManageUserPage from "../pages/manage-user";
+import FormCreateUserPage from "../pages/manage-user/form";
 
 const RoutesComponent = () => {
   return useRoutes([
@@ -60,17 +60,17 @@ const RoutesComponent = () => {
           element: <DocumentDetailPage />,
         },
         {
-          path: ADD_USER_PATH,
-          element: <AddUserPage />,
+          path: CREATE_USER_PATH,
+          element: <FormCreateUserPage />,
         },
         {
-          path: USER_DETAIL_PATH,
-          element: <UserDetailPage />
+          path: `${USER_DETAIL_PATH}/:id`,
+          element: <UserDetailPage />,
         },
         {
           path: FOLLOW_DOCUMENT_PATH,
-          element: <FollowDocumentPage />
-        }
+          element: <FollowDocumentPage />,
+        },
       ],
     },
 

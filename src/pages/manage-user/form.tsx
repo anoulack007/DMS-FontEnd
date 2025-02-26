@@ -9,20 +9,20 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import UseMainController from "./controllers";
 import image from "../../assets/avatar.svg";
 import Grid from "@mui/material/Grid2";
 import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 import { MANAGE_USER_PATH } from "../../routes/paths";
 
 // icon
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import AvatarUpload from "./components/UploadAvatar";
 import { Input } from "../../components/Input";
 import { GRAY1_COLOR } from "../../theme/colors";
-import { UserRole } from "../../enums/role";
+import UseCreateController from "./controllers/create";
+import AvatarUpload from "../user-detail/components/UploadAvatar";
 
 const Item = styled(Paper)({
   padding: "30px",
@@ -32,8 +32,8 @@ const Item = styled(Paper)({
   backgroundColor: "#fff", // Ensure white background as in your example
 });
 
-const UserDetailPage = () => {
-  const ctrl = UseMainController();
+const FormCreateUserPage = () => {
+  const ctrl = UseCreateController();
 
   return (
     <Box>
@@ -44,7 +44,7 @@ const UserDetailPage = () => {
           >
             <ArrowBackIosNewIcon />
           </IconButton>
-          <Typography variant="h4">ລາຍລະອຽດຜູ້ໃຊ້</Typography>
+          <Typography variant="h4">ເພິ່ມຜູ້ໃຊ້</Typography>
         </Box>
       </Box>
 
@@ -63,7 +63,7 @@ const UserDetailPage = () => {
               }}
             >
               <AvatarUpload
-                defaultImage={ctrl?.data?.image?.url || image}
+                defaultImage={image}
                 onChange={ctrl?.handleAvatarChange}
               />
 
@@ -90,10 +90,10 @@ const UserDetailPage = () => {
                     ຊື່
                   </Typography>
                   <Input
+                    type="text"
                     margin="normal"
                     fullWidth
                     inputRef={ctrl?.nameRef}
-                    defaultValue={ctrl?.data?.name || ""}
                     required
                   />
                 </Grid>
@@ -106,10 +106,10 @@ const UserDetailPage = () => {
                     ນາມສະກຸນ
                   </Typography>
                   <Input
+                    type="text"
                     margin="normal"
                     fullWidth
                     inputRef={ctrl?.surnameRef}
-                    defaultValue={ctrl?.data?.surname || ""}
                     required
                   />
                 </Grid>
@@ -122,10 +122,10 @@ const UserDetailPage = () => {
                     ເບີໂທລະສັບ
                   </Typography>
                   <Input
+                    type="number"
                     margin="normal"
                     fullWidth
                     inputRef={ctrl?.phoneNumberRef}
-                    defaultValue={ctrl?.data?.phoneNumber || ""}
                     required
                   />
                 </Grid>
@@ -138,10 +138,10 @@ const UserDetailPage = () => {
                     ອີເມວ
                   </Typography>
                   <Input
+                    type="email"
                     margin="normal"
                     fullWidth
                     inputRef={ctrl?.emailRef}
-                    defaultValue={ctrl?.data?.email || ""}
                     required
                   />
                 </Grid>
@@ -157,9 +157,38 @@ const UserDetailPage = () => {
                     margin="normal"
                     fullWidth
                     inputRef={ctrl?.usernameRef}
-                    defaultValue={ctrl?.data?.username || ""}
                     required
                   />
+                </Grid>
+                <Grid size={6}>
+                  <Typography
+                    textAlign="left"    
+                    fontWeight={700}
+                    variant="subtitle1"
+                  >
+                    ລະຫັດຜ່ານ
+                  </Typography>
+                  <Box position="relative" width="100%">
+                    <Input
+                      type={ctrl?.showPassword ? "text" : "password"}
+                      margin="normal"
+                      fullWidth
+                      inputRef={ctrl?.passwordRef}
+                      required
+                    />
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => ctrl?.setShowPassword(!ctrl?.showPassword)}
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                      }}
+                    >
+                      {ctrl?.showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </Box>
                 </Grid>
                 <Grid size={6}>
                   <Typography
@@ -170,10 +199,10 @@ const UserDetailPage = () => {
                     ບໍລິສັດ
                   </Typography>
                   <Input
+                    type="text"
                     margin="normal"
                     fullWidth
                     inputRef={ctrl?.companyRef}
-                    defaultValue={ctrl?.data?.company || ""}
                     required
                   />
                 </Grid>
@@ -183,7 +212,7 @@ const UserDetailPage = () => {
                     fontWeight={700}
                     variant="subtitle1"
                   >
-                    ຂໍ້ມູນຜູ້ໃຊ້
+                    ຕຳແໜ່ງ
                   </Typography>
                   <Autocomplete
                     sx={{
@@ -203,7 +232,6 @@ const UserDetailPage = () => {
                     }}
                     fullWidth
                     options={Array.isArray(ctrl?.roles) ? ctrl?.roles : []}
-                    value={ctrl?.data?.role || ""}
                     onChange={(_event, newValue) => {
                       if (ctrl?.roleRef?.current) {
                         ctrl.roleRef.current.value = newValue;
@@ -248,4 +276,4 @@ const UserDetailPage = () => {
   );
 };
 
-export default UserDetailPage;
+export default FormCreateUserPage;

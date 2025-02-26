@@ -1,103 +1,92 @@
-import { ADD_USER_PATH, USER_DETAIL_PATH } from "../../routes/paths";
-
 import {
-  Paper, Box, IconButton, Menu, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, TablePagination, Button,
-  TextField,
+  Avatar,
+  Box,
+  Button,
+  Checkbox,
+  CircularProgress,
+  IconButton,
   InputAdornment,
-} from '@mui/material';
-
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableFooter,
+  TableHead,
+  TablePagination,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
+import UseMainController from "./controllers";
+import SearchIcon from "@mui/icons-material/Search";
 
 //icons
-import SearchIcon from '@mui/icons-material/Search';
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import CustomMenu from "./components/custom-menu";
+import NoData from "../../assets/logo/NotData.svg";
+
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import UseMainController from './controllers';
-import AddIcon from '@mui/icons-material/Add';
-import FilterIcon from '@mui/icons-material/FilterList';
+import { CREATE_USER_PATH } from "../../routes/paths";
 
-//Component
-import CustomMenu from './components/custom-menu';
-import PopupDialog from "./components/modal-popup";
-import { useState } from "react";
-
-
-export default function DataTable() {
+const ManageUserPage = () => {
   const ctrl = UseMainController();
-  const open = Boolean(ctrl?.anchorEl);
-
-  const [filterRoles, setfilterRoles] = useState("all");
-
-  const RolesOption = [
-    { value: "all", label: "All Roles" },
-    { value: "TeamLeader", label: "TeamLeader" },
-    { value: "UXUI", label: "UX/UI" },
-    { value: "FrontEnd", label: "FrontEnd" },
-    { value: "BackEnd", label: "BackEnd" },
-    { value: "Tester", label: "Tester" },
-    { value: "CheifTechnologyOfficer", label: "Cheif Technology Officer" },
-  ]
 
   return (
     <Box>
+      <Box sx={{ mb: 5, display: "flex", justifyContent: "space-between" }}>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Typography color="#838383" variant="h5" fontWeight={700}>
+            ຈັດການຜູ້ໃຊ້
+          </Typography>
+        </Box>
 
-      {/* Add User & Search */}
-      <Box sx={{
-        display: "flex",
-        gap: 2,
-        mb: 4,
-        flexWrap: "wrap",
-        alignItems: "center",
-      }}>
-        <Button onClick={() => ctrl?.handleAddUserClick(ADD_USER_PATH)}
-          variant="contained"
-          startIcon={<AddIcon />}
-          sx={{ height: 50 }}>
+        <Box sx={{ display: "flex", gap: 3 }}>
+          <TextField
+            sx={{
+              fontFamily: "NotoSansLao-Regular",
+              borderRadius: 24,
+              bgcolor: "#F6F6F6",
+              "& .MuiOutlinedInput-root": {
+                border: "none",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                border: "none",
+              },
+            }}
+            placeholder="ຄົ້ນຫາຜູ້ໃຊ້..."
+            value={ctrl.searchQuery}
+            onChange={ctrl.handleSearchChange}
+            slotProps={{
+              input: {
+                style: {
+                  borderRadius: 24,
+                },
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton>
+                      <SearchIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
 
-          Add User
-        </Button>
-
-        <TextField
-          placeholder="Search Users..."
-          value={''}
-          sx={{ flexGrow: 1, bgcolor: "white" }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          size="medium"
-        />
-
-        <TextField
-          select
-          value={filterRoles}
-          onChange={(e) => setfilterRoles(e.target.value)}
-          sx={{ minWidth: 150, bgcolor: "white" }}
-          size="medium"
-          label="Roles"
-        >
-          {RolesOption.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
-        <Button
-          variant="contained"
-          startIcon={<FilterIcon />}
-          // onClick={handleSearch}
-          sx={{ height: 50 }}
-        >
-          Apply Filters
-        </Button>
+          <Button
+            sx={{ width: 200, borderRadius: "12px", fontSize: 16 }}
+            onClick={() => ctrl?.hanleNavigate(CREATE_USER_PATH)}
+            variant="contained"
+          >
+            ເພິ່ມຜູ້ໃຊ້
+          </Button>
+        </Box>
       </Box>
 
-      {ctrl?.selectedIds.length > 0 && (
+      {ctrl?.selectedItems.length > 0 && (
         <CustomMenu
-          selectedCount={ctrl?.selectedIds.length}
+          selectedCount={ctrl.selectedItems.length}
+          handleDelete={ctrl?.handleDelete}
+          handleEditUser={ctrl?.handleEditUser}
         />
       )}
 
@@ -109,106 +98,161 @@ export default function DataTable() {
           gap: 2,
           width: "100%",
         }}
-      ></Box>
-
-
-
-      {/* DataTable */}
-      <TableContainer component={Paper} sx={{ height: 500, width: '100%', marginBottom: 10 }}>
-        <Table aria-label="simple table">  {/* ใช้ Table */}
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
-                  checkedIcon={<CheckCircleIcon sx={{ color: "blue" }} />}
-                  checked={ctrl?.selectedIds.length === ctrl?.data.length}
-                  indeterminate={ctrl?.selectedIds.length > 0 && ctrl?.selectedIds.length < ctrl?.data.length}
-                  onChange={() => {
-                    if (ctrl?.selectedIds.length === ctrl?.data.length) {
-                      ctrl?.setSelectedIds([]);
-                    } else {
-                      ctrl?.setSelectedIds(ctrl?.data.map(data => data.id));
-                    }
-                  }}
-                />
-              </TableCell>
-              <TableCell>Username</TableCell>
-              <TableCell>User ID</TableCell>
-              <TableCell>Phone</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Company</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {ctrl?.data
-              .slice(ctrl?.page * ctrl?.rowsPerPage, ctrl?.page * ctrl?.rowsPerPage + ctrl?.rowsPerPage)
-              .map((user) => (
-                <TableRow
-                  key={user.id}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
-                      checkedIcon={<CheckCircleIcon sx={{ color: "blue" }} />}
-                      checked={ctrl?.selectedIds.includes(user.id)}
-                      onChange={() => ctrl?.handleCheckboxChange(user.id)}
+      >
+        <Box sx={{ flexGrow: 1 }}>
+          <TableContainer
+            sx={{
+              boxShadow: 3,
+              borderRadius: 3,
+            }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell padding="checkbox">{""}</TableCell>
+                  <TableCell>ຊື່ຜູ້ໃຊ້</TableCell>
+                  <TableCell>ລະຫັດຜູ້ໃຊ້</TableCell>
+                  <TableCell>ເບີໂທລະສັບ</TableCell>
+                  <TableCell>ອີເມວ</TableCell>
+                  <TableCell>ຕຳແໜ່ງ</TableCell>
+                  <TableCell>ບໍລິສັດ</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody sx={{ borderBottom: "1px solid #919EAB3D" }}>
+                {ctrl?.loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      <CircularProgress />
+                    </TableCell>
+                  </TableRow>
+                ) : ctrl?.error ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      <Box
+                        sx={{
+                          minHeight: 500,
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <img src={NoData} alt="data" />
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ) : ctrl.getPaginatedData().length > 0 ? (
+                  ctrl.getPaginatedData().map((user) => (
+                    <TableRow
+                      key={user?.userId}
+                      selected={ctrl?.isSelected(user.userId)}
+                      sx={{
+                        "&:last-child td, &:last-child th": { border: 0 },
+                        "&:hover": {
+                          backgroundColor: "rgba(0, 0, 0, 0.04)",
+                          transition: "background-color 0.2s ease",
+                          "& .checkbox-cell": {
+                            opacity: 1,
+                            visibility: "visible",
+                          },
+                        },
+                        cursor: "pointer",
+                      }}
+                      onClick={() => ctrl?.handleSelectUser(user?.userId)}
+                    >
+                      <TableCell
+                        padding="checkbox"
+                        sx={{
+                          borderBottom: "none",
+                          "& .MuiCheckbox-root": {
+                            transition: "opacity 0.2s, visibility 0.2s",
+                            opacity: ctrl?.isSelected(user?.userId) ? 1 : 0,
+                            visibility: ctrl?.isSelected(user?.userId)
+                              ? "visible"
+                              : "hidden",
+                          },
+                        }}
+                        className="checkbox-cell"
+                      >
+                        <Checkbox
+                          icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
+                          checked={ctrl?.isSelected(user?.userId)}
+                          checkedIcon={
+                            <CheckCircleIcon sx={{ color: "blue" }} />
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                        >
+                          <Avatar
+                            src={user?.image?.url || ""}
+                            alt={user?.name}
+                          />
+                          <Box>
+                            <Typography>{`${user?.name} ${user?.surname}`}</Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {user?.userId}
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {user?.phoneNumber}
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {user?.email}
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {user?.role}
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        {user?.company}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      <Box
+                        sx={{
+                          minHeight: 500,
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          flexDirection: "column",
+                          gap: 2, 
+                        }}
+                      >
+                        <img src={NoData} alt="data" />
+                        <Typography color="#838383" variant="h5" fontWeight={700}>ບໍ່ມີຂໍ້ມູນ</Typography>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={7} align="right">
+                    <TablePagination
+                      component="div"
+                      count={ctrl?.users?.length || 0}
+                      page={ctrl.page}
+                      onPageChange={ctrl.handleChangePage}
+                      rowsPerPage={ctrl.rowsPerPage}
+                      onRowsPerPageChange={ctrl.handleChangeRowsPerPage}
+                      rowsPerPageOptions={[5, 10, 25]}
                     />
                   </TableCell>
-                  <TableCell>{user?.username}</TableCell>
-                  <TableCell>{user?.userId}</TableCell>
-                  <TableCell>{user?.phoneNumber}</TableCell>
-                  <TableCell>{user?.email}</TableCell>
-                  <TableCell>{user?.role}</TableCell>
-                  <TableCell>{user?.company}</TableCell>
-                  <TableCell>
-                    <IconButton onClick={ctrl?.handleActionClick}>
-                      <MoreHorizIcon />
-                    </IconButton>
-                    <Menu
-                      id="demo-positioned-menu"
-                      aria-labelledby="demo-positioned-button"
-                      anchorEl={ctrl?.anchorEl}  // ใช้ anchorEl สำหรับ Action Menu
-                      open={open}
-                      onClose={ctrl?.handleCloseActionMenu}
-                      anchorOrigin={{
-                        vertical: 'top',
-                        horizontal: 'left',
-                      }}
-                      transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'left',
-                      }}
-                    >
-                      <MenuItem onClick={() => ctrl?.handleEditUserClick(USER_DETAIL_PATH)}>Edit</MenuItem>
-                      <MenuItem onClick={() => ctrl.handleDeleteUserClick(user)}>Delete</MenuItem>
-                    </Menu>
-                  </TableCell>
                 </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-        {/*Change Table Page*/}
-        <TablePagination
-          component="div"
-          count={ctrl?.data.length}
-          page={ctrl?.page}
-          onPageChange={ctrl?.handleChangePage}
-          rowsPerPage={ctrl?.rowsPerPage}
-          onRowsPerPageChange={ctrl?.handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 15]}
-        />
-        {/* แสดง PopupDialog เมื่อกด Delete */}
-        <PopupDialog
-          open={ctrl?.openDialog}
-          onClose={ctrl.handleCloseDialog}
-          onConfirm={ctrl.handleConfirmDelete}
-          userToDelete={ctrl?.userToDelete?.username || null} // ส่งชื่อผู้ใช้ที่จะแสดงใน dialog
-        />
-      </TableContainer>
+              </TableFooter>
+            </Table>
+          </TableContainer>
+        </Box>
+      </Box>
     </Box>
   );
-}
+};
+
+export default ManageUserPage;

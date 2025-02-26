@@ -1,4 +1,4 @@
-import { Box, Button, Divider } from "@mui/material";
+import { Box, Button } from "@mui/material";
 
 //icons
 
@@ -7,18 +7,22 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 
 interface Props {
-  selectedCount: number; // Update the prop to accept a document
+  selectedCount: number;
+  handleDelete: (e: React.FormEvent) => void;
+  handleEditUser: (e: React.FormEvent) => void;
 }
 
-const CustomMenu = ({ selectedCount }: Props) => {
+const CustomMenu = ({ selectedCount, handleDelete, handleEditUser }: Props) => {
   const ListMenu = [
     {
-      label: "Edit",
+      label: "ແກ້ໄຂ", 
       icon: <EditIcon />,
+      onclick: handleEditUser
     },
     {
-      label: "Delete",
+      label: "ລົບ",
       icon: <DeleteIcon />,
+      onclick: handleDelete
     },
   ];
 
@@ -38,6 +42,7 @@ const CustomMenu = ({ selectedCount }: Props) => {
       {ListMenu.map((item, index) => (
         <Button
           key={index}
+          onClick={item?.onclick}
           startIcon={item.icon}
           sx={{
             textTransform: "none",
@@ -59,23 +64,13 @@ const CustomMenu = ({ selectedCount }: Props) => {
             textTransform: "none",
             padding: "6px 12px",
             color: "#021016",
-            borderRadius: 5
+            borderRadius: 5,
+            width: "173px"
           }}
         >
           {selectedCount} selected
         </Button>
 
-        {/* Vertical Divider */}
-        <Divider
-          orientation="vertical"
-          flexItem
-          sx={{
-            mx: 2,
-            height: "24px",
-            alignSelf: "center",
-            backgroundColor: "#ccc",
-          }}
-        />
       </Box>
     </Box>
   );

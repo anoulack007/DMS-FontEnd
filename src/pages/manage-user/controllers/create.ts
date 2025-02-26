@@ -1,16 +1,17 @@
-import { useEffect, useState, useRef } from "react";
-import { UserModel } from "../../../models/user";
+import { useState, useRef } from "react";
 import axiosInstance from "../../../configs/axios";
-import { useNavigate, useParams } from "react-router-dom";
-import { GET_ONE_USER, UPADTE_USER } from "../../../configs/endPoint/user";
+import { useNavigate } from "react-router-dom";
+import { USER_CREATE } from "../../../configs/endPoint/user";
 import { UserRole } from "../../../enums/role";
 import { MANAGE_USER_PATH } from "../../../routes/paths";
 import Swal from "sweetalert2";
 
-const UseMainController = () => {
-  const { id } = useParams();
+const response = {
+    statusCode: 201
+}
+
+const UseCreateController = () => {
   const navigate = useNavigate();
-  const [data, setData] = useState<UserModel | null>(null);
   const [auth, _setAuth] = useState(true);
   const [anchorElProfile, setAnchorElProfile] = useState<null | HTMLElement>(
     null
@@ -30,15 +31,7 @@ const UseMainController = () => {
   const roleRef = useRef<HTMLInputElement>(null);
 
   const roles: UserRole[] = Object.values(UserRole);
-
-  const handleGetData = async () => {
-    try {
-      const res = await axiosInstance.get(`${GET_ONE_USER}/${id}`);
-      setData(res?.data?.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const [showPassword, setShowPassword] = useState(false);
 
   // Profile menu
   const handleProfileMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -69,10 +62,24 @@ const UseMainController = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    // Show confirmation dialog before submitting
+    const phoneNumber = phoneNumberRef.current?.value || "";
+
+    const phoneRegex = /^(020|030|20)\d{7,8}$/;
+
+    if (!phoneRegex.test(phoneNumber)) {
+      Swal.fire({
+        title: "ຜິດພາດ!",
+        text: "ກະລຸນາໃສ່ເບີໂທລະສັບໃຫ້ຖືກຕ້ອງ (020, 030) 8 - 11 ໂຕເລກ",
+        icon: "error",
+        confirmButtonText: "ຕົກລົງ",
+        confirmButtonColor: "#d33",
+      });
+      return;
+    }
+
     const confirmResult = await Swal.fire({
       title: "ທ່ານແນ່ໃຈບໍ່ ?",
-      text: "ທ່ານຕ້ອງການແກ້ໄຂຂໍ້ມູນບໍ່ ?",
+      text: "ທ່ານຕ້ອງການເພິ່ມຜູ້ໃຊ້ນີ້ບໍ່ ?",
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "ຕົກລົງ",
@@ -92,7 +99,7 @@ const UseMainController = () => {
       const formData = new FormData();
       formData.append("name", nameRef.current?.value || "");
       formData.append("surname", surnameRef.current?.value || "");
-      formData.append("phoneNumber", phoneNumberRef.current?.value || "");
+      formData.append("phoneNumber", phoneNumber);
       formData.append("email", emailRef.current?.value || "");
       formData.append("username", usernameRef.current?.value || "");
       formData.append("password", passwordRef.current?.value || "");
@@ -100,8 +107,8 @@ const UseMainController = () => {
       formData.append("role", roleRef.current?.value || "");
       if (avatarFile) formData.append("image", avatarFile);
 
-      const res = await axiosInstance.patch(`${UPADTE_USER}/${id}`, formData);
-      if (res.status === 200) {
+      const res = await axiosInstance.post(USER_CREATE, formData);
+      if (res?.data?.statusCode  === 201) {
         Swal.fire({
           title: "Success!",
           text: "User updated successfully",
@@ -128,34 +135,17 @@ const UseMainController = () => {
     }
   };
 
-  useEffect(() => {
-    handleGetData();
-  }, []);
-
-  useEffect(() => {
-    if (data) {
-      if (nameRef.current) nameRef.current.value = data.name || "";
-      if (surnameRef.current) surnameRef.current.value = data.surname || "";
-      if (phoneNumberRef.current)
-        phoneNumberRef.current.value = data.phoneNumber || "";
-      if (emailRef.current) emailRef.current.value = data.email || "";
-      if (usernameRef.current) usernameRef.current.value = data.username || "";
-      if (companyRef.current) companyRef.current.value = data.company || "";
-      if (roleRef.current) roleRef.current.value = data.role || "User";
-    }
-  }, [data]);
-
   return {
+    showPassword,
+    setShowPassword,
     openBackdrop,
     loading,
     roles,
     avatarFile,
-    data,
     auth,
     anchorElProfile,
     handleSwitchPageClick,
     handleCloseProfileMenu,
-    handleGetData,
     handleProfileMenu,
     handleSubmit,
     nameRef,
@@ -171,4 +161,4 @@ const UseMainController = () => {
   };
 };
 
-export default UseMainController;
+export default UseCreateController;
