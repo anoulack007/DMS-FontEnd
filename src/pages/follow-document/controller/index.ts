@@ -65,6 +65,11 @@ const UseMainController = () => {
   );
   const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [allDocuments, setAllDocuments] = useState<Document[]>([]);
+
   // const [status, setStatus] = useState<STATUS_ENUMS>()
   const [newName, setNewName] = useState<string>(null!);
 
@@ -73,48 +78,45 @@ const UseMainController = () => {
   const [inviteDialogOpen, setInviteDialogOpen] = useState<boolean>(false);
   const [email, setEmail] = useState<string>(null!);
 
-  const [page, setPage] = useState<number>(0);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const [totalDocuments, setTotalDocuments] = useState<number>(0);
-
-  const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newRowsPerPage = parseInt(event.target.value, 10);
-    setRowsPerPage(newRowsPerPage);
-    setPage(0); // Reset to first page when changing rows per page
-  };
-
   const handleGetData = async () => {
     try {
       setLoading(true);
-      // Calculate skip based on current page and rows per page
-      const skip = page * rowsPerPage;
-      
+
       const response = await axiosInstance.get(
-        GET_ALL_FOLLOW_DOCUMENT_END_POINT,
-        {
-          params: {
-            skip: skip,
-            take: rowsPerPage
-          }
-        }
+        GET_ALL_FOLLOW_DOCUMENT_END_POINT
       );
 
       if (response?.data) {
-        // Update documents array with new data
-        setDocuments(response.data.data || []);
-        // Update total count from backend
-        setTotalDocuments(response.data.total || 0);
+        const allDocs = response.data.data || [];
+        setAllDocuments(allDocs);
+        setTotalCount(allDocs.length);
+        
+        // Apply pagination to the fetched data
+        const paginatedDocs = allDocs.slice(
+          page * rowsPerPage,
+          page * rowsPerPage + rowsPerPage
+        );
+        setDocuments(paginatedDocs);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Handle page change
+  const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to first page when changing rows per page
+  };
+
+ 
 
   const handleDetailsClick = () => {
     if (selectedItems) {
@@ -170,12 +172,21 @@ const UseMainController = () => {
       setSortOrder("asc");
     }
 
-    const sortedDocuments = [...documents].sort((a, b) => {
+    // Sort the entire dataset
+    const sortedDocuments = [...allDocuments].sort((a, b) => {
       if (a[field] < b[field]) return sortOrder === "asc" ? -1 : 1;
       if (a[field] > b[field]) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
-    setDocuments(sortedDocuments);
+    
+    setAllDocuments(sortedDocuments);
+    
+    // Update the current page's data
+    const paginatedDocs = sortedDocuments.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+    setDocuments(paginatedDocs);
   };
 
   const handleFilterClick = (
@@ -190,7 +201,7 @@ const UseMainController = () => {
   };
 
   const handleFilter = (field: SortField, value: string) => {
-    let filteredDocuments = [...documents];
+    let filteredDocuments = [...allDocuments];
 
     switch (field) {
       case "modified":
@@ -200,11 +211,23 @@ const UseMainController = () => {
         // Implement file size filtering logic
         break;
       case "status":
-        filteredDocuments = documents.filter((doc) => doc.status === value);
+        filteredDocuments = allDocuments.filter((doc) => doc.status === value);
         break;
     }
 
-    setDocuments(filteredDocuments);
+    setAllDocuments(filteredDocuments);
+    setTotalCount(filteredDocuments.length);
+    
+    // Reset to first page when applying a filter
+    setPage(0);
+    
+    // Update the displayed documents based on the new filter
+    const paginatedDocs = filteredDocuments.slice(
+      0,
+      rowsPerPage
+    );
+    setDocuments(paginatedDocs);
+    
     handleFilterClose(field);
   };
 
@@ -330,13 +353,6 @@ const UseMainController = () => {
     setNewName(value);
   };
 
-  const handleShare = async () => {
-    try {
-      // const res = await axiosInstance.post(`${CREATE_FOLDER_END_POINT}/${selectedDocument?.id}/share`, {
-      // })
-    } catch (error) {}
-  };
-
   const handleIviteMember = async () => {
     setInviteDialogOpen(false);
 
@@ -459,20 +475,29 @@ const UseMainController = () => {
 
   useEffect(() => {
     handleGetData();
-  }, [page, rowsPerPage]);
+  }, []);
 
   useEffect(() => {
     const action = searchParams.get("action");
     setCollapseOpen(action === "collapse");
   }, [searchParams]);
 
+  useEffect(() => {
+    if (allDocuments.length > 0) {
+      const paginatedDocs = allDocuments.slice(
+        page * rowsPerPage,
+        page * rowsPerPage + rowsPerPage
+      );
+      setDocuments(paginatedDocs);
+    }
+  }, [page, rowsPerPage, allDocuments]);
+
   return {
-    totalDocuments,
+    page,
     rowsPerPage,
+    totalCount,
     handleChangePage,
     handleChangeRowsPerPage,
-    page,
-    setPage,
     email,
     handleChangeEmail: (value: string) => setEmail(value),
     inviteDialogOpen,
@@ -509,7 +534,6 @@ const UseMainController = () => {
     handleRenameFolder,
     handleChangeName,
     handleDeleteFolder,
-    handleShare,
     handleIviteMember,
     handleDownload,
   };

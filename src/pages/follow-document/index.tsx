@@ -109,13 +109,13 @@ const FollowDocumentPage = () => {
             documents={ctrl?.documents}
             loading={ctrl?.loading}
             error={ctrl?.error}
+            selectedItems={ctrl?.selectedItems}
+            onSelectItem={ctrl?.handleSelectItem}
             page={ctrl?.page}
             rowsPerPage={ctrl?.rowsPerPage}
-            totalDocuments={ctrl?.totalDocuments}
-            selectedItems={ctrl?.selectedItems}
-            onPageChange={ctrl?.handleChangePage}
-            onRowsPerPageChange={ctrl?.handleChangeRowsPerPage}
-            onSelectItem={ctrl?.handleSelectItem}
+            handleChangePage={ctrl?.handleChangePage}
+            handleChangeRowsPerPage={ctrl?.handleChangeRowsPerPage}
+            totalCount={ctrl?.totalCount}
           />
         </Box>
 

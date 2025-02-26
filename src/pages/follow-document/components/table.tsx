@@ -12,6 +12,8 @@ import {
   Chip,
   Checkbox,
   CircularProgress,
+  TableFooter,
+  Tab,
 } from "@mui/material";
 import {
   PanoramaFishEye as PanoramaFishEyeIcon,
@@ -52,24 +54,29 @@ interface DocumentTableProps {
   documents: Document[];
   loading: boolean;
   error: string | null;
+  selectedItems: string[];
+  onSelectItem: (id: string) => void;
   page: number;
   rowsPerPage: number;
-  totalDocuments: number;
-  selectedItems: string[];
-  onPageChange: (event: unknown, newPage: number) => void;
-  onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onSelectItem: (id: string) => void;
+  handleChangePage: (
+    event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => void;
+  handleChangeRowsPerPage: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  totalCount: number;
 }
+
 const DocumentTable: React.FC<DocumentTableProps> = ({
   documents,
   loading,
   error,
+  selectedItems,
+  onSelectItem,
   page,
   rowsPerPage,
-  selectedItems,
-  onPageChange,
-  onRowsPerPageChange,
-  onSelectItem,
+  handleChangePage,
+  handleChangeRowsPerPage,
+  totalCount,
 }) => {
   const isSelected = (id: string) => selectedItems.includes(id);
 
@@ -207,23 +214,23 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={7} align="right">
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  component="div"
+                  count={totalCount}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </TableContainer>
-      <TablePagination
-        component="div"
-        count={documents.length}
-        page={page}
-        onPageChange={onPageChange}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={onRowsPerPageChange}
-        rowsPerPageOptions={[5, 10, 25]}
-        // Add these props to help with loading states
-        disabled={loading}
-        // Ensure we don't show -1 pages
-        labelDisplayedRows={({ from, to, count }) => 
-          `${from}-${to} of ${count !== -1 ? count : 'more than ' + to}`
-        }
-      />
     </>
   );
 };
