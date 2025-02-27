@@ -1,13 +1,5 @@
 // MainLayout.tsx
-import {
-  Avatar,
-  Box,
-  IconButton,
-  Menu,
-  MenuItem,
-  Toolbar,
-  Typography,
-} from "@mui/material";
+import { Box } from "@mui/material";
 import { Outlet, useNavigate } from "react-router-dom";
 import MiniDrawer from "./MiniDrawer";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,24 +7,17 @@ import { RootState } from "../store";
 import { useState } from "react";
 
 //icons
-import { Logout as LogoutIcon } from "@mui/icons-material";
 import { LOGIN_PATH } from "../routes/paths";
 import { logout } from "../store/authenticationSlice";
+import AdminToolbar from "./components/ToolbarShowData";
 
 export default function MainLayout() {
   const navigate = useNavigate();
 
   const dispatch = useDispatch();
-  const adminData = useSelector(
-    (state: RootState) => state.auth.data
-  ); // Adjust the key based on your store structure
+  const adminData = useSelector((state: RootState) => state.auth.data);
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const [_anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleNavigateToLogin = (path: string) => {
     navigate(path);
@@ -60,7 +45,6 @@ export default function MainLayout() {
         display: "flex",
         minHeight: "100vh",
         position: "relative",
-        p: 2,
       }}
     >
       <MiniDrawer />
@@ -68,129 +52,10 @@ export default function MainLayout() {
       <Box
         sx={{
           flexGrow: 1,
-          p: 2,
+          p: 3,
         }}
       >
-        <Toolbar
-          sx={{
-            mb: 5,
-            bgcolor: "white",
-            display: "flex",
-            justifyContent: "flex-end",
-            flexDirection: "row",
-            borderRadius: 1,
-            boxShadow: 3,
-          }}
-        >
-          {adminData ? (
-            <Box
-              sx={{ display: "flex", gap: 2, alignItems: "center" }}
-              key={adminData.id}
-            >
-              <Typography
-                sx={{ display: "flex", alignItems: "center", fontWeight: 500 }}
-              >
-                {adminData.username}
-              </Typography>
-
-              <IconButton
-                onClick={handleClick}
-                size="small"
-                aria-controls={open ? "account-menu" : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? "true" : undefined}
-              >
-                <Avatar
-                  src={adminData?.image?.url}
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    cursor: "pointer",
-                    "&:hover": {
-                      opacity: 0.8,
-                    },
-                  }}
-                />
-              </IconButton>
-            </Box>
-          ) : (
-            <Box sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
-              <Typography alignContent={"center"}>
-                No user data available
-              </Typography>
-              <IconButton
-                onClick={handleClick}
-                size="small"
-                aria-controls={open ? "account-menu" : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? "true" : undefined}
-              >
-                <Avatar
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    cursor: "pointer",
-                    "&:hover": {
-                      opacity: 0.8,
-                    },
-                  }}
-                />
-              </IconButton>
-            </Box>
-          )}
-
-          <Menu
-            anchorEl={anchorEl}
-            id="account-menu"
-            open={open}
-            onClose={handleClose}
-            onClick={handleClose}
-            slotProps={{
-              paper: {
-                elevation: 0,
-                sx: {
-                  overflow: "visible",
-                  filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-                  mt: 1.5,
-                  "& .MuiAvatar-root": {
-                    width: 32,
-                    height: 32,
-                    ml: -0.5,
-                    mr: 1,
-                  },
-                  "&:before": {
-                    content: '""',
-                    display: "block",
-                    position: "absolute",
-                    top: 0,
-                    right: 14,
-                    width: 10,
-                    height: 10,
-                    bgcolor: "background.paper",
-                    transform: "translateY(-50%) rotate(45deg)",
-                    zIndex: 0,
-                  },
-                },
-              },
-            }}
-            transformOrigin={{ horizontal: "right", vertical: "top" }}
-            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-          >
-            <MenuItem onClick={handleLogout}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  color: "error.main",
-                }}
-              >
-                <LogoutIcon fontSize="small" color="error" />
-                Logout
-              </Box>
-            </MenuItem>
-          </Menu>
-        </Toolbar>
+        <AdminToolbar adminData={adminData} handleLogout={handleLogout} />
         <Outlet />
       </Box>
     </Box>

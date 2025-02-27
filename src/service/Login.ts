@@ -33,7 +33,7 @@ export const getUserByToken = async (): Promise<UserModel> => {
     const response = await axiosInstance.get('/auth/user-profile');
     
     // Assuming the user data is part of the response 
-    const userData: UserModel = response.data.user || response.data;
+    const userData: UserModel = response?.data?.data;
     return userData;
   } catch (error) {
     console.error("Error getting user profile:", error);
