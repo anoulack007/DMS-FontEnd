@@ -42,8 +42,8 @@ interface Document {
   modified: string;
   size: string;
   type: IconType;
-  itemType: string;
   version: string;
+  itemType: string;
   documentNumber: string;
   status: STATUS_ENUMS;
   owner: {
@@ -116,13 +116,13 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
       setMembers(filteredMembers);
     } catch (error) {
       console.error("Error fetching members:", error);
-      // Swal.fire({
-      //   icon: "error",
-      //   title: "Error",
-      //   text: `Failed to fetch ${selectedDocument.itemType} members`,
-      //   timer: 2000,
-      //   showConfirmButton: false,
-      // });
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: `Failed to fetch ${selectedDocument.itemType} members`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
       setMembers([]);
     }
   };
@@ -386,27 +386,35 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
             <strong>Details</strong>
 
             <Box>
-              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: "8px" }}>
+              <Typography
+                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
+              >
                 Owner
-              </p>
+              </Typography>
               <Typography>{ctrl?.selectedDocument?.owner?.name}</Typography>
             </Box>
             <Box>
-              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: "8px" }}>
+              <Typography
+                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
+              >
                 Email
-              </p>
+              </Typography>
               <Box>{ctrl?.selectedDocument?.owner?.email}</Box>
             </Box>
             <Box>
-              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: "8px" }}>
+              <Typography
+                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
+              >
                 ID
-              </p>
+              </Typography>
               <Box>{ctrl.selectedDocument?.id}</Box>
             </Box>
             <Box>
-              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: "8px" }}>
+              <Typography
+                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
+              >
                 Created
-              </p>
+              </Typography>
               <Box>
                 {ctrl?.selectedDocument?.createdAt
                   ? new Date(ctrl?.selectedDocument?.createdAt).toLocaleString()
@@ -414,9 +422,11 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               </Box>
             </Box>
             <Box>
-              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: "8px" }}>
+              <Typography
+                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
+              >
                 Size
-              </p>
+              </Typography>
               <Box>
                 {ctrl?.selectedDocument?.size
                   ? formatFileSize(ctrl.selectedDocument.size)
@@ -425,16 +435,22 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
             </Box>
 
             <Typography mt={2} fontWeight={700}>
-              <p style={{ fontSize: 16, fontWeight: 700 }}>
+              <Typography
+                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
+              >
                 Version and Modification{" "}
-              </p>
+              </Typography>
               <Box sx={{ mt: 2 }}>
                 <VersionListComponent versions={ctrl?.versionDocument || []} />
               </Box>
             </Typography>
 
             <Typography mt={2} fontWeight={700}>
-              <p style={{ fontSize: 16, fontWeight: 700 }}>History Event</p>
+              <Typography
+                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
+              >
+                History Event
+              </Typography>
             </Typography>
             <FileHistory fileHistory={ctrl?.fileHistory || []} />
           </Box>

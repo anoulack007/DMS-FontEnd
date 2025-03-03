@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 export interface FolderItem {
   id: string;
   name: string;
-  itemType: 'folder' | 'document';
+  type: 'folder' | 'document';
 }
 
 export const useFolderNavigation = () => {
@@ -15,7 +15,7 @@ export const useFolderNavigation = () => {
   }, [searchParams]);
 
   const navigateToFolder = useCallback((item: FolderItem) => {
-    if (item.itemType === 'folder') {
+    if (item.type === 'folder') {
       setSearchParams({ folderId: item.id });
     }
   }, [setSearchParams]);

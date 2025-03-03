@@ -22,6 +22,7 @@ import axios from "axios";
 import { CREATE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
 import axiosInstance from "../../../configs/axios";
 import HistoryEduOutlinedIcon from "@mui/icons-material/HistoryEduOutlined";
+import eventBus from "../../../utils/functions/eventBus";
 
 interface FileUploadDialogProps {
   open: boolean;
@@ -156,6 +157,8 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
           }`,
           severity: "success",
         });
+
+        eventBus.publish('FILES_UPDATED', true);
 
         // Close dialog after short delay
         setTimeout(() => {

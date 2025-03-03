@@ -18,6 +18,7 @@ import {
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import NO_DATA_IC from "../../../assets/logo/NotData.svg";
+import { getFileTypeFromName } from "../../../utils/functions/typefile";
 
 interface DocumentTableProps {
   ctrl: any;
@@ -121,7 +122,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                       backgroundColor: "rgba(0, 0, 0, 0.04)",
                       transition: "background-color 0.2s ease",
                     },
-                    cursor: item.type === "folder" ? "pointer" : "default",
+                    cursor: item.itemType === "folder" ? "pointer" : "default",
                   }}
                 >
                   {(isAnyItemSelected || ctrl?.isSelected(item?.id)) && (
@@ -143,34 +144,40 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                         cursor: "pointer",
                       }}
                     >
-                      {getIconByType(item?.type)}
+                      {getIconByType(
+                        item.itemType === "file"
+                          ? item.type || getFileTypeFromName(item.name)
+                          : "folder"
+                      )}
                       <Box>
-                        <Typography>{item?.name}</Typography>
+                        <Typography>{item?.name ?? item?.fileMembers?.file?.name}</Typography>
                       </Box>
                     </Box>
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
-                    {item?.type ? item?.type : "folder"}
+                    {item.itemType === "file"
+                      ? item.type || getFileTypeFromName(item.name)
+                      : "folder"}
+                  </TableCell>  
+                  <TableCell sx={{ borderBottom: "none" }}>
+                    {item.documentNumber}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
-                    {item?.id}
-                  </TableCell>
-                  <TableCell sx={{ borderBottom: "none" }}>
-                    {item?.createdAt
-                      ? new Date(item?.createdAt).toLocaleString()
+                    {item.updatedAt
+                      ? new Date(item.updatedAt).toLocaleString()
                       : ""}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
-                    {item?.size ? formatFileSize(item.size) : "N/A"}
+                    {item.size ? formatFileSize(Number(item.size)) : "N/A"}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     <Chip
-                      label={item?.status}
+                      label={item.status}
                       sx={{
-                        backgroundColor: getStatusColor(item?.status),
+                        backgroundColor: getStatusColor(item.status),
                         borderRadius: "4px",
                         fontWeight: "normal",
-                        color: getTextColor(item?.status),
+                        color: getTextColor(item.status),
                       }}
                     />
                   </TableCell>

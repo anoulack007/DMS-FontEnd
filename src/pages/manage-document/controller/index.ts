@@ -7,15 +7,12 @@ import { SelectChangeEvent } from "@mui/material";
 import { ErrorResponse } from "../../../utils/functions/Error";
 import { ErrorModel } from "../../../models/Error";
 import {
-  GET_ALL_FOLDER_END_POINT,
   GET_ONE_FOLDER_HISTORT_END_POINT,
   UPDATE_FOLDER_END_POINT,
 } from "../../../configs/endPoint/folder-endpoint";
-import { IconType } from "../../../enums/icon-enums";
 import {
   DELETE_FILE_END_POINT,
   DELETE_FOLDER_END_POINT,
-  GET_ALL_ROOT_FILE_END_POINT,
   GET_ONE_FILE_HISTORT_END_POINT,
   GET_VERSION_FILE_END_POINT,
   UPDATE_FILE_END_POINT,
@@ -23,36 +20,19 @@ import {
 import { FolderItem } from "../components/custom-folder-navigate";
 import { Version } from "../../../models/file-model";
 import { decode, encode } from "../../../utils/functions/HashString";
+import { GET_OWNER_DOC_END_POINT } from "../../../configs/endPoint/file&folder";
+import {
+  Document,
+  fileMember,
+  FileModel,
+  folderMember,
+  folderModel,
+} from "../../../models/Document";
+import { getFileTypeFromName } from "../../../utils/functions/typefile";
+import eventBus from "../../../utils/functions/eventBus";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
-
-interface Document {
-  id: string;
-  name: string;
-  path: string;
-  documentId: string;
-  modified: string;
-  size: string;
-  type: IconType;
-  itemType: string;
-  version: string;
-  documentNumber: string;
-  status: STATUS_ENUMS;
-  owner: {
-    company: string;
-    email: string;
-    name: string;
-    username: string;
-  };
-  url: string;
-  isFolder: boolean;
-  parentId: string;
-  isPinned: boolean;
-  isDelete: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 const UseMainController = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -173,52 +153,188 @@ const UseMainController = () => {
       await handleGetHistory();
     }
   };
-  const handleFolderDoubleClick = useCallback((item: FolderItem) => {
-    if (item.itemType === "folder") {
-      const currentFolder = decode(searchParams.get("folderId") || "root");
-      const newPath = encode(`${currentFolder}/${item.name}`); // Build full path
-      setSearchParams({ folderId: newPath });
-    }
-  }, [searchParams, setSearchParams]);
-  
+  const handleFolderDoubleClick = useCallback(
+    (item: FolderItem) => {
+      if (item.type === "folder") {
+        const currentFolder = decode(searchParams.get("folderId") || "root");
+        const newPath = encode(`${currentFolder}/${item.name}`); // Build full path
+        setSearchParams({ folderId: newPath });
+      }
+    },
+    [searchParams, setSearchParams]
+  );
+
   const handleDrawerClose = () => {
     setCollapseOpen(false);
   };
+
+  //
 
   const handleGetData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch folders
-      const foldersRes = await axiosInstance.get(GET_ALL_FOLDER_END_POINT);
-      const folders = foldersRes?.data?.data?.map((folder: any) => ({
-        ...folder,
-        itemType: "folder",
-      }));
+      // Fetch all documents with the new endpoint
+      const response = await axiosInstance.get(GET_OWNER_DOC_END_POINT);
 
-      // Fetch files with latest versions only
-      const filesRes = await axiosInstance.get(GET_ALL_ROOT_FILE_END_POINT);
-      const files = filesRes?.data?.data.reduce((acc: any[], file: any) => {
-        // Find if we already have a file with the same name
-        const existingFile = acc.find((f) => f.name === file.name);
+      // Get the response data
+      const responseData = response?.data?.data;
+      const processedData = [];
 
-        // If file exists, update it only if current version is newer
-        if (existingFile) {
-          if (new Date(file.updatedAt) > new Date(existingFile.updatedAt)) {
-            const index = acc.findIndex((f) => f.name === file.name);
-            acc[index] = { ...file, itemType: "file" };
+      // Process all files (both regular files and fileMembers) - keep only latest versions
+      const filesMap = new Map();
+
+      // Process regular files
+      if (responseData.files && Array.isArray(responseData.files)) {
+        responseData.files.forEach((file: FileModel) => {
+          const fileName = file.name;
+
+          if (
+            !filesMap.has(fileName) ||
+            new Date(file.updatedAt) >
+              new Date(filesMap.get(fileName).updatedAt)
+          ) {
+            filesMap.set(fileName, {
+              id: file.id,
+              name: file.name,
+              nameVersion: file.nameVersion,
+              type: file.type || getFileTypeFromName(file.name),
+              documentNumber: file.documentNumber,
+              documentId: file.documentId,
+              createdAt: file.createdAt,
+              updatedAt: file.updatedAt,
+              size: file.size,
+              status: file.status || "PUBLIC",
+              itemType: "file",
+              isFolder: false,
+              version: file.version || "1.0",
+            });
           }
-        } else {
-          // If file doesn't exist, add it
-          acc.push({ ...file, itemType: "file" });
-        }
-        return acc;
-      }, []);
+        });
+      }
 
-      const combinedItems = [...folders, ...files];
-      setDocuments(combinedItems);
-      setAllDocuments(combinedItems);
+      // Process fileMembers
+      if (responseData.fileMembers && Array.isArray(responseData.fileMembers)) {
+        responseData.fileMembers.forEach((fileMember: fileMember) => {
+          let fileData;
+
+          // Check if fileMember has a file property
+          if (fileMember.file) {
+            fileData = {
+              id: fileMember.file.id,
+              name: fileMember.file.name,
+              nameVersion: fileMember.file.nameVersion,
+              type:
+                fileMember.file.type ||
+                getFileTypeFromName(fileMember.file.name),
+              documentNumber: fileMember.file.documentNumber,
+              documentId: fileMember.file.documentId,
+              createdAt: fileMember.file.createdAt,
+              updatedAt: fileMember.file.updatedAt,
+              size: fileMember.file.size,
+              status: fileMember.file.status || "PUBLIC",
+              itemType: "file",
+              isFolder: false,
+              version: fileMember.file.version || "1.0",
+              isShared: true,
+            };
+
+            const fileName = fileData.name;
+
+            if (
+              !filesMap.has(fileName) ||
+              new Date(fileData.updatedAt) >
+                new Date(filesMap.get(fileName).updatedAt)
+            ) {
+              filesMap.set(fileName, fileData);
+            }
+          }
+        });
+      }
+
+      // Add all latest files to the processed data
+      processedData.push(...Array.from(filesMap.values()));
+
+      // Check for normal folders - try multiple possible properties
+      const folderKeys = ["folders", "folder"];
+      let normalFoldersFound = false;
+
+      for (const key of folderKeys) {
+        if (responseData[key] && Array.isArray(responseData[key])) {
+          normalFoldersFound = true;
+          responseData[key].forEach((folder) => {
+            processedData.push({
+              id: folder.id,
+              name: folder.name,
+              type: "folder",
+              documentNumber: folder.documentId,
+              documentId: folder.documentId,
+              createdAt: folder.createdAt,
+              updatedAt: folder.updatedAt,
+              size: folder.size || 0,
+              status: folder.status || "PUBLIC",
+              itemType: "folder",
+              isFolder: true,
+              path: folder.path,
+            });
+          });
+          break; // We found and processed normal folders, no need to check other keys
+        }
+      }
+
+      // If we didn't find normal folders using common keys, check if there's a 'folder' object
+      if (
+        !normalFoldersFound &&
+        responseData.folder &&
+        !Array.isArray(responseData.folder)
+      ) {
+        // Single folder object
+        const folder = responseData.folder;
+        processedData.push({
+          id: folder.id,
+          name: folder.name,
+          type: "folder",
+          documentNumber: folder.documentId,
+          documentId: folder.documentId,
+          createdAt: folder.createdAt,
+          updatedAt: folder.updatedAt,
+          size: folder.size || 0,
+          status: folder.status || "PUBLIC",
+          itemType: "folder",
+          isFolder: true,
+          path: folder.path,
+        });
+      }
+
+      // Process folderMembers (shared folders)
+      if (
+        responseData.folderMembers &&
+        Array.isArray(responseData.folderMembers)
+      ) {
+        responseData.folderMembers.forEach((folderMember: folderMember) => {
+          if (folderMember.folder) {
+            processedData.push({
+              id: folderMember.folder.id,
+              name: folderMember.folder.name,
+              type: "folder",
+              documentNumber: folderMember.folder.documentId,
+              documentId: folderMember.folder.documentId,
+              createdAt: folderMember.folder.createdAt,
+              updatedAt: folderMember.folder.updatedAt,
+              size: folderMember.folder.size || 0,
+              status: folderMember.folder.status || "PUBLIC",
+              itemType: "folder",
+              isFolder: true,
+              path: folderMember.folder.path,
+              isShared: true,
+            });
+          }
+        });
+      }
+
+      setDocuments(processedData);
+      setAllDocuments(processedData);
     } catch (error) {
       console.error("API error:", error);
       setError("An error occurred while fetching data");
@@ -298,12 +414,12 @@ const UseMainController = () => {
     e.preventDefault();
 
     const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This action will permanently delete the item.",
+      title: "ທ່ານແນ່ໃຈບໍ່ ?",
+      text: "ການດຳເນີນການນີ້ຈະລົບອອກຢ່າງຖາວອນ.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Delete",
-      cancelButtonText: "Cancel",
+      confirmButtonText: "ລົບ",
+      cancelButtonText: "ຍົກເລີກ",
     });
 
     if (result.isConfirmed) {
@@ -328,10 +444,8 @@ const UseMainController = () => {
 
         await Swal.fire({
           icon: "success",
-          title: "Deleted!",
-          text: `The ${
-            isFolder ? "folder" : "file"
-          } has been deleted successfully.`,
+          title: "ລົບສຳເລັດ!",
+          text: `The ${isFolder ? "folder" : "file"} ຖືກລົບສຳເລັດແລ້ວ.`,
           showConfirmButton: false,
           timer: 2000,
         });
@@ -342,7 +456,7 @@ const UseMainController = () => {
         await Swal.fire({
           icon: "error",
           title: "Oops...",
-          text: "Failed to delete item. Please try again.",
+          text: "ເກີດຂໍ້ຜິດຜາດໃນການລົບ. ກະລຸນາລອງໃໝ່ອີກຄັ້ງ.",
         });
       } finally {
         setLoading(false);
@@ -358,8 +472,8 @@ const UseMainController = () => {
     if (!selectedDocument) {
       await Swal.fire({
         icon: "warning",
-        title: "No Document Selected",
-        text: "Please select a document to rename the folder.",
+        title: "ບໍ່ມີເອກະສານທີ່ເລືອກ",
+        text: "ກະລຸນາເລືອກເອກະສານເພື່ອປ່ຽນຊື່.",
       });
       return;
     }
@@ -367,20 +481,20 @@ const UseMainController = () => {
     if (!newName || newName.trim() === "") {
       await Swal.fire({
         icon: "warning",
-        title: "Invalid Name",
-        text: "Please enter a valid name for the folder.",
+        title: "ຊື່ບໍ່ຖືກຕ້ອງ",
+        text: "ກະລຸນາປ້ອນຊື່ໂຟເດີ້ໃຫ້ຖືກຕ້ອງ.",
       });
       return;
     }
 
     // Show confirmation dialog first
     const result = await Swal.fire({
-      title: "Are you sure?",
-      text: `Do you really want to rename the folder to "${newName}"?`,
+      title: "ທ່ານແນ່ໃຈບໍ່ ?",
+      text: `ທ່ານຕ້ອງການປ່ຽນຊື່ໂຟເດີ້ເປັນ "${newName}"?`,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Yes, rename it!",
-      cancelButtonText: "No, keep it",
+      confirmButtonText: "ຕົກລົງ",
+      cancelButtonText: "ຍົກເລີກ",
     });
 
     // If the user cancels, do nothing
@@ -408,8 +522,8 @@ const UseMainController = () => {
 
       await Swal.fire({
         icon: "success",
-        title: "Folder Renamed!",
-        text: `The folder has been renamed to "${newName}" successfully.`,
+        title: "ໂຟເດີ້ຖືກປ່ຽນຊື່ສຳເລັດ!",
+        text: `ໂຟເດີ້ຖືກປ່ຽນຊື່ເປັນ "${newName}" ສຳເລັດແລ້ວ.`,
         showConfirmButton: false,
         timer: 2000,
       });
@@ -431,8 +545,8 @@ const UseMainController = () => {
     try {
       if (!selectedDocument || !selectedDocument.url) {
         Swal.fire({
-          title: "Warning!",
-          text: "Cannot download folders. Please select a file.",
+          title: "ຄຳເຕືອນ!",
+          text: "ບໍ່ສາມາດດາວໂຫລດໂຟເດີ້ໄດ້. ກະລຸນາເລືອກຟາຍ.",
           icon: "warning",
           timer: 2000,
           showConfirmButton: false,
@@ -441,18 +555,18 @@ const UseMainController = () => {
       }
 
       const result = await Swal.fire({
-        title: "Are you sure?",
-        text: `Do you want to download ${selectedDocument.name}?`,
+        title: "ທ່ານແນ່ໃຈບໍ່?",
+        text: `ທ່ານຕ້ອງການດາວໂຫລດນີ້ບໍ່ ${selectedDocument.name}?`,
         icon: "question",
         showCancelButton: true,
-        confirmButtonText: "Yes, download it!",
-        cancelButtonText: "Cancel",
+        confirmButtonText: "ຕົກລົງ!",
+        cancelButtonText: "ຍົກເລີກ",
       });
 
       if (result.isConfirmed) {
         Swal.fire({
-          title: "Downloading...",
-          text: `Downloading ${selectedDocument.name}`,
+          title: "ກຳລັງດາວໂຫລດ...",
+          text: `ກຳລັງດາວໂຫລດ ${selectedDocument.name}`,
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
@@ -473,8 +587,8 @@ const UseMainController = () => {
         document.body.removeChild(link);
 
         Swal.fire({
-          title: "Success!",
-          text: "File downloaded successfully",
+          title: "ສຳເລັດ!",
+          text: "ຟາຍຖືກດາວໂຫລດສຳເລັດແລ້ວ",
           icon: "success",
           timer: 2000,
           showConfirmButton: false,
@@ -482,8 +596,8 @@ const UseMainController = () => {
       }
     } catch (error) {
       Swal.fire({
-        title: "Error!",
-        text: "Something went wrong while downloading the file",
+        title: "ຜິດຜາດ!",
+        text: "ເກີດຂໍ້ຜິດຜາດໃນການດາວໂຫລດຟາຍ",
         icon: "error",
         timer: 2000,
         showConfirmButton: false,
@@ -560,7 +674,22 @@ const UseMainController = () => {
 
   useEffect(() => {
     handleGetData();
+  
+    const unsubscribeFiles = eventBus.subscribe('FILES_UPDATED', () => {
+      handleGetData();
+    });
+  
+    const unsubscribeFolders = eventBus.subscribe('FOLDERS_UPDATED', () => {
+      handleGetData();
+    });
+  
+    // Cleanup both subscriptions on component unmount
+    return () => {
+      unsubscribeFiles();
+      unsubscribeFolders();
+    };
   }, [searchParams]);
+  
 
   return {
     versionDocument,

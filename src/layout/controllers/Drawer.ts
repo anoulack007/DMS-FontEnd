@@ -2,6 +2,7 @@ import { useState } from "react";
 import axiosInstance from "../../configs/axios";
 import { CREATE_FOLDER_END_POINT } from "../../configs/endPoint/folder-endpoint";
 import Swal from "sweetalert2";
+import eventBus from "../../utils/functions/eventBus";
 
 const UseDrawerController = () => {
   const [openUploadDialog, setOpenUploadDialog] = useState<boolean>(false);
@@ -50,10 +51,9 @@ const UseDrawerController = () => {
         icon: "success",
         showConfirmButton: false,
         timer: 1500,
-        customClass: {
-          confirmButton: "your-custom-button-class", // You can add custom styles here if needed
-        },
       });
+
+      eventBus.publish('FOLDERS_UPDATED', true);
 
       handleCloseDialog();
     } catch (error) {
