@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 
 //images
-import Image from "../../assets/Image/2762372.jpg";
+// import Image from "../../assets/Image/2762372.jpg";
 // import Logo from "../../assets/logo/JOB_LOGO.png";
 import UseMainController from "./controller";
 
@@ -20,6 +20,7 @@ import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import Login_BG from "../../assets/Image/login/icons.webp";
 
 const LoginPage = () => {
   const ctrl = UseMainController();
@@ -32,6 +33,7 @@ const LoginPage = () => {
         alignItems: "center",
         minHeight: "100vh",
         bgcolor: "background.default",
+        borderRadius: "12px",
       }}
     >
       <Paper
@@ -90,27 +92,29 @@ const LoginPage = () => {
                   <TextField
                     inputRef={ctrl?.password}
                     type={ctrl.showPassword ? "text" : "password"}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LockIcon />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label="toggle password visibility"
-                            onClick={ctrl.handleClickShowPassword}
-                            edge="end"
-                          >
-                            {ctrl.showPassword ? (
-                              <VisibilityOff />
-                            ) : (
-                              <Visibility />
-                            )}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockIcon />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="toggle password visibility"
+                              onClick={ctrl.handleClickShowPassword}
+                              edge="end"
+                            >
+                              {ctrl.showPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                     placeholder="ລະຫັດຜ່ານ"
                     margin="normal"
@@ -142,7 +146,7 @@ const LoginPage = () => {
               </form>
             </Box>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} sx={{ borderRadius: "12px" }}>
             <Box
               sx={{
                 height: "100%",
@@ -152,9 +156,13 @@ const LoginPage = () => {
               }}
             >
               <img
-                src={Image}
+                src={Login_BG}
                 alt="Login illustration"
-                style={{ maxWidth: "100%", height: "auto" }}
+                style={{
+                  maxWidth: "100%",
+                  height: "auto",
+                  borderRadius: "0 12px 12px 0",
+                }}
               />
             </Box>
           </Grid>
