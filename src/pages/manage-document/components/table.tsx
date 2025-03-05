@@ -150,7 +150,20 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                           : "folder"
                       )}
                       <Box>
-                        <Typography>{item?.name ?? item?.fileMembers?.file?.name}</Typography>
+                        <Typography>
+                          {item?.name ?? item?.fileMembers?.file?.name}
+                          {item.isShared && (
+                            <span
+                              style={{
+                                color: "green",
+                                marginLeft: "8px",
+                                fontWeight: 700,
+                              }}
+                            >
+                              (Shared)
+                            </span>
+                          )}
+                        </Typography>
                       </Box>
                     </Box>
                   </TableCell>
@@ -158,9 +171,9 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                     {item.itemType === "file"
                       ? item.type || getFileTypeFromName(item.name)
                       : "folder"}
-                  </TableCell>  
+                  </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
-                    {item.documentNumber}
+                    {item.documentNumber ?? item.documentId}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {item.updatedAt
@@ -187,6 +200,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
               <TableRow sx={{ height: "200px" }}>
                 <TableCell colSpan={7} align="center">
                   <img height={"100px"} src={NO_DATA_IC} alt="No Data" />
+                  <p>ບໍ່ມີຂໍ້ມູນ</p>
                 </TableCell>
               </TableRow>
             )}

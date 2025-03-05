@@ -17,16 +17,14 @@ import {
   GET_VERSION_FILE_END_POINT,
   UPDATE_FILE_END_POINT,
 } from "../../../configs/endPoint/files-endpoint";
-import { FolderItem } from "../components/custom-folder-navigate";
 import { Version } from "../../../models/file-model";
-import { decode, encode } from "../../../utils/functions/HashString";
 import { GET_OWNER_DOC_END_POINT } from "../../../configs/endPoint/file&folder";
 import {
   Document,
   fileMember,
   FileModel,
   folderMember,
-  folderModel,
+  Subfolder,
 } from "../../../models/Document";
 import { getFileTypeFromName } from "../../../utils/functions/typefile";
 import eventBus from "../../../utils/functions/eventBus";
@@ -66,6 +64,114 @@ const UseMainController = () => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [versionDocument, setVersionDocument] = useState<Version[]>([]);
+
+  const handleGetDocumentsByPath = async (path?: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const encodedPath = encodeURIComponent(
+        path || selectedDocument?.path || "root"
+      );
+
+      // Updated endpoint with full URL
+      const response = await axiosInstance.get(`/folders/path/${encodedPath}`);
+
+      const responseData = response.data.data || response.data;
+
+      const processedData = [];
+
+      // Process files
+      const filesMap = new Map();
+      const subfoldersMap = new Map();
+
+      // Safely check and process files
+      if (responseData.files && Array.isArray(responseData.files)) {
+        responseData.files.forEach((file: FileModel) => {
+          const fileName = file.name;
+
+          if (
+            !filesMap.has(fileName) ||
+            new Date(file.updatedAt) >
+              new Date(filesMap.get(fileName).updatedAt)
+          ) {
+            filesMap.set(fileName, {
+              id: file.id,
+              name: file.name,
+              nameVersion: file.nameVersion,
+              type: file.type || getFileTypeFromName(file.name),
+              url: file.url,
+              documentNumber: file.documentNumber,
+              documentId: file.documentId,
+              createdAt: file.createdAt,
+              updatedAt: file.updatedAt,
+              size: file.size,
+              status: file.status || "PUBLIC",
+              itemType: "file",
+              isFolder: false,
+              version: file.version || "1.0",
+            });
+          }
+        });
+      } else {
+        console.warn("No files found in the response");
+      }
+
+      // Process subfolders
+      if (responseData.subFolders && Array.isArray(responseData.subFolders)) {
+        responseData.subFolders.forEach((subfolder: Subfolder) => {
+          const folderName = subfolder.name;
+
+          if (
+            !subfoldersMap.has(folderName) ||
+            new Date(subfolder.updatedAt) >
+              new Date(subfoldersMap.get(folderName).updatedAt)
+          ) {
+            subfoldersMap.set(folderName, {
+              id: subfolder.id,
+              name: subfolder.name,
+              documentId: subfolder.documentId,
+              path: subfolder.path,
+              parentId: subfolder.parentId,
+              createdAt: subfolder.createdAt,
+              updatedAt: subfolder.updatedAt,
+              size: subfolder.size,
+              type: subfolder.type || "folder",
+              itemType: subfolder.type || "folder",
+              status: subfolder.status,
+              isFolder: true,
+              isDeleted: subfolder.isDeleted,
+              isPinned: subfolder.isPinned,
+            });
+          }
+        });
+      } else {
+        console.warn("No subfolders found in the response");
+      }
+
+      // Add all latest files and subfolders to the processed data
+      processedData.push(
+        ...Array.from(filesMap.values()),
+        ...Array.from(subfoldersMap.values())
+      );
+
+      // If no data was processed, set an empty array
+      if (processedData.length === 0) {
+        console.warn("No documents or subfolders found in the response");
+        setError("No documents or subfolders found in the selected folder");
+      }
+
+      setDocuments(processedData);
+      setAllDocuments(processedData);
+    } catch (error) {
+      console.error("API error:", error);
+      setError("An error occurred while fetching data by path");
+      setDocuments([]);
+      setAllDocuments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGetHistory = async () => {
     if (!selectedDocument?.id) return; // Guard clause
@@ -153,15 +259,25 @@ const UseMainController = () => {
       await handleGetHistory();
     }
   };
+
   const handleFolderDoubleClick = useCallback(
-    (item: FolderItem) => {
+    (item: Document) => {
       if (item.type === "folder") {
-        const currentFolder = decode(searchParams.get("folderId") || "root");
-        const newPath = encode(`${currentFolder}/${item.name}`); // Build full path
-        setSearchParams({ folderId: newPath });
+        // Use the item's path directly
+        const newFolderPath = item.path;
+
+        // Set folder information in local storage
+        localStorage.setItem("currentFolderPath", newFolderPath);
+        localStorage.setItem("currentFolderId", item.id);
+
+        // Set search params with the new path
+        setSearchParams({ folderPath: newFolderPath });
+
+        setSelectedDocument(item);
+        handleGetDocumentsByPath(newFolderPath);
       }
     },
-    [searchParams, setSearchParams]
+    [setSearchParams, handleGetDocumentsByPath]
   );
 
   const handleDrawerClose = () => {
@@ -204,11 +320,14 @@ const UseMainController = () => {
               documentId: file.documentId,
               createdAt: file.createdAt,
               updatedAt: file.updatedAt,
+              url: file?.url,
               size: file.size,
               status: file.status || "PUBLIC",
               itemType: "file",
               isFolder: false,
               version: file.version || "1.0",
+              isOwned: true,
+              isShared: false,
             });
           }
         });
@@ -230,6 +349,7 @@ const UseMainController = () => {
                 getFileTypeFromName(fileMember.file.name),
               documentNumber: fileMember.file.documentNumber,
               documentId: fileMember.file.documentId,
+              url: fileMember.file.url,
               createdAt: fileMember.file.createdAt,
               updatedAt: fileMember.file.updatedAt,
               size: fileMember.file.size,
@@ -238,6 +358,7 @@ const UseMainController = () => {
               isFolder: false,
               version: fileMember.file.version || "1.0",
               isShared: true,
+              isOwned: false,
             };
 
             const fileName = fileData.name;
@@ -304,6 +425,8 @@ const UseMainController = () => {
           itemType: "folder",
           isFolder: true,
           path: folder.path,
+          isOwned: true,
+          isShared: false,
         });
       }
 
@@ -326,7 +449,7 @@ const UseMainController = () => {
               status: folderMember.folder.status || "PUBLIC",
               itemType: "folder",
               isFolder: true,
-              path: folderMember.folder.path,
+              isOwned: false,
               isShared: true,
             });
           }
@@ -412,6 +535,7 @@ const UseMainController = () => {
 
   const handleDeleteFolder = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
+    const folderPath = searchParams.get("folderPath");
 
     const result = await Swal.fire({
       title: "ທ່ານແນ່ໃຈບໍ່ ?",
@@ -442,15 +566,21 @@ const UseMainController = () => {
         const res = await axiosInstance.post(endPoint, payload);
         console.log(res?.data?.data);
 
-        await Swal.fire({
-          icon: "success",
-          title: "ລົບສຳເລັດ!",
-          text: `The ${isFolder ? "folder" : "file"} ຖືກລົບສຳເລັດແລ້ວ.`,
-          showConfirmButton: false,
-          timer: 2000,
-        });
+        if (res?.status === 201) {
+          setLoading(false);
+          await Swal.fire({
+            icon: "success",
+            title: "ລົບສຳເລັດ!",
+            text: `The ${isFolder ? "folder" : "file"} ຖືກລົບສຳເລັດແລ້ວ.`,
+            showConfirmButton: false,
+            timer: 2000,
+          });
+        }
 
         handleGetData();
+        if (folderPath) {
+          handleGetDocumentsByPath();
+        }
       } catch (error) {
         console.error("Delete error:", error);
         await Swal.fire({
@@ -466,6 +596,7 @@ const UseMainController = () => {
 
   const handleRenameFolder = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
+    const folderPath = searchParams.get("folderPath");
 
     setRenameDialogOpen(false);
 
@@ -504,6 +635,7 @@ const UseMainController = () => {
 
     try {
       setIsSubmitting(true);
+      setLoading(true);
 
       let endPoint;
 
@@ -520,20 +652,27 @@ const UseMainController = () => {
       // Update the selected document with the new data from the API response
       setSelectedDocument(res.data);
 
-      await Swal.fire({
-        icon: "success",
-        title: "ໂຟເດີ້ຖືກປ່ຽນຊື່ສຳເລັດ!",
-        text: `ໂຟເດີ້ຖືກປ່ຽນຊື່ເປັນ "${newName}" ສຳເລັດແລ້ວ.`,
-        showConfirmButton: false,
-        timer: 2000,
-      });
+      if (res?.status === 200) {
+        setLoading(false);
+        await Swal.fire({
+          icon: "success",
+          title: "ໂຟເດີ້ຖືກປ່ຽນຊື່ສຳເລັດ!",
+          text: `ໂຟເດີ້ຖືກປ່ຽນຊື່ເປັນ "${newName}" ສຳເລັດແລ້ວ.`,
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
 
       handleGetData();
+      if (folderPath) {
+        handleGetDocumentsByPath();
+      }
     } catch (error) {
       console.error(error);
       ErrorResponse(error as ErrorModel);
     } finally {
       setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -673,24 +812,37 @@ const UseMainController = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    handleGetData();
-  
-    const unsubscribeFiles = eventBus.subscribe('FILES_UPDATED', () => {
+    const folderPath = searchParams.get("folderPath");
+
+    if (folderPath) {
+      handleGetDocumentsByPath(folderPath);
+    } else {
+      // If no folder path, fetch default documents
       handleGetData();
+    }
+
+    const unsubscribeFiles = eventBus.subscribe("FILES_UPDATED", () => {
+      if (folderPath) {
+        handleGetDocumentsByPath(folderPath);
+      } else {
+        handleGetData();
+      }
     });
-  
-    const unsubscribeFolders = eventBus.subscribe('FOLDERS_UPDATED', () => {
-      handleGetData();
+
+    const unsubscribeFolders = eventBus.subscribe("FOLDERS_UPDATED", () => {
+      if (folderPath) {
+        handleGetDocumentsByPath(folderPath);
+      } else {
+        handleGetData();
+      }
     });
-  
+
     // Cleanup both subscriptions on component unmount
     return () => {
       unsubscribeFiles();
       unsubscribeFolders();
     };
   }, [searchParams]);
-  
-
   return {
     versionDocument,
     handleChangePage,

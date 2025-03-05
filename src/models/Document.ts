@@ -12,7 +12,7 @@ export interface Document {
   documentId: string;
   modified: string;
   size: string;
-  type: IconType;
+  type: IconType; 
   itemType: string;
   version: string;
   documentNumber: string;
@@ -40,6 +40,7 @@ export interface folderModel {
   size: string;
   status: string;
   userId: string;
+  parentId: string;
   isDeleted: boolean;
   isPinned: boolean;
   documentId: string;
@@ -60,6 +61,7 @@ export interface FileModel {
   ownerId: string;
   path: string;
   type: string;
+  url: string;
   size: string;
   status: string;
   isDeleted: boolean;
@@ -84,4 +86,21 @@ export interface fileMember {
   id : string;
   updatedAt: string
   userId: string;
+}
+
+export interface Subfolder {
+  id: string;
+  documentId: string;
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  isPinned: boolean;
+  name: string;
+  itemType: string;
+  type: string
+  ownerid: string;
+  parentId: string;
+  path: string;
+  size: number;
+  status: string;
 }

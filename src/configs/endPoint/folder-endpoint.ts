@@ -19,3 +19,5 @@ export const GET_ONE_FOLDER_HISTORT_END_POINT: string = '/folder-history/get-fol
 
 export const GET_FOLDER_MEMBER_END_POINT: string = '/folders/get-member/folder'
 
+export const GET_FOLDER_BY_PATH_END_POINT: string = '/folders/path'
+

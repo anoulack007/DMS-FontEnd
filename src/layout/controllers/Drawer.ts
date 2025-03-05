@@ -37,8 +37,13 @@ const UseDrawerController = () => {
   const handleCreateFolder = async () => {
     try {
       setLoading(true);
+
+      // Get the parent folder ID from local storage
+      const parentFolderPath = localStorage.getItem("currentFolderPath");
+
       const data = {
         name: folderName,
+        path: parentFolderPath || null,
       };
 
       const res = await axiosInstance.post(CREATE_FOLDER_END_POINT, data);
@@ -53,7 +58,7 @@ const UseDrawerController = () => {
         timer: 1500,
       });
 
-      eventBus.publish('FOLDERS_UPDATED', true);
+      eventBus.publish("FOLDERS_UPDATED", true);
 
       handleCloseDialog();
     } catch (error) {

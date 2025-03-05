@@ -4,6 +4,9 @@ import {
   Typography,
   TextField,
   InputAdornment,
+  Collapse,
+  Backdrop,
+  CircularProgress,
 } from "@mui/material";
 
 // import Access_IC from "../../assets/logo/access_ic.svg";
@@ -93,7 +96,7 @@ const ManageDocumentPage = () => {
 
       <Box sx={{ justifyContent: "space-between", display: "flex" }} my={3}>
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <BreadcrumbCustom />
+          <BreadcrumbCustom folders={ctrl?.allDocuments} />
         </Box>
         <TextField
           value={ctrl?.searchTerm}
@@ -127,7 +130,7 @@ const ManageDocumentPage = () => {
         />
       </Box>
 
-      {ctrl?.selectedItems.length > 0 && (
+      <Collapse in={ctrl?.selectedItems.length > 0}>
         <CustomMenu
           selectedCount={ctrl.selectedItems.length}
           onDetailsClick={ctrl.handleDetailsClick}
@@ -135,7 +138,7 @@ const ManageDocumentPage = () => {
           handleDelete={ctrl?.handleDeleteFolder}
           handleDownload={ctrl?.handleDownload}
         />
-      )}
+      </Collapse>
 
       <Box
         sx={{
@@ -176,6 +179,12 @@ const ManageDocumentPage = () => {
           ErrorResponse={ErrorResponse}
         />
       </Box>
+      <Backdrop
+      sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      open={ctrl?.loading}
+    >
+      <CircularProgress color="inherit" />
+    </Backdrop>
     </Box>
   );
 };

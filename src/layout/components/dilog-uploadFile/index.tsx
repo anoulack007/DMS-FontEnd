@@ -112,16 +112,16 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
         formData.append("files", file);
       });
 
-      // Get folderId from URL path or use provided folderId prop
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlFolderId = urlParams.get("folderId");
+      // Get folderId from local storage or URL path
+      const storageFolderId = localStorage.getItem("currentFolderId");
 
-      // Add folderId to payload - prioritize URL param, then prop, else null
-      const finalFolderId = urlFolderId || folderId || null;
+      // Prioritize: URL param > local storage > prop > null
+      const finalFolderId = storageFolderId || folderId || null;
+
       if (finalFolderId) {
         formData.append("folderId", finalFolderId);
       } else {
-        formData.append("folderId", ""); // or formData.append("folderId", null);
+        formData.append("folderId", "");
       }
 
       // Add documentNumber
@@ -158,7 +158,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
           severity: "success",
         });
 
-        eventBus.publish('FILES_UPDATED', true);
+        eventBus.publish("FILES_UPDATED", true);
 
         // Close dialog after short delay
         setTimeout(() => {

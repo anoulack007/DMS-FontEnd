@@ -1,36 +1,30 @@
 
-import aesjs from 'aes-js';
-
-export function encode(token: string) {
+export function encode(input: string) {
   try {
-    const key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    if (!input) {
+      console.warn('Encoding empty input');
+      return '';
+    }
 
-    const textBytes = aesjs.utils.utf8.toBytes(token);
-
-    const aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
-    const encryptedBytes = aesCtr.encrypt(textBytes);
-
-    const encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
-    return encryptedHex;
+    // Simply return the input ID for URL
+    return input;
   } catch (err) {
-    console.log(err);
+    console.error('Encoding error:', err);
     return '';
   }
 }
 
-export function decode(token: string) {
+export function decode(input: string) {
   try {
-    const key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    if (!input) {
+      console.warn('Decoding empty input');
+      return '';
+    }
 
-    const encryptedBytes = aesjs.utils.hex.toBytes(token);
-
-    const aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
-    const decryptedBytes = aesCtr.decrypt(encryptedBytes);
-
-    const decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
-    return decryptedText;
+    // Simply return the input ID
+    return input;
   } catch (err) {
-    console.log(err);
+    console.error('Decoding error:', err);
     return '';
   }
 }

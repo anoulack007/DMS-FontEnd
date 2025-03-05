@@ -1,62 +1,87 @@
+import React, { useMemo } from "react";
 import { Breadcrumbs, Link, Typography } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import { decode, encode } from "../../../utils/functions/HashString";
-import { useMemo } from "react";
+import { Document } from "../../../models/Document";
 
-const BreadcrumbCustom = () => {
+interface BreadcrumbItem {
+  label: string;
+  path: string;
+  isLast: boolean;
+}
+
+const BreadcrumbCustom: React.FC<{ folders: Document[] }> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const breadcrumbData = useMemo(() => {
-    const folderParam = searchParams.get("folderId");
+  const breadcrumbData = useMemo<BreadcrumbItem[]>(() => {
+    // Default to "root" when no folder path param or folders are available
+    const defaultRootBreadcrumb: BreadcrumbItem[] = [
+      { label: "root", path: "root", isLast: true },
+    ];
 
-    if (!folderParam) {
-      return [
-        { label: "root", path: "", isLast: true },
-      ];
+    const folderPath = searchParams.get("folderPath");
+
+    // Early return with default if no folder path
+    if (!folderPath) {
+      return defaultRootBreadcrumb;
     }
 
-    // Decode the path correctly
-    const decodedPath = decode(folderParam) || "root";
-    const pathSegments = decodedPath.split("/").filter(Boolean);
-
-    // Always include 'root' as the first segment
-    if (pathSegments[0] !== "root") {
-      pathSegments.unshift("root");
-    }
-
-    return pathSegments.map((segment, index) => {
-      const isLast = index === pathSegments.length - 1;
-      const path = encode(pathSegments.slice(0, index + 1).join("/"));
-
+    // Split the path into segments
+    const pathSegments = folderPath.split('/');
+    
+    // Generate breadcrumb items
+    const hierarchy: BreadcrumbItem[] = pathSegments.map((segment, index) => {
+      // Reconstruct the path up to this segment
+      const fullPath = pathSegments.slice(0, index + 1).join('/');
+      
       return {
-        label: segment,
-        path: isLast ? "" : `folderId=${path}`,
-        isLast,
+        label: segment || 'root',
+        path: fullPath,
+        isLast: index === pathSegments.length - 1
       };
     });
+
+    // Prepend "root" if not already present
+    if (hierarchy[0].label !== 'root') {
+      hierarchy.unshift({ label: 'root', path: 'root', isLast: false });
+    }
+
+    return hierarchy;
   }, [searchParams]);
 
   const handleClick = (path: string) => {
-    if (path) {
-      setSearchParams(path);
+    if (path && path !== 'root') {
+      setSearchParams({ folderPath: path });
     } else {
       setSearchParams({}); // Go back to root
     }
   };
 
   return (
-    <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} aria-label="breadcrumb">
+    <Breadcrumbs
+      separator={<NavigateNextIcon fontSize="small" />}
+      aria-label="breadcrumb"
+    >
       {breadcrumbData.map((item, index) =>
         item.isLast ? (
-          <Typography key={index} color="primary" sx={{ fontWeight: "bold", fontSize: 20 }}>
+          <Typography
+            key={index}
+            color="primary"
+            sx={{ fontWeight: "bold", fontSize: 20 }}
+          >
             {item.label}
           </Typography>
         ) : (
           <Link
             key={index}
             color="inherit"
-            sx={{ cursor: "pointer", textDecoration: "none", fontWeight: "bold", fontSize: 20, "&:hover": { textDecoration: "underline" } }}
+            sx={{
+              cursor: "pointer",
+              textDecoration: "none",
+              fontWeight: "bold",
+              fontSize: 20,
+              "&:hover": { textDecoration: "underline" },
+            }}
             onClick={() => handleClick(item.path)}
           >
             {item.label}

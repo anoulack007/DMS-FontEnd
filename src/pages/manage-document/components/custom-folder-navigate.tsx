@@ -1,11 +1,6 @@
 import { useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-
-export interface FolderItem {
-  id: string;
-  name: string;
-  type: 'folder' | 'document';
-}
+import { Document } from '../../../models/Document';
 
 export const useFolderNavigation = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -14,9 +9,9 @@ export const useFolderNavigation = () => {
     return searchParams.get('folderId') || '';
   }, [searchParams]);
 
-  const navigateToFolder = useCallback((item: FolderItem) => {
+  const navigateToFolder = useCallback((item: Document) => {
     if (item.type === 'folder') {
-      setSearchParams({ folderId: item.id });
+      setSearchParams({ folderId: item?.id });
     }
   }, [setSearchParams]);
 
