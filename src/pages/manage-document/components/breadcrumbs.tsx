@@ -53,6 +53,9 @@ const BreadcrumbCustom: React.FC<{ folders: Document[] }> = () => {
     if (path && path !== 'root') {
       setSearchParams({ folderPath: path });
     } else {
+      // Clear localStorage when navigating to root
+      localStorage.removeItem("currentFolderPath");
+      localStorage.removeItem("currentFolderId");
       setSearchParams({}); // Go back to root
     }
   };

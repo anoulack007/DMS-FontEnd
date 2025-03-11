@@ -5,8 +5,6 @@ import {
   TextField,
   InputAdornment,
   Collapse,
-  Backdrop,
-  CircularProgress,
 } from "@mui/material";
 
 // import Access_IC from "../../assets/logo/access_ic.svg";
@@ -34,6 +32,7 @@ import TxtImage from "../../assets/logo/txt.svg.svg";
 import SvgImage from "../../assets/logo/svg.svg.svg";
 import ExeImage from "../../assets/logo/exe.svg.svg";
 import RarImage from "../../assets/logo/rar_ic.svg";
+import Jpeg from '../../assets/logo/jpeg.png'
 
 import { IconType } from "../../enums/icon-enums";
 import DialogInviteMember from "./components/dialog-inviteMember";
@@ -80,6 +79,8 @@ export const getIconByType = (type: string) => {
       return <img height={45} src={ExeImage} alt="exe" />;
     case IconType.RAR:
       return <img height={45} src={RarImage} alt="rar" />;
+    case IconType.JPEG:
+      return <img height={45} src={Jpeg} alt="rar" />;
     default:
       return <img src={FoldeImage} alt="folder" />;
   }
@@ -179,12 +180,6 @@ const ManageDocumentPage = () => {
           ErrorResponse={ErrorResponse}
         />
       </Box>
-      <Backdrop
-      sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-      open={ctrl?.loading}
-    >
-      <CircularProgress color="inherit" />
-    </Backdrop>
     </Box>
   );
 };

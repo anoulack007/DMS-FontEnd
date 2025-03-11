@@ -3,8 +3,10 @@ import axiosInstance from "../../configs/axios";
 import { CREATE_FOLDER_END_POINT } from "../../configs/endPoint/folder-endpoint";
 import Swal from "sweetalert2";
 import eventBus from "../../utils/functions/eventBus";
+import { useNavigate } from "react-router-dom";
 
 const UseDrawerController = () => {
+  const navigate = useNavigate();
   const [openUploadDialog, setOpenUploadDialog] = useState<boolean>(false);
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -12,9 +14,17 @@ const UseDrawerController = () => {
 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [folderName, setFolderName] = useState<string>(null!);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   const [anchorEl, setAnchorEl] = useState<null>(null!);
   const opening = Boolean(anchorEl);
+
+  const handleNavigateToMain = (path: string) => {
+    navigate(path);
+
+    localStorage.removeItem("currentFolderPath");
+    localStorage.removeItem("currentFolderId");
+  };
 
   const handleClick = (event: any) => {
     setAnchorEl(event.currentTarget);
@@ -44,6 +54,7 @@ const UseDrawerController = () => {
       const data = {
         name: folderName,
         path: parentFolderPath || null,
+        inviteUsername: selectedUsers || null,
       };
 
       const res = await axiosInstance.post(CREATE_FOLDER_END_POINT, data);
@@ -61,17 +72,30 @@ const UseDrawerController = () => {
       eventBus.publish("FOLDERS_UPDATED", true);
 
       handleCloseDialog();
-    } catch (error) {
-      // On error, show SweetAlert2 error alert
+    } catch (error: any) {
+      handleCloseDialog();
+      let errorMessage = "Failed to create folder. Please try again.";
+
+      if (error.response) {
+        errorMessage = error.response.data?.message || errorMessage;
+      } else if (error.request) {
+        errorMessage = "No response from server. Please check your network.";
+      } else {
+        errorMessage = error.message;
+      }
+
+      // Show SweetAlert2 with the extracted error message
       Swal.fire({
         title: "Error!",
-        text: "Failed to create folder. Please try again.",
+        text: errorMessage,
         icon: "error",
         confirmButtonText: "OK",
         customClass: {
           confirmButton: "your-custom-button-class",
         },
       });
+
+      console.error("Error creating folder:", error);
       console.error(error);
     } finally {
       setLoading(false);
@@ -88,6 +112,8 @@ const UseDrawerController = () => {
   };
 
   return {
+    setSelectedUsers,
+    selectedUsers,
     anchorEl,
     folderName,
     openDialog,
@@ -103,6 +129,7 @@ const UseDrawerController = () => {
     handleCreateFolder,
     handleOpenDialog,
     handleCloseDialog,
+    handleNavigateToMain,
   };
 };
 

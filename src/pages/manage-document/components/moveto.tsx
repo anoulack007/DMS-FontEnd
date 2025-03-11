@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "../../../configs/axios";
 import {
   Box,
@@ -16,21 +16,26 @@ import {
   TableFooter,
   CircularProgress,
   Chip,
+  Breadcrumbs,
+  Link,
 } from "@mui/material";
+import Swal from "sweetalert2";
 
 // Icons
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import FolderIcon from "@mui/icons-material/Folder";
 import ArticleIcon from "@mui/icons-material/Article";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { GET_OWNER_DOC_END_POINT } from "../../../configs/endPoint/file&folder";
 import { getStatusColor, getTextColor } from "../../../utils/functions/color";
 
 interface MoveDialogProps {
   open: boolean;
   onClose: () => void;
-  onMove: (folderId: string) => void;  // Updated to accept folderId
+  onMove: (targetFolderId: string, targetFolderPath: string) => void;
   selectedCount: number;
+  selectedItems?: Array<{ id: string; type: "file" | "folder" }>; // Track both file and folder IDs with their types
 }
 
 // File type interface
@@ -41,7 +46,10 @@ interface FileItem {
   lastModified: string;
   status: string;
   _id?: string;
+  id?: string;
   isShared?: boolean;
+  path?: string;
+  parentId?: string;
 }
 
 const MoveDialog: React.FC<MoveDialogProps> = ({
@@ -49,62 +57,80 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
   onClose,
   onMove,
   selectedCount,
+  selectedItems = [],
 }) => {
   const [fileData, setFileData] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-  console.log(selectedFolderId)
+  const [currentFolderPath, setCurrentFolderPath] = useState<string>("root");
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [pathHistory, setPathHistory] = useState<
+    Array<{ path: string; id: string; name: string }>
+  >([{ path: "root", id: "", name: "Root" }]);
+  const [movingFiles, setMovingFiles] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchFolders = async () => {
-      if (!open) return;
+  // Function to fetch folders by path
+  const fetchFoldersByPath = useCallback(async (path: string) => {
+    try {
+      setLoading(true);
+      const encodedPath = encodeURIComponent(path);
+      const response = await axios.get(`/folders/path/${encodedPath}`);
+      const responseData = response?.data?.data || response?.data;
 
-      try {
-        setLoading(true);
-        const response = await axios.get(GET_OWNER_DOC_END_POINT);
-        const responseData = response?.data?.data;
+      if (!responseData) {
+        throw new Error("No data received from API");
+      }
 
-        if (!responseData) {
-          throw new Error("No data received from API");
-        }
+      const processedData: FileItem[] = [];
 
-        const processedData: FileItem[] = [];
-
-        // Process normal folders
-        if (responseData.folders && Array.isArray(responseData.folders)) {
-          responseData.folders.forEach((folder: any) => {
-            processedData.push({
-              type: "folder",
-              name: folder.name || "Unnamed folder",
-              size: folder.size ? `${folder.size} bytes` : "Unknown size",
-              lastModified: folder.updatedAt
-                ? new Date(folder.updatedAt).toLocaleDateString()
-                : "Unknown date",
-              _id: folder.id || folder._id,
-              status: folder?.status,
-            });
+      // Process subfolders
+      if (responseData.subFolders && Array.isArray(responseData.subFolders)) {
+        responseData.subFolders.forEach((subfolder: any) => {
+          processedData.push({
+            type: "folder",
+            name: subfolder.name || "Unnamed folder",
+            size: subfolder.size ? `${subfolder.size} bytes` : "Unknown size",
+            lastModified: subfolder.updatedAt
+              ? new Date(subfolder.updatedAt).toLocaleDateString()
+              : "Unknown date",
+            _id: subfolder.id || subfolder._id,
+            id: subfolder.id || subfolder._id,
+            status: subfolder?.status || "Unknown status",
+            path: subfolder.path || path + "/" + subfolder.name,
+            parentId: subfolder.parentId,
           });
-        }
-        // Fallback if folders are under 'folder' key instead
-        else if (responseData.folder && Array.isArray(responseData.folder)) {
-          responseData.folder.forEach((folder: any) => {
-            processedData.push({
-              type: "folder",
-              name: folder.name || "Unnamed folder",
-              size: folder.size ? `${folder.size} bytes` : "Unknown size",
-              lastModified: folder.updatedAt
-                ? new Date(folder.updatedAt).toLocaleDateString()
-                : "Unknown date",
-              _id: folder.id || folder._id,
-              status: folder?.status,
-            });
-          });
-        }
-        // Handle single folder object case
-        else if (responseData.folder && !Array.isArray(responseData.folder)) {
-          const folder = responseData.folder;
+        });
+      }
+
+      setFileData(processedData);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch folders by path:", err);
+      setError("Failed to load folders. Please try again later.");
+      setFileData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Function to fetch root folders
+  const fetchRootFolders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(GET_OWNER_DOC_END_POINT);
+      const responseData = response?.data?.data;
+
+      if (!responseData) {
+        throw new Error("No data received from API");
+      }
+
+      const processedData: FileItem[] = [];
+
+      // Process normal folders
+      if (responseData.folders && Array.isArray(responseData.folders)) {
+        responseData.folders.forEach((folder: any) => {
           processedData.push({
             type: "folder",
             name: folder.name || "Unnamed folder",
@@ -113,59 +139,274 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
               ? new Date(folder.updatedAt).toLocaleDateString()
               : "Unknown date",
             _id: folder.id || folder._id,
+            id: folder.id || folder._id,
             status: folder?.status,
+            path: folder.path || "/" + folder.name,
+            parentId: folder.parentId,
           });
-        }
-
-        // Process folderMembers (shared folders)
-        if (
-          responseData.folderMembers &&
-          Array.isArray(responseData.folderMembers)
-        ) {
-          responseData.folderMembers.forEach((folderMember: any) => {
-            if (folderMember.folder) {
-              processedData.push({
-                type: "folder",
-                name: folderMember.folder.name || "Unnamed shared folder",
-                size: folderMember.folder.size
-                  ? `${folderMember.folder.size} bytes`
-                  : "Unknown size",
-                lastModified: folderMember.folder.updatedAt
-                  ? new Date(folderMember.folder.updatedAt).toLocaleDateString()
-                  : "Unknown date",
-                _id: folderMember.folder.id || folderMember.folder._id,
-                isShared: true,
-                status: folderMember?.status || "Unknown status",
-              });
-            }
-          });
-        }
-
-        setFileData(processedData);
-        setError(null);
-      } catch (err) {
-        console.error("Failed to fetch folders:", err);
-        setError("Failed to load folders. Please try again later.");
-        setFileData([]);
-      } finally {
-        setLoading(false);
+        });
       }
-    };
+      // Fallback if folders are under 'folder' key instead
+      else if (responseData.folder && Array.isArray(responseData.folder)) {
+        responseData.folder.forEach((folder: any) => {
+          processedData.push({
+            type: "folder",
+            name: folder.name || "Unnamed folder",
+            size: folder.size ? `${folder.size} bytes` : "Unknown size",
+            lastModified: folder.updatedAt
+              ? new Date(folder.updatedAt).toLocaleDateString()
+              : "Unknown date",
+            _id: folder.id || folder._id,
+            id: folder.id || folder._id,
+            status: folder?.status,
+            path: folder.path || "/" + folder.name,
+            parentId: folder.parentId,
+          });
+        });
+      }
+      // Handle single folder object case
+      else if (responseData.folder && !Array.isArray(responseData.folder)) {
+        const folder = responseData.folder;
+        processedData.push({
+          type: "folder",
+          name: folder.name || "Unnamed folder",
+          size: folder.size ? `${folder.size} bytes` : "Unknown size",
+          lastModified: folder.updatedAt
+            ? new Date(folder.updatedAt).toLocaleDateString()
+            : "Unknown date",
+          _id: folder.id || folder._id,
+          id: folder.id || folder._id,
+          status: folder?.status,
+          path: folder.path || "/" + folder.name,
+          parentId: folder.parentId,
+        });
+      }
 
-    fetchFolders();
-  }, [open]);
+      // Process folderMembers (shared folders)
+      if (
+        responseData.folderMembers &&
+        Array.isArray(responseData.folderMembers)
+      ) {
+        responseData.folderMembers.forEach((folderMember: any) => {
+          if (folderMember.folder) {
+            processedData.push({
+              type: "folder",
+              name: folderMember.folder.name || "Unnamed shared folder",
+              size: folderMember.folder.size
+                ? `${folderMember.folder.size} bytes`
+                : "Unknown size",
+              lastModified: folderMember.folder.updatedAt
+                ? new Date(folderMember.folder.updatedAt).toLocaleDateString()
+                : "Unknown date",
+              _id: folderMember.folder.id || folderMember.folder._id,
+              id: folderMember.folder.id || folderMember.folder._id,
+              isShared: true,
+              status: folderMember?.status || "Unknown status",
+              path: folderMember.folder.path || "/" + folderMember.folder.name,
+              parentId: folderMember.folder.parentId,
+            });
+          }
+        });
+      }
 
-  // Reset selected folder when dialog opens/closes
-  useEffect(() => {
-    if (!open) {
-      setSelectedFolderId(null);
+      setFileData(processedData);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch folders:", err);
+      setError("Failed to load folders. Please try again later.");
+      setFileData([]);
+    } finally {
+      setLoading(false);
     }
-  }, [open]);
+  }, []);
+
+  // Handle folder double click
+  // Handle folder double click
+const handleFolderDoubleClick = useCallback(
+  (folder: FileItem) => {
+    if (folder.type === "folder") {
+      const newPath = folder.path || `/${folder.name}`;
+      const newFolderId = folder._id || folder.id || "";
+      const folderName = folder.name;
+
+      // Add to path history
+      setPathHistory((prev) => [
+        ...prev,
+        {
+          path: newPath,
+          id: newFolderId,
+          name: folderName,
+        },
+      ]);
+
+      // Update current path and ID
+      setCurrentFolderPath(newPath);
+      setCurrentFolderId(newFolderId);
+      setSelectedFolderId(null); // Reset selection
+
+      // Store current folder and parent ID in localStorage
+      localStorage.setItem('currentFolderId', newFolderId);
+      localStorage.setItem('currentFolderPath', newPath);
+      
+      // Get parent ID from the current folder data if available
+      if (folder.parentId) {
+        localStorage.setItem('currentParentId', folder.parentId);
+      }
+
+      // Fetch folders at new path
+      fetchFoldersByPath(newPath);
+    }
+  },
+  [fetchFoldersByPath]
+);
+
+  // Navigate to a specific breadcrumb
+  const handleBreadcrumbClick = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < pathHistory.length) {
+        const targetHistory = pathHistory.slice(0, index + 1);
+        const target = targetHistory[index];
+
+        setPathHistory(targetHistory);
+        setCurrentFolderPath(target.path);
+        setCurrentFolderId(target.id);
+        setSelectedFolderId(null);
+
+        if (target.path === "root") {
+          fetchRootFolders();
+        } else {
+          fetchFoldersByPath(target.path);
+        }
+      }
+    },
+    [pathHistory, fetchRootFolders, fetchFoldersByPath]
+  );
+
+  // Navigate back
+  const handleGoBack = useCallback(() => {
+    if (pathHistory.length > 1) {
+      const newHistory = pathHistory.slice(0, -1);
+      const target = newHistory[newHistory.length - 1];
+
+      setPathHistory(newHistory);
+      setCurrentFolderPath(target.path);
+      setCurrentFolderId(target.id);
+      setSelectedFolderId(null);
+
+      if (target.path === "root") {
+        fetchRootFolders();
+      } else {
+        fetchFoldersByPath(target.path);
+      }
+    }
+  }, [pathHistory, fetchRootFolders, fetchFoldersByPath]);
+
+  // Function to handle moving files and folders
+  // Function to handle moving files and folders
+  const handleMove = async () => {
+    if (!selectedFolderId && currentFolderId === null) {
+      // Cannot move to root directly, must select a folder
+      Swal.fire({
+        title: "ເລືອກໂຟເດີ້",
+        text: "ກະລຸນາເລືອກໂຟເດີ້ປາຍທາງ",
+        icon: "warning",
+        confirmButtonText: "ຕົກລົງ",
+        confirmButtonColor: "#2C3E50",
+      });
+      return;
+    }
+
+    // Confirm before moving
+    const result = await Swal.fire({
+      title: "ຢືນຢັນການຍ້າຍ",
+      text: `ທ່ານຕ້ອງການຍ້າຍ ${selectedCount} ລາຍການໄປຍັງໂຟເດີ້ທີ່ເລືອກບໍ່?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "ຍ້າຍ",
+      cancelButtonText: "ຍົກເລີກ",
+      confirmButtonColor: "#2C3E50",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      setMovingFiles(true);
+
+      // Get the target folder ID (either selected folder or current folder)
+      const targetFolderId = selectedFolderId || currentFolderId || "";
+      const targetFolder = fileData.find(
+        (item) => (item._id || item.id) === targetFolderId
+      );
+      const targetPath = targetFolder?.path || currentFolderPath;
+
+      // Process each selected item
+      const movePromises = selectedItems.map(async (item) => {
+        try {
+          if (item.type === "folder") {
+            // Moving a folder - update its parent ID
+            const response = await axios.patch(`/folders/${item.id}`, {
+              parentId: targetFolderId,
+            });
+            return response;
+          } else {
+            // Moving a file - update its folder ID
+            const response = await axios.patch(`/files/update/${item.id}`, {
+              folderId: targetFolderId,
+            });
+            return response;
+          }
+        } catch (error) {
+          console.error(`Error moving item ${item.id}:`, error);
+          throw error;
+        }
+      });
+
+      // Wait for all move operations to complete
+      await Promise.all(movePromises);
+
+      // Success message
+      Swal.fire({
+        title: "ຍ້າຍສຳເລັດ",
+        text: `ຍ້າຍ ${selectedCount} ລາຍການສຳເລັດແລ້ວ`,
+        icon: "success",
+        confirmButtonText: "ຕົກລົງ",
+        confirmButtonColor: "#2C3E50",
+      });
+
+      // Notify parent component that the move has completed
+      onMove(targetFolderId, targetPath);
+      onClose();
+    } catch (error) {
+      console.error("Error moving items:", error);
+      Swal.fire({
+        title: "ເກີດຂໍ້ຜິດພາດ",
+        text: "ບໍ່ສາມາດຍ້າຍລາຍການໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
+        icon: "error",
+        confirmButtonText: "ຕົກລົງ",
+        confirmButtonColor: "#2C3E50",
+      });
+    } finally {
+      setMovingFiles(false);
+    }
+  };
 
   // Filter files based on search term
   const filteredData = fileData.filter((file) =>
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  useEffect(() => {
+    if (open) {
+      // Reset path and fetch root folders
+      setCurrentFolderPath("root");
+      setCurrentFolderId(null);
+      setSelectedFolderId(null);
+      setPathHistory([{ path: "root", id: "", name: "Root" }]);
+      fetchRootFolders();
+    }
+  }, [open, fetchRootFolders]);
 
   return (
     <Dialog
@@ -191,11 +432,44 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "flex-end",
+                justifyContent: "space-between",
                 mb: 2,
                 gap: 2,
               }}
             >
+              {/* Back button */}
+              <IconButton
+                sx={{ bgcolor: "white" }}
+                onClick={handleGoBack}
+                disabled={pathHistory.length <= 1}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+
+              {/* Breadcrumbs navigation */}
+              <Box sx={{ flex: 1, overflow: "hidden" }}>
+                <Breadcrumbs maxItems={3} sx={{ ml: 1 }}>
+                  {pathHistory.map((item, index) => (
+                    <Link
+                      key={index}
+                      component="button"
+                      variant="body2"
+                      onClick={() => handleBreadcrumbClick(index)}
+                      color="inherit"
+                      underline="hover"
+                      sx={{
+                        cursor: "pointer",
+                        fontWeight:
+                          index === pathHistory.length - 1 ? "bold" : "normal",
+                      }}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </Breadcrumbs>
+              </Box>
+
+              {/* Search */}
               <Box
                 sx={{
                   position: "relative",
@@ -290,22 +564,28 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
                       <TableCell colSpan={3} align="center" sx={{ py: 4 }}>
                         <Typography>
                           {searchTerm
-                            ? "No matching folders found"
-                            : "No folders available"}
+                            ? "ບໍ່ພົບໂຟເດີ້ທີ່ກົງກັບການຄົ້ນຫາ"
+                            : "ບໍ່ມີໂຟເດີ້"}
                         </Typography>
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredData.map((file, index) => (
                       <TableRow
-                        key={file._id || index}
+                        key={file._id || file.id || index}
                         sx={{
                           "&:hover": { bgcolor: "#e0e0e0" },
                           cursor: "pointer",
                           height: 80,
-                          bgcolor: selectedFolderId === file._id ? "#e0e0e0" : "transparent",
+                          bgcolor:
+                            selectedFolderId === (file._id || file.id)
+                              ? "#e0e0e0"
+                              : "transparent",
                         }}
-                        onClick={() => setSelectedFolderId(file._id || "")}
+                        onClick={() =>
+                          setSelectedFolderId(file._id || file.id || "")
+                        }
+                        onDoubleClick={() => handleFolderDoubleClick(file)}
                       >
                         <TableCell>
                           <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -316,7 +596,12 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
                             )}
                             <Box>
                               <Typography>
-                                {file?.name} {file?.isShared && "(Shared)"}
+                                {file?.name}{" "}
+                                <span
+                                  style={{ color: "green", fontWeight: 700 }}
+                                >
+                                  {file?.isShared && "(Shared)"}
+                                </span>
                               </Typography>
                             </Box>
                           </Box>
@@ -331,7 +616,7 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
                             label={file?.status}
                             sx={{
                               bgcolor: getStatusColor(file?.status),
-                              color: getTextColor(file?.status ?? 'black'),
+                              color: getTextColor(file?.status ?? "black"),
                             }}
                           />
                         </TableCell>
@@ -349,20 +634,24 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
           sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 2 }}
         >
           <Button
-            onClick={() => onMove(selectedFolderId || "")}
-            disabled={loading || !selectedFolderId}
+            onClick={handleMove}
+            disabled={loading || movingFiles}
             sx={{
               textTransform: "none",
               bgcolor: "#2C3E50",
               color: "white",
               borderRadius: "8px",
               "&:hover": {
-                bgcolor: "#6d0000",
+                bgcolor: "#1C2E40",
               },
               px: 3,
             }}
           >
-            ຍ້າຍ
+            {movingFiles ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "ຍ້າຍ"
+            )}
           </Button>
           <Button
             variant="outlined"

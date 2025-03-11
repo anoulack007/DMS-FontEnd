@@ -33,6 +33,7 @@ import Swal from "sweetalert2";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { GET_FOLDER_MEMBER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
+import eventBus from "../../../utils/functions/eventBus";
 
 interface Document {
   id: string;
@@ -127,41 +128,55 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
     }
   };
 
-  const handleDeleteMember = async (email: string) => {
+  const handleDeleteMember = async (members: MemberModel[]) => {
     if (!ctrl.selectedDocument?.id) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "No document selected!",
+        text: "ບໍ່ໄດ້ເລືອກເອກະສານ!",
       });
       return;
     }
 
+    // Determine if the selected document is a folder or a file
+    const isFolder = ctrl.selectedDocument.type === "folder";
+    const endpoint = isFolder ? "folders/member/delete" : "files/member/delete";
+
+    // Create array of usernames and emails from the members
+    const username = members
+      .map((member) => member.user?.username)
+      .filter(Boolean);
+    const email = members.map((member) => member.user?.email).filter(Boolean);
+
+    // Ensure correct payload based on type
+    const payload = isFolder
+      ? { folderId: ctrl.selectedDocument.id, username }
+      : { fileId: ctrl.selectedDocument.id, email };
+
     try {
       // Show confirmation dialog
       const result = await Swal.fire({
-        title: "Are you sure?",
-        text: "You want to remove this member?",
+        title: "ທ່ານແນ່ໃຈບໍ່?",
+        text: `ທ່ານຕ້ອງການລຶບສະມາຊິກ ${members.length} ຄົນອອກຈາກ ${
+          isFolder ? "ໂຟເດີ" : "ຟາຍ"
+        }?`,
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Yes, remove",
-        cancelButtonText: "Cancel",
+        confirmButtonText: "ຕົກລົງ",
+        cancelButtonText: "ຍົກເລີກ",
       });
 
       if (result.isConfirmed) {
-        await axiosInstance.delete("files/member/delete", {
-          data: { fileId: ctrl.selectedDocument.id, email },
-        });
+        await axiosInstance.delete(endpoint, { data: payload });
 
         // Show success message
         Swal.fire({
           icon: "success",
-          title: "Member removed successfully",
+          title: "ລຶບສະມາຊິກອອກສຳເລັດແລ້ວ",
           showConfirmButton: false,
           timer: 1500,
         });
 
-        // Refresh member list
         getMemberData();
       }
     } catch (error) {
@@ -169,13 +184,27 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Something went wrong while removing the member",
+        text: "ມີບາງຢ່າງຜິດພາດໃນຂະນະທີ່ລຶບສະມາຊິກອອກ.",
       });
     }
   };
 
   useEffect(() => {
+    // Subscribe to the MEMBER_UPDATED event
+    const unsubscribe = eventBus.subscribe("MEMBER_UPDATED", (data) => {
+      // Check if the event relates to the current document
+      if (ctrl.selectedDocument?.id === data.documentId) {
+        getMemberData();
+      }
+    });
+
+    // Initial data fetch
     getMemberData();
+
+    // Clean up subscription on component unmount
+    return () => {
+      unsubscribe();
+    };
   }, [ctrl.selectedDocument]);
 
   const renderMembers = () => {
@@ -212,7 +241,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               <IconButton
                 className="delete-button"
                 size="small"
-                onClick={() => handleDeleteMember(member.user.email)}
+                onClick={() => handleDeleteMember([member])}
                 sx={{
                   position: "absolute",
                   top: -8,
@@ -383,24 +412,10 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
 
             <Divider />
 
-            <strong>Details</strong>
+            <Typography fontSize={20} fontWeight={700}>
+              Details
+            </Typography>
 
-            <Box>
-              <Typography
-                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
-              >
-                Owner
-              </Typography>
-              <Typography>{ctrl?.selectedDocument?.owner?.name}</Typography>
-            </Box>
-            <Box>
-              <Typography
-                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
-              >
-                Email
-              </Typography>
-              <Box>{ctrl?.selectedDocument?.owner?.email}</Box>
-            </Box>
             <Box>
               <Typography
                 sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
@@ -417,7 +432,9 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               </Typography>
               <Box>
                 {ctrl?.selectedDocument?.createdAt
-                  ? new Date(ctrl?.selectedDocument?.createdAt).toLocaleString()
+                  ? new Date(
+                      ctrl?.selectedDocument?.createdAt
+                    ).toLocaleDateString()
                   : "-"}
               </Box>
             </Box>

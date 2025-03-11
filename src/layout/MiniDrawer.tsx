@@ -3,6 +3,7 @@ import {
   Button,
   CssBaseline,
   Divider,
+  IconButton,
   List,
   ListItemIcon,
   Menu,
@@ -21,7 +22,7 @@ import {
 } from "./config";
 
 //images
-import Logo from "../assets/logo/IQURI.svg";
+// import Logo from "../assets/logo/IQURI.svg";   #IQURI ICON FOR DRAWER
 import Add_ic from "../assets/Image/Add.svg";
 import Upload_ic from "../assets/Image/Document Arrow Up.svg";
 // import Upload_ic2 from "../assets/Image/Folder Arrow Up.svg";
@@ -30,6 +31,8 @@ import UseDrawerController from "./controllers/Drawer";
 import FileUploadDialog from "./components/dilog-uploadFile";
 import { MANAGE_DOC_PATH } from "../routes/paths";
 import CreateFolderDialog from "./components/dialog-createFolder";
+
+import LOGO_NIT from "../assets/Image/drawer/dennis.jpg";
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open",
@@ -66,7 +69,10 @@ const MiniDrawer = () => {
             px: 1,
           }}
         >
-          <img height={70} width={70} src={Logo} alt="iQURi" />
+          {/* <img height={70} width={70} src={LOGO} alt="iQURi" /> */}
+          <IconButton onClick={() => ctrl?.handleNavigateToMain(MANAGE_DOC_PATH)}>
+            <img height={90} width={90} src={LOGO_NIT} alt="iQURi" />
+          </IconButton>
         </Box>
 
         <Box sx={{ p: 1 }}>
@@ -143,6 +149,8 @@ const MiniDrawer = () => {
             onClose={ctrl?.handleCloseDialog}
             onChangeFolderName={(value) => ctrl?.setFolderName(value)}
             onCreateFolder={ctrl?.handleCreateFolder}
+            selectedUsers={ctrl?.selectedUsers}
+            onUsersSelected={ctrl?.setSelectedUsers}
           />
         </Box>
 

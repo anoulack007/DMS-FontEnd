@@ -30,6 +30,7 @@ export interface Document {
   isDelete: boolean;
   createdAt: string;
   updatedAt: string;
+  isShared: boolean;
 }
 
 export interface folderModel {
@@ -77,6 +78,7 @@ export interface folderMember {
   id : string;
   updatedAt: string
   userId: string;
+  path: string;
 }
 
 export interface fileMember {

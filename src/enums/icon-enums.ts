@@ -1,5 +1,6 @@
 export enum IconType {
     FOLDER = 'folder',
+    JPEG = 'jpeg', 
     ZIP = 'zip',
     PNG = 'png',
     DOCX = 'docx',

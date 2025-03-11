@@ -110,6 +110,8 @@ const UseMainController = () => {
               itemType: "file",
               isFolder: false,
               version: file.version || "1.0",
+              sOwned: true,
+              isShared: false,
             });
           }
         });
@@ -260,50 +262,49 @@ const UseMainController = () => {
     }
   };
 
-  const handleFolderDoubleClick = useCallback(
-    (item: Document) => {
-      if (item.type === "folder") {
-        // Use the item's path directly
-        const newFolderPath = item.path;
+  // const handleFolderDoubleClick = useCallback(
+  //   (item: Document) => {
+  //     if (item.type === "folder") {
+  //       // Use the item's path directly
+  //       const newFolderPath = item.path;
 
-        // Set folder information in local storage
-        localStorage.setItem("currentFolderPath", newFolderPath);
-        localStorage.setItem("currentFolderId", item.id);
+  //       localStorage.setItem("currentFolderPath", newFolderPath);
+  //       localStorage.setItem("currentFolderId", item.id);
 
-        // Set search params with the new path
-        setSearchParams({ folderPath: newFolderPath });
+  //       setSearchParams({ folderPath: newFolderPath });
 
-        setSelectedDocument(item);
-        handleGetDocumentsByPath(newFolderPath);
-      }
-    },
-    [setSearchParams, handleGetDocumentsByPath]
-  );
+  //       setSelectedDocument(item);
+  //       handleGetDocumentsByPath(newFolderPath);
+
+  //       // Add window refresh
+  //       window.location.reload();
+  //     }
+  //   },
+  //   [setSearchParams, handleGetDocumentsByPath]
+  // );
 
   const handleDrawerClose = () => {
     setCollapseOpen(false);
   };
-
-  //
 
   const handleGetData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch all documents with the new endpoint
       const response = await axiosInstance.get(GET_OWNER_DOC_END_POINT);
 
-      // Get the response data
       const responseData = response?.data?.data;
       const processedData = [];
 
-      // Process all files (both regular files and fileMembers) - keep only latest versions
       const filesMap = new Map();
 
-      // Process regular files
       if (responseData.files && Array.isArray(responseData.files)) {
         responseData.files.forEach((file: FileModel) => {
+          if (file.folderId) {
+            return;
+          }
+
           const fileName = file.name;
 
           if (
@@ -336,9 +337,12 @@ const UseMainController = () => {
       // Process fileMembers
       if (responseData.fileMembers && Array.isArray(responseData.fileMembers)) {
         responseData.fileMembers.forEach((fileMember: fileMember) => {
+          if (fileMember.file && fileMember.file.folderId) {
+            return;
+          }
+
           let fileData;
 
-          // Check if fileMember has a file property
           if (fileMember.file) {
             fileData = {
               id: fileMember.file.id,
@@ -385,6 +389,10 @@ const UseMainController = () => {
         if (responseData[key] && Array.isArray(responseData[key])) {
           normalFoldersFound = true;
           responseData[key].forEach((folder) => {
+            if (folder.parentId) {
+              return;
+            }
+
             processedData.push({
               id: folder.id,
               name: folder.name,
@@ -398,13 +406,14 @@ const UseMainController = () => {
               itemType: "folder",
               isFolder: true,
               path: folder.path,
+              isOwned: true,
+              isShared: false,
             });
           });
-          break; // We found and processed normal folders, no need to check other keys
+          break;
         }
       }
 
-      // If we didn't find normal folders using common keys, check if there's a 'folder' object
       if (
         !normalFoldersFound &&
         responseData.folder &&
@@ -412,22 +421,25 @@ const UseMainController = () => {
       ) {
         // Single folder object
         const folder = responseData.folder;
-        processedData.push({
-          id: folder.id,
-          name: folder.name,
-          type: "folder",
-          documentNumber: folder.documentId,
-          documentId: folder.documentId,
-          createdAt: folder.createdAt,
-          updatedAt: folder.updatedAt,
-          size: folder.size || 0,
-          status: folder.status || "PUBLIC",
-          itemType: "folder",
-          isFolder: true,
-          path: folder.path,
-          isOwned: true,
-          isShared: false,
-        });
+        // Skip if folder has a parentId
+        if (!folder.parentId) {
+          processedData.push({
+            id: folder.id,
+            name: folder.name,
+            type: "folder",
+            documentNumber: folder.documentId,
+            documentId: folder.documentId,
+            createdAt: folder.createdAt,
+            updatedAt: folder.updatedAt,
+            size: folder.size || 0,
+            status: folder.status || "PUBLIC",
+            itemType: "folder",
+            isFolder: true,
+            path: folder.path,
+            isOwned: true,
+            isShared: false,
+          });
+        }
       }
 
       // Process folderMembers (shared folders)
@@ -436,7 +448,7 @@ const UseMainController = () => {
         Array.isArray(responseData.folderMembers)
       ) {
         responseData.folderMembers.forEach((folderMember: folderMember) => {
-          if (folderMember.folder) {
+          if (folderMember.folder && !folderMember.folder.parentId) {
             processedData.push({
               id: folderMember.folder.id,
               name: folderMember.folder.name,
@@ -451,13 +463,20 @@ const UseMainController = () => {
               isFolder: true,
               isOwned: false,
               isShared: true,
+              path: folderMember?.folder?.path,
             });
           }
         });
       }
 
-      setDocuments(processedData);
-      setAllDocuments(processedData);
+      const sortedData = processedData.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA; // Descending order (newest first)
+      });
+
+      setDocuments(sortedData);
+      setAllDocuments(sortedData);
     } catch (error) {
       console.error("API error:", error);
       setError("An error occurred while fetching data");
@@ -465,6 +484,60 @@ const UseMainController = () => {
       setLoading(false);
     }
   };
+
+  const handleFolderDoubleClick = useCallback(
+    (item: Document) => {
+      if (item.type === "folder") {
+        // Show loading state immediately
+        setLoading(true);
+
+        // Use the item's path directly
+        const newFolderPath = item.path;
+
+        // Check if we're navigating to the root folder
+        const isRootFolder =
+          !newFolderPath ||
+          newFolderPath === "/" ||
+          newFolderPath === "" ||
+          newFolderPath === "root";
+
+        if (isRootFolder) {
+          // Clear localStorage if navigating to root
+          localStorage.removeItem("currentFolderPath");
+          localStorage.removeItem("currentFolderId");
+          // Clear search params for root
+          setSearchParams({});
+        } else {
+          // Otherwise store the new path and ID
+          localStorage.setItem("currentFolderPath", newFolderPath);
+          localStorage.setItem("currentFolderId", item.id);
+          setSearchParams({ folderPath: newFolderPath });
+        }
+
+        setSelectedDocument(item);
+
+        const refetchData = async () => {
+          try {
+            if (isRootFolder) {
+              // If at root, fetch all documents
+              await handleGetData();
+            } else {
+              // Otherwise fetch by path
+              await handleGetDocumentsByPath(newFolderPath);
+            }
+          } catch (error) {
+            console.error("Error during data refetch:", error);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        // Execute the refetch
+        refetchData();
+      }
+    },
+    [setSearchParams, handleGetDocumentsByPath, handleGetData, setLoading]
+  );
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {

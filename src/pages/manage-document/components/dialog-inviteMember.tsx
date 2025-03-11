@@ -20,6 +20,7 @@ import Swal from "sweetalert2";
 import { ErrorModel } from "../../../models/Error";
 import { getAllUsers } from "../../../service/user";
 import { UserModel } from "../../../models/user";
+import eventBus from "../../../utils/functions/eventBus";
 // Match your Document type
 interface Document {
   id: string;
@@ -70,14 +71,9 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
     }
   };
 
-  useEffect(() => {
-    handleGetData();
-  }, [open, ErrorResponse]);
-
   const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault();
     onClose();
-    
 
     if (!selectedUser || !selectedDocument) return;
 
@@ -105,17 +101,23 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
         let endpoint;
         let payload;
 
+        // Create arrays with single user's credentials
+        const username = selectedUser?.username ? [selectedUser.username] : [];
+        const email = selectedUser?.email ? [selectedUser.email] : [];
+
         if (selectedDocument?.itemType === "folder") {
           endpoint = INVITE_MEMBER_FOLDER_END_POINT;
           payload = {
             folderId: selectedDocument?.id,
-            username: selectedUser?.username,
+            username, // Send as array
+            email, // Include emails as well
           };
         } else {
           endpoint = INVITE_MEMBER_FILE_END_POINT;
           payload = {
             fileId: selectedDocument?.id,
-            email: selectedUser?.email,
+            email, // Send as array
+            username, // Include usernames as well
           };
         }
 
@@ -126,6 +128,13 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
           text: "Member has been successfully invited.",
           icon: "success",
           showConfirmButton: false,
+          timer: 1500,
+        });
+
+        eventBus.publish("MEMBER_UPDATED", {
+          action: "invite",
+          documentId: selectedDocument?.id,
+          documentType: selectedDocument?.itemType,
         });
 
         handleClear();
@@ -136,14 +145,24 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
   };
 
   const handleClose = (_event: {}, reason: string) => {
-    if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+    if (reason === "backdropClick" || reason === "escapeKeyDown") {
       return; // Do nothing, preventing dialog from closing
     }
     onClose(); // Only close when explicitly called (like from the back button)
   };
 
+  useEffect(() => {
+    handleGetData();
+  }, [open, ErrorResponse]);
+
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth  disableEscapeKeyDown >
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      disableEscapeKeyDown
+    >
       <form onSubmit={handleInviteMember}>
         <DialogTitle>
           <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -190,8 +209,12 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
             renderOption={(props, option) => (
               <li {...props}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Avatar src={option?.image?.url} alt="avatar" sx={{ width: 32, height: 32 }} />
-                    
+                  <Avatar
+                    src={option?.image?.url}
+                    alt="avatar"
+                    sx={{ width: 32, height: 32 }}
+                  />
+
                   <Box>
                     <Typography variant="body1">{option?.username}</Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -203,7 +226,9 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
             )}
           />
         </DialogContent>
-        <DialogActions sx={{ padding: 2, display: 'flex', justifyContent: 'flex-end' }}>
+        <DialogActions
+          sx={{ padding: 2, display: "flex", justifyContent: "flex-end" }}
+        >
           <Button
             onClick={handleClear}
             variant="outlined"
