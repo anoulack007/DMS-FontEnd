@@ -51,7 +51,7 @@ export const MENU_ITEM_LISTS: MENU_ITEM_LISTS_PROPS[] = [
     icon: <SvgColor src={DOC_MANAGE_IC} />,
   },
   {
-    label: "ຖັງຊີ້ເຫຍື້ອ",
+    label: "ຖັງຂີ້ເຫຍື້ອ",
     path: RECYCLE_PATH,
     icon: <DeleteForeverOutlinedIcon />,
   },

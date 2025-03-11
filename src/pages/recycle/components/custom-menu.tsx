@@ -17,12 +17,12 @@ interface Props {
 const CustomMenu = ({ selectedCount, onDetailsClick, handleDelete, handleRestore }: Props) => {
   const ListMenu = [
     {
-      label: "Restore", 
+      label: "ກູ້ຄືນ", 
       icon: <RestoreOutlinedIcon />,
       onclick: handleRestore
     },
     {
-      label: "Delete",
+      label: "ລຶບ",
       icon: <DeleteIcon />,
       onclick: handleDelete
     },

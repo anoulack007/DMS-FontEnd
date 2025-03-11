@@ -5,6 +5,7 @@ import {
   Collapse,
   Divider,
   IconButton,
+  InputAdornment,
   Paper,
   Table,
   TableBody,
@@ -14,9 +15,13 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  TextField,
   Typography,
+  Button,
+  Stack,
 } from "@mui/material";
 import UseMainController from "./controllers";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 //icons
 import FoldeImage from "../../assets/Image/image 11.png";
@@ -40,6 +45,11 @@ import NoData from "../../assets/logo/NotData.svg";
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CloseIcon from "@mui/icons-material/Close";
+import SearchIcon from "@mui/icons-material/Search";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import ClearIcon from "@mui/icons-material/Clear";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 const getIconByType = (type: string) => {
   switch (type) {
@@ -81,6 +91,110 @@ const RecyclePage = () => {
 
   return (
     <Box>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          mb: 3,
+          justifyContent: "space-between",
+        }}
+      >
+        <Typography color="#838383" variant="h5" fontWeight={700}>
+          ຖັງຂີ້ເຫຍື້ອ
+        </Typography>
+
+        <Box sx={{ display: "flex", gap: 3 }}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <FilterAltIcon color="action" />
+              <Typography variant="subtitle2">ການກັ່ນຕອງຕາມວັນທີ</Typography>
+
+              <DatePicker
+                label="ວັນທີເລີ່ມຕົ້ນ"
+                value={ctrl.dateFilter.startDate}
+                onChange={(newValue: any) =>
+                  ctrl.handleDateFilterChange({
+                    ...ctrl.dateFilter,
+                    startDate: newValue,
+                  })
+                }
+                format="DD/MM/YYYY"
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: { width: 170 },
+                  },
+                }}
+              />
+
+              <DatePicker
+                label="ວັນທີສິ້ນສຸດ"
+                value={ctrl.dateFilter.endDate}
+                onChange={(newValue: any) =>
+                  ctrl.handleDateFilterChange({
+                    ...ctrl.dateFilter,
+                    endDate: newValue,
+                  })
+                }
+                format="DD/MM/YYYY"
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: { width: 170 },
+                  },
+                }}
+              />
+
+              <Button
+                variant="outlined"
+                startIcon={<ClearIcon />}
+                sx={{ textTransform: "none" }}
+                onClick={ctrl.resetFilters}
+                size="small"
+              >
+                ລ້າງຕົວກອງ
+              </Button>
+            </Stack>
+          </LocalizationProvider>
+
+          <Divider orientation="vertical" flexItem />
+
+          <TextField
+            sx={{
+              fontFamily: "NotoSansLao-Regular",
+              borderRadius: 24,
+              bgcolor: "#F6F6F6",
+              "& .MuiOutlinedInput-root": {
+                border: "none",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                border: "none",
+              },
+            }}
+            placeholder="ຄົ້ນຫາເອກະສານ..."
+            value={ctrl.searchTerm}
+            onChange={(e) => ctrl.handleSearch(e.target.value)}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton>
+                      <SearchIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                style: {
+                  borderRadius: 24,
+                },
+              },
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* Date Filter Section */}
+      <Box sx={{ mb: 3 }}></Box>
+
       {ctrl?.selectedItems.length > 0 && (
         <CustomMenu
           selectedCount={ctrl.selectedItems.length}
@@ -110,19 +224,21 @@ const RecyclePage = () => {
               <TableHead>
                 <TableRow>
                   <TableCell padding="checkbox">
-                    <Checkbox
+                    {/* <Checkbox
                       icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
                       checkedIcon={<CheckCircleIcon sx={{ color: "blue" }} />}
                       indeterminate={
                         ctrl?.selectedItems.length > 0 &&
-                        ctrl?.selectedItems.length < ctrl?.documents.length
+                        ctrl?.selectedItems.length <
+                          ctrl?.getPaginatedData().length
                       }
                       checked={
-                        ctrl?.documents.length > 0 &&
-                        ctrl?.selectedItems.length === ctrl?.documents.length
+                        ctrl?.getPaginatedData().length > 0 &&
+                        ctrl?.selectedItems.length ===
+                          ctrl?.getPaginatedData().length
                       }
                       onChange={ctrl?.handleSelectAll}
-                    />
+                    /> */}
                   </TableCell>
                   <TableCell>ຊື່ເອກະສານ</TableCell>
                   <TableCell>ລະຫັດເອກະສານ</TableCell>
@@ -221,9 +337,18 @@ const RecyclePage = () => {
                           display: "flex",
                           justifyContent: "center",
                           alignItems: "center",
+                          flexDirection: "column",
+                          gap: 2,
                         }}
                       >
                         <img src={NoData} alt="data" />
+                        <Typography color="textSecondary">
+                          {ctrl.searchTerm ||
+                          ctrl.dateFilter.startDate ||
+                          ctrl.dateFilter.endDate
+                            ? "No matching documents found. Try adjusting your filters."
+                            : "No documents in recycle bin."}
+                        </Typography>
                       </Box>
                     </TableCell>
                   </TableRow>
@@ -234,7 +359,7 @@ const RecyclePage = () => {
                   <TableCell colSpan={7} align="right">
                     <TablePagination
                       component="div"
-                      count={ctrl?.documents.length}
+                      count={ctrl?.filteredDocuments.length}
                       page={ctrl.page}
                       onPageChange={ctrl.handleChangePage}
                       rowsPerPage={ctrl.rowsPerPage}
@@ -323,9 +448,9 @@ const RecyclePage = () => {
                   <strong>
                     Created <br />
                   </strong>
-                  {ctrl?.selectedDocument?.updatedAt
+                  {ctrl?.selectedDocument?.createdAt
                     ? new Date(
-                        ctrl?.selectedDocument?.updatedAt
+                        ctrl?.selectedDocument?.createdAt
                       ).toLocaleString()
                     : "-"}
                 </Typography>
