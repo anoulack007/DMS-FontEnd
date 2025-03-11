@@ -85,6 +85,9 @@ const FollowDocumentPage = () => {
 
   return (
     <Box>
+      <Typography mb={5} color="#838383" variant="h5" fontWeight={700}>
+        ຕິດຕາມເອກະສານ
+      </Typography>
       {ctrl?.selectedItems.length > 0 && (
         <CustomMenu
           selectedCount={ctrl.selectedItems.length}
