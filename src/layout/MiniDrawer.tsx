@@ -57,7 +57,7 @@ const MiniDrawer = () => {
   const currentPath = location.pathname;
 
   return (
-    <Box sx={{ position: "relative" }}>
+    <Box sx={{ position: "relative" }}> 
       <CssBaseline />
       <Drawer variant="permanent" open={ctrl?.open}>
         <Box

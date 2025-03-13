@@ -29,13 +29,15 @@ import ArticleIcon from "@mui/icons-material/Article";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { GET_OWNER_DOC_END_POINT } from "../../../configs/endPoint/file&folder";
 import { getStatusColor, getTextColor } from "../../../utils/functions/color";
+import axiosInstance from "../../../configs/axios";
+import { MOVE_FOLDER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
+import { UPDATE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
+import eventBus from "../../../utils/functions/eventBus";
 
 interface MoveDialogProps {
   open: boolean;
   onClose: () => void;
-  onMove: (targetFolderId: string, targetFolderPath: string) => void;
   selectedCount: number;
-  selectedItems?: Array<{ id: string; type: "file" | "folder" }>; // Track both file and folder IDs with their types
 }
 
 // File type interface
@@ -55,17 +57,14 @@ interface FileItem {
 const MoveDialog: React.FC<MoveDialogProps> = ({
   open,
   onClose,
-  onMove,
   selectedCount,
-  selectedItems = [],
 }) => {
   const [fileData, setFileData] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-  const [currentFolderPath, setCurrentFolderPath] = useState<string>("root");
-  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [_currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [pathHistory, setPathHistory] = useState<
     Array<{ path: string; id: string; name: string }>
   >([{ path: "root", id: "", name: "Root" }]);
@@ -222,43 +221,41 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
 
   // Handle folder double click
   // Handle folder double click
-const handleFolderDoubleClick = useCallback(
-  (folder: FileItem) => {
-    if (folder.type === "folder") {
-      const newPath = folder.path || `/${folder.name}`;
-      const newFolderId = folder._id || folder.id || "";
-      const folderName = folder.name;
+  const handleFolderDoubleClick = useCallback(
+    (folder: FileItem) => {
+      if (folder.type === "folder") {
+        const newPath = folder.path || `/${folder.name}`;
+        const newFolderId = folder._id || folder.id || "";
+        const folderName = folder.name;
 
-      // Add to path history
-      setPathHistory((prev) => [
-        ...prev,
-        {
-          path: newPath,
-          id: newFolderId,
-          name: folderName,
-        },
-      ]);
+        // Add to path history
+        setPathHistory((prev) => [
+          ...prev,
+          {
+            path: newPath,
+            id: newFolderId,
+            name: folderName,
+          },
+        ]);
 
-      // Update current path and ID
-      setCurrentFolderPath(newPath);
-      setCurrentFolderId(newFolderId);
-      setSelectedFolderId(null); // Reset selection
+        // Update current path and ID
+        setCurrentFolderId(newFolderId);
+        setSelectedFolderId(null); // Reset selection
 
-      // Store current folder and parent ID in localStorage
-      localStorage.setItem('currentFolderId', newFolderId);
-      localStorage.setItem('currentFolderPath', newPath);
-      
-      // Get parent ID from the current folder data if available
-      if (folder.parentId) {
-        localStorage.setItem('currentParentId', folder.parentId);
+        // Store current folder and parent ID in localStorage
+        localStorage.setItem("destinationFolderId", newFolderId);
+
+        // Get parent ID from the current folder data if available
+        if (folder.parentId) {
+          localStorage.setItem("currentParentId", folder.parentId);
+        }
+
+        // Fetch folders at new path
+        fetchFoldersByPath(newPath);
       }
-
-      // Fetch folders at new path
-      fetchFoldersByPath(newPath);
-    }
-  },
-  [fetchFoldersByPath]
-);
+    },
+    [fetchFoldersByPath]
+  );
 
   // Navigate to a specific breadcrumb
   const handleBreadcrumbClick = useCallback(
@@ -268,7 +265,6 @@ const handleFolderDoubleClick = useCallback(
         const target = targetHistory[index];
 
         setPathHistory(targetHistory);
-        setCurrentFolderPath(target.path);
         setCurrentFolderId(target.id);
         setSelectedFolderId(null);
 
@@ -289,7 +285,6 @@ const handleFolderDoubleClick = useCallback(
       const target = newHistory[newHistory.length - 1];
 
       setPathHistory(newHistory);
-      setCurrentFolderPath(target.path);
       setCurrentFolderId(target.id);
       setSelectedFolderId(null);
 
@@ -301,14 +296,29 @@ const handleFolderDoubleClick = useCallback(
     }
   }, [pathHistory, fetchRootFolders, fetchFoldersByPath]);
 
-  // Function to handle moving files and folders
-  // Function to handle moving files and folders
   const handleMove = async () => {
-    if (!selectedFolderId && currentFolderId === null) {
-      // Cannot move to root directly, must select a folder
+    onClose();
+
+    const destinationFolderId = localStorage.getItem("destinationFolderId");
+    const originFolderId = localStorage.getItem("selectedDocumentId") || null;
+    const docType = localStorage.getItem("selectedDocumentType") || null;
+
+    // Only validate origin document selection, not destination (to allow root moves)
+    if (!originFolderId) {
       Swal.fire({
-        title: "ເລືອກໂຟເດີ້",
-        text: "ກະລຸນາເລືອກໂຟເດີ້ປາຍທາງ",
+        title: "ບໍ່ໄດ້ເລືອກເອກະສານ",
+        text: "ກະລຸນາເລືອກເອກະສານທີ່ຕ້ອງການຍ້າຍ",
+        icon: "warning",
+        confirmButtonText: "ຕົກລົງ",
+        confirmButtonColor: "#2C3E50",
+      });
+      return;
+    }
+
+    if (!docType) {
+      Swal.fire({
+        title: "ປະເພດເອກະສານບໍ່ຖືກຕ້ອງ",
+        text: "ບໍ່ສາມາດລະບຸປະເພດເອກະສານໄດ້",
         icon: "warning",
         confirmButtonText: "ຕົກລົງ",
         confirmButtonColor: "#2C3E50",
@@ -319,7 +329,9 @@ const handleFolderDoubleClick = useCallback(
     // Confirm before moving
     const result = await Swal.fire({
       title: "ຢືນຢັນການຍ້າຍ",
-      text: `ທ່ານຕ້ອງການຍ້າຍ ${selectedCount} ລາຍການໄປຍັງໂຟເດີ້ທີ່ເລືອກບໍ່?`,
+      text: `ທ່ານຕ້ອງການຍ້າຍ${docType === "folder" ? "ໂຟເດີ້" : "ເອກະສານ"}${
+        !destinationFolderId ? "ໄປຍັງໂຟເດີ້ຫຼັກ" : "ໄປຍັງໂຟເດີ້ທີ່ເລືອກ"
+      }ບໍ່?`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "ຍ້າຍ",
@@ -334,55 +346,58 @@ const handleFolderDoubleClick = useCallback(
     try {
       setMovingFiles(true);
 
-      // Get the target folder ID (either selected folder or current folder)
-      const targetFolderId = selectedFolderId || currentFolderId || "";
-      const targetFolder = fileData.find(
-        (item) => (item._id || item.id) === targetFolderId
-      );
-      const targetPath = targetFolder?.path || currentFolderPath;
-
-      // Process each selected item
-      const movePromises = selectedItems.map(async (item) => {
-        try {
-          if (item.type === "folder") {
-            // Moving a folder - update its parent ID
-            const response = await axios.patch(`/folders/${item.id}`, {
-              parentId: targetFolderId,
-            });
-            return response;
-          } else {
-            // Moving a file - update its folder ID
-            const response = await axios.patch(`/files/update/${item.id}`, {
-              folderId: targetFolderId,
-            });
-            return response;
-          }
-        } catch (error) {
-          console.error(`Error moving item ${item.id}:`, error);
-          throw error;
-        }
+      // Show loading state
+      Swal.fire({
+        title: "ກຳລັງຍ້າຍ...",
+        text: "ກະລຸນາລໍຖ້າ",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
       });
 
-      // Wait for all move operations to complete
-      await Promise.all(movePromises);
+      let res;
+      console.log(res);
 
-      // Success message
+      if (docType === "folder") {
+        res = await axiosInstance.patch(
+          `${MOVE_FOLDER_END_POINT}/${originFolderId}`,
+          {
+            destinationFolderId: destinationFolderId || null,
+          }
+        );
+      } else {
+        res = await axiosInstance.patch(
+          `${UPDATE_FILE_END_POINT}/${originFolderId}`,
+          {
+            folderId: destinationFolderId || null,
+          }
+        );
+      }
+
       Swal.fire({
         title: "ຍ້າຍສຳເລັດ",
-        text: `ຍ້າຍ ${selectedCount} ລາຍການສຳເລັດແລ້ວ`,
+        text: `ຍ້າຍ${docType === "folder" ? "ໂຟເດີ້" : "ເອກະສານ"}${
+          !destinationFolderId ? "ໄປຍັງໂຟເດີ້ຫຼັກ" : ""
+        }ສຳເລັດແລ້ວ`,
         icon: "success",
         confirmButtonText: "ຕົກລົງ",
         confirmButtonColor: "#2C3E50",
       });
 
-      // Notify parent component that the move has completed
-      onMove(targetFolderId, targetPath);
-      onClose();
-    } catch (error) {
+      eventBus.publish("DOCUMNETS_UPDATED", true);
+
+      localStorage.removeItem("selectedDocumentId");
+      localStorage.removeItem("selectedDocumentType");
+      localStorage.removeItem("destinationFolderId");
+    } catch (error: any) {
       console.error("Error moving items:", error);
       Swal.fire({
         title: "ເກີດຂໍ້ຜິດພາດ",
-        text: "ບໍ່ສາມາດຍ້າຍລາຍການໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
+        text:
+          error.response?.data?.message ||
+          "ບໍ່ສາມາດຍ້າຍລາຍການໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
         icon: "error",
         confirmButtonText: "ຕົກລົງ",
         confirmButtonColor: "#2C3E50",
@@ -400,7 +415,6 @@ const handleFolderDoubleClick = useCallback(
   useEffect(() => {
     if (open) {
       // Reset path and fetch root folders
-      setCurrentFolderPath("root");
       setCurrentFolderId(null);
       setSelectedFolderId(null);
       setPathHistory([{ path: "root", id: "", name: "Root" }]);

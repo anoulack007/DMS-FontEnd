@@ -21,3 +21,5 @@ export const GET_FOLDER_MEMBER_END_POINT: string = '/folders/get-member/folder'
 
 export const GET_FOLDER_BY_PATH_END_POINT: string = '/folders/path'
 
+export const MOVE_FOLDER_END_POINT: string = '/folders/move-folder'
+

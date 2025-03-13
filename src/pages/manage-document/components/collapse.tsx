@@ -368,7 +368,6 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               size="small"
               onClick={() => {
                 ctrl.setCollapseOpen(false);
-                ctrl.setSearchParams({});
               }}
             >
               <CloseIcon />

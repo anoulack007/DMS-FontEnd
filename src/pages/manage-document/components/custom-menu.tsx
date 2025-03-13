@@ -41,11 +41,6 @@ const CustomMenu = ({
     setMoveDialogOpen(false);
   };
 
-  // Function to handle the "Move here" button
-  const handleMoveHere = () => {
-    setMoveDialogOpen(false);
-  };
-
   const ListMenu = [
     {
       label: "Delete",
@@ -145,7 +140,6 @@ const CustomMenu = ({
       <MoveDialog
         open={moveDialogOpen}
         onClose={handleCloseDialog}
-        onMove={handleMoveHere}
         selectedCount={selectedCount}
       />
     </>

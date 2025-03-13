@@ -30,14 +30,11 @@ import { getFileTypeFromName } from "../../../utils/functions/typefile";
 import eventBus from "../../../utils/functions/eventBus";
 
 type SortField = "name" | "modified" | "size" | "status";
-type SortOrder = "asc" | "desc";
 
 const UseMainController = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [filterAnchorEl, setFilterAnchorEl] = useState<{
     [key in SortField]?: HTMLElement | null;
   }>({});
@@ -176,10 +173,12 @@ const UseMainController = () => {
   };
 
   const handleGetHistory = async () => {
-    if (!selectedDocument?.id) return; // Guard clause
+    if (!selectedDocument?.id) return;
 
     try {
-      setLoading(true);
+      // Use a local loading state for just this section
+      const localLoading = true;
+      console.log(localLoading)
       setError(null);
 
       const endpoint =
@@ -192,8 +191,6 @@ const UseMainController = () => {
     } catch (err) {
       setError("Failed to fetch history");
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -254,34 +251,19 @@ const UseMainController = () => {
 
   const handleDetailsClick = async () => {
     if (selectedDocument) {
+      // Simply open the collapse view using state
       setCollapseOpen(true);
-      setSearchParams({ docId: selectedDocument.id, action: "collapse" });
+
       // Only fetch these when details are opened
-      await handleGetDocumentVersion();
-      await handleGetHistory();
+      if (fileHistory.length === 0) {
+        await handleGetHistory();
+      }
+
+      if (versionDocument.length === 0) {
+        await handleGetDocumentVersion();
+      }
     }
   };
-
-  // const handleFolderDoubleClick = useCallback(
-  //   (item: Document) => {
-  //     if (item.type === "folder") {
-  //       // Use the item's path directly
-  //       const newFolderPath = item.path;
-
-  //       localStorage.setItem("currentFolderPath", newFolderPath);
-  //       localStorage.setItem("currentFolderId", item.id);
-
-  //       setSearchParams({ folderPath: newFolderPath });
-
-  //       setSelectedDocument(item);
-  //       handleGetDocumentsByPath(newFolderPath);
-
-  //       // Add window refresh
-  //       window.location.reload();
-  //     }
-  //   },
-  //   [setSearchParams, handleGetDocumentsByPath]
-  // );
 
   const handleDrawerClose = () => {
     setCollapseOpen(false);
@@ -472,7 +454,7 @@ const UseMainController = () => {
       const sortedData = processedData.sort((a, b) => {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
-        return dateB - dateA; // Descending order (newest first)
+        return dateB - dateA;
       });
 
       setDocuments(sortedData);
@@ -488,13 +470,10 @@ const UseMainController = () => {
   const handleFolderDoubleClick = useCallback(
     (item: Document) => {
       if (item.type === "folder") {
-        // Show loading state immediately
         setLoading(true);
 
-        // Use the item's path directly
         const newFolderPath = item.path;
 
-        // Check if we're navigating to the root folder
         const isRootFolder =
           !newFolderPath ||
           newFolderPath === "/" ||
@@ -502,13 +481,10 @@ const UseMainController = () => {
           newFolderPath === "root";
 
         if (isRootFolder) {
-          // Clear localStorage if navigating to root
           localStorage.removeItem("currentFolderPath");
           localStorage.removeItem("currentFolderId");
-          // Clear search params for root
           setSearchParams({});
         } else {
-          // Otherwise store the new path and ID
           localStorage.setItem("currentFolderPath", newFolderPath);
           localStorage.setItem("currentFolderId", item.id);
           setSearchParams({ folderPath: newFolderPath });
@@ -519,10 +495,8 @@ const UseMainController = () => {
         const refetchData = async () => {
           try {
             if (isRootFolder) {
-              // If at root, fetch all documents
               await handleGetData();
             } else {
-              // Otherwise fetch by path
               await handleGetDocumentsByPath(newFolderPath);
             }
           } catch (error) {
@@ -548,33 +522,33 @@ const UseMainController = () => {
   };
 
   const handleSelectItem = (id: string) => {
+    // Get the current folder path from URL params or localStorage
+    const currentFolderPath =
+      searchParams.get("folderPath") ||
+      localStorage.getItem("currentFolderPath");
+
     const doc = documents.find((document) => document.id === id);
     if (doc) {
       setSelectedDocument(doc);
+      localStorage.setItem("selectedDocumentId", id);
+      localStorage.setItem("selectedDocumentType", doc.type);
     }
+
+    // Close collapse view without changing navigation
     setCollapseOpen(false);
+
+    // Update selected items
     setSelectedItems((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+
+    // Maintain the current folder path in the URL if it exists
+    if (currentFolderPath) {
+      setSearchParams({ folderPath: currentFolderPath });
+    }
   };
 
   const isSelected = (id: string) => selectedItems.includes(id);
-
-  const handleSort = (field: SortField) => {
-    if (field === sortField) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortOrder("asc");
-    }
-
-    const sortedDocuments = [...documents].sort((a, b) => {
-      if (a[field] < b[field]) return sortOrder === "asc" ? -1 : 1;
-      if (a[field] > b[field]) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-    setDocuments(sortedDocuments);
-  };
 
   const handleFilterClick = (
     event: React.MouseEvent<HTMLElement>,
@@ -785,7 +759,7 @@ const UseMainController = () => {
           },
         });
 
-        const response = await fetch(selectedDocument.url);
+        const response = await fetch(selectedDocument?.url);
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
 
@@ -834,16 +808,16 @@ const UseMainController = () => {
   };
 
   const handleGetDocumentVersion = async () => {
+    if (!selectedDocument?.documentNumber) return;
+
     try {
-      setLoading(true);
+      // Don't set global loading state here
       const res = await axiosInstance.get(
-        `${GET_VERSION_FILE_END_POINT}/${selectedDocument?.documentNumber}`
+        `${GET_VERSION_FILE_END_POINT}/${selectedDocument.documentNumber}`
       );
       setVersionDocument(res?.data?.data || []);
     } catch (error) {
       console.error("Error fetching file history:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -910,10 +884,18 @@ const UseMainController = () => {
       }
     });
 
-    // Cleanup both subscriptions on component unmount
+    const moveDocuments = eventBus.subscribe("DOCUMNETS_UPDATED", () => {
+      if (folderPath) {
+        handleGetDocumentsByPath(folderPath);
+      } else {
+        handleGetData();
+      }
+    });
+
     return () => {
       unsubscribeFiles();
       unsubscribeFolders();
+      moveDocuments();
     };
   }, [searchParams]);
   return {
@@ -939,8 +921,6 @@ const UseMainController = () => {
     selectedDocument,
     loading,
     error,
-    sortOrder,
-    sortField,
     documents,
     selectedItems,
     setDocuments,
@@ -948,7 +928,6 @@ const UseMainController = () => {
     isSelected,
     handleSelectAll,
     handleSelectItem,
-    handleSort,
     handleFilterClick,
     handleFilterClose,
     handleFilter,
