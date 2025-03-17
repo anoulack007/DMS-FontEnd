@@ -19,13 +19,12 @@ import {
   FOLLOW_DOCUMENT_LISTS,
   MENU_ITEM_LISTS,
   USER_MANAGE_LISTS,
+  REPORT_ITEM_LISTS, // Import the report items
 } from "./config";
 
 //images
-// import Logo from "../assets/logo/IQURI.svg";   #IQURI ICON FOR DRAWER
 import Add_ic from "../assets/Image/Add.svg";
 import Upload_ic from "../assets/Image/Document Arrow Up.svg";
-// import Upload_ic2 from "../assets/Image/Folder Arrow Up.svg";
 import FoldeImage from "../assets/Image/image 11.png";
 import UseDrawerController from "./controllers/Drawer";
 import FileUploadDialog from "./components/dilog-uploadFile";
@@ -57,7 +56,7 @@ const MiniDrawer = () => {
   const currentPath = location.pathname;
 
   return (
-    <Box sx={{ position: "relative" }}> 
+    <Box sx={{ position: "relative" }}>
       <CssBaseline />
       <Drawer variant="permanent" open={ctrl?.open}>
         <Box
@@ -69,8 +68,9 @@ const MiniDrawer = () => {
             px: 1,
           }}
         >
-          {/* <img height={70} width={70} src={LOGO} alt="iQURi" /> */}
-          <IconButton onClick={() => ctrl?.handleNavigateToMain(MANAGE_DOC_PATH)}>
+          <IconButton
+            onClick={() => ctrl?.handleNavigateToMain(MANAGE_DOC_PATH)}
+          >
             <img height={90} width={90} src={LOGO_NIT} alt="iQURi" />
           </IconButton>
         </Box>
@@ -96,14 +96,14 @@ const MiniDrawer = () => {
                 cursor: "not-allowed",
               },
             }}
-            onClick={ctrl?.handleClick} // Change to onClick
+            onClick={ctrl?.handleClick}
           >
             <img src={Add_ic} alt="Add" style={{ marginRight: 8 }} />
             ອັບໂຫຼດເອກະສານ
           </Button>
           <Menu
             anchorEl={ctrl?.anchorEl}
-            open={ctrl?.opening} // Change this line
+            open={ctrl?.opening}
             onClose={ctrl?.handleClose}
             slotProps={{
               paper: {
@@ -129,12 +129,6 @@ const MiniDrawer = () => {
               </ListItemIcon>
               <Typography variant="inherit">ອັບໂຫຼດຟາຍ</Typography>
             </MenuItem>
-            {/* <MenuItem onClick={ctrl?.handleOpenDialog}>
-              <ListItemIcon>
-                <img src={Upload_ic2} alt="upload" />
-              </ListItemIcon>
-              <Typography variant="inherit">Folder Uploads</Typography>
-            </MenuItem> */}
           </Menu>
 
           <FileUploadDialog
@@ -197,11 +191,32 @@ const MiniDrawer = () => {
             <Typography sx={{ pl: "16px", color: "#746E6E" }}>
               ຈັດການຜູ້ໃຊ້
             </Typography>
-            <List sx={{ marginBottom: "24px" }}>
+            <List>
               {USER_MANAGE_LISTS.map((item, index) => {
                 const isItemActive =
                   currentPath === item.path ||
                   (currentPath === "" && index === 0);
+                return (
+                  <NavItem
+                    key={item.path}
+                    item={item}
+                    open={isItemActive}
+                    active={isItemActive}
+                  />
+                );
+              })}
+            </List>
+
+            {/* Add Report Section */}
+            <Typography sx={{ pl: "16px", color: "#746E6E" }}>
+              ລາຍງານ
+            </Typography>
+            <List sx={{ marginBottom: "24px" }}>
+              {REPORT_ITEM_LISTS.map((item) => {
+                const isItemActive =
+                  currentPath === item.path ||
+                  (item.children &&
+                    item.children.some((child) => child.path === currentPath));
                 return (
                   <NavItem
                     key={item.path}

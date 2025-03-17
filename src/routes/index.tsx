@@ -6,17 +6,18 @@ import {
   MANAGE_USER_PATH,
   RECYCLE_PATH,
   REPORT_RECYCLE_PATH,
-  REPORT_SHARE_PATH,
   USER_DETAIL_PATH,
   FOLLOW_DOCUMENT_PATH,
   CREATE_USER_PATH,
+  REPORT_UPLOAD_DOC_PATH,
+  REPORT_DELETE_PATH,
+  REPORT_UPDATE_DOC_PATH,
+  REPORT_VERSION_DOC_PATH,
 } from "./paths";
 import LoginPage from "../pages/login";
 import NotFoundPage from "../404";
 import ManageDocumentPage from "../pages/manage-document";
 import RecyclePage from "../pages/recycle";
-import ReportSharePage from "../pages/report-share";
-import ReportRecyclePage from "../pages/report";
 import DocumentDetailPage from "../pages/document-detail";
 import UserDetailPage from "../pages/user-detail";
 import FollowDocumentPage from "../pages/follow-document";
@@ -24,6 +25,11 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import MainLayout from "../layout";
 import ManageUserPage from "../pages/manage-user";
 import FormCreateUserPage from "../pages/manage-user/form";
+import ReportUploadPage from "../pages/report-upload";
+import ReportDeletePage from "../pages/report-delete";
+import ReportRecycleBinPage from "../pages/report-recycle-bin";
+import ReportUpdatePage from "../pages/report-update";
+import ReportVersionPage from "../pages/report-version";
 
 const RoutesComponent = () => {
   return useRoutes([
@@ -38,14 +44,6 @@ const RoutesComponent = () => {
         {
           path: MANAGE_DOC_PATH,
           element: <ManageDocumentPage />,
-        },
-        {
-          path: REPORT_RECYCLE_PATH,
-          element: <ReportRecyclePage />,
-        },
-        {
-          path: REPORT_SHARE_PATH,
-          element: <ReportSharePage />,
         },
         {
           path: RECYCLE_PATH,
@@ -70,6 +68,26 @@ const RoutesComponent = () => {
         {
           path: FOLLOW_DOCUMENT_PATH,
           element: <FollowDocumentPage />,
+        },  
+        {
+          path: REPORT_UPLOAD_DOC_PATH,
+          element: <ReportUploadPage />,
+        },
+        {
+          path: REPORT_RECYCLE_PATH,
+          element: <ReportRecycleBinPage />,
+        },
+        {
+          path: REPORT_DELETE_PATH,
+          element: <ReportDeletePage />,
+        },
+        {
+          path: REPORT_UPDATE_DOC_PATH,
+          element: <ReportUpdatePage />,
+        },
+        {
+          path: REPORT_VERSION_DOC_PATH,
+          element: <ReportVersionPage />,
         },
       ],
     },

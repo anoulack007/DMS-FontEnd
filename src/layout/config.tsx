@@ -3,23 +3,29 @@ import {
   MANAGE_DOC_PATH,
   MANAGE_USER_PATH,
   RECYCLE_PATH,
-  // REPORT_RECYCLE_PATH,
-  // REPORT_SHARE_PATH,
+  REPORT_RECYCLE_PATH,
+  REPORT_DELETE_PATH,
+  REPORT_UPLOAD_DOC_PATH,
+  REPORT_VERSION_DOC_PATH,
+  REPORT_UPDATE_DOC_PATH,
 } from "../routes/paths";
 
 //icons
 import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
-// import RecyclingOutlinedIcon from "@mui/icons-material/RecyclingOutlined";
-// import ScreenShareOutlinedIcon from "@mui/icons-material/ScreenShareOutlined";
 import SvgColor from "./components/SvgColor";
 import DOC_MANAGE_IC from '../assets/logo/mange_doc.svg'
 import USER_MANAGE_IC from '../assets/logo/user_manage.svg'
 import FOLLOW_DOC_IC from '../assets/logo/follow_doc.svg'
+import AssessmentIcon from '@mui/icons-material/Assessment'; // Import report icon
 
 export interface MENU_ITEM_LISTS_PROPS {
   label: string;
   path: string;
   icon: JSX.Element;
+  children?: Array<{
+    label: string;
+    path: string;
+  }>;
 }
 
 export const DRAWER_WIDTH: number = 270;
@@ -54,5 +60,35 @@ export const MENU_ITEM_LISTS: MENU_ITEM_LISTS_PROPS[] = [
     label: "ຖັງຂີ້ເຫຍື້ອ",
     path: RECYCLE_PATH,
     icon: <DeleteForeverOutlinedIcon />,
+  },
+];
+
+export const REPORT_ITEM_LISTS: MENU_ITEM_LISTS_PROPS[] = [
+  {
+    label: "ລາຍງານ",
+    path: "#",
+    icon: <AssessmentIcon />,
+    children: [
+      {
+        label: "ລາຍງານອັບໂຫຼດເອກະສານ",
+        path: REPORT_UPLOAD_DOC_PATH,
+      },
+      {
+        label: "ລາຍງານລຶບເອກະສານ",
+        path: REPORT_DELETE_PATH,
+      },
+      {
+        label: "ລາຍງານເວີຊັນເອກະສານ",
+        path: REPORT_VERSION_DOC_PATH,
+      },
+      {
+        label: "ລາຍງານການກູ້ຄືນ",
+        path: REPORT_RECYCLE_PATH,
+      },
+      {
+        label: "ລາຍງານອັບເດດເອກະສານ",
+        path: REPORT_UPDATE_DOC_PATH,
+      },
+    ],
   },
 ];
