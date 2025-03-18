@@ -7,6 +7,7 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Modal,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -22,6 +23,11 @@ interface AdminToolbarProps {
 
 const AdminToolbar = ({ adminData, handleLogout }: AdminToolbarProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+
+  const handleOpenDialog = () => setOpenDialog(true);
+  const handleCloseDialog = () => setOpenDialog(false);
+
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -40,7 +46,7 @@ const AdminToolbar = ({ adminData, handleLogout }: AdminToolbarProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  const formattedDate = currentTime.toLocaleDateString("en-GB");    
+  const formattedDate = currentTime.toLocaleDateString("en-GB");
   const formattedTime = currentTime.toLocaleTimeString();
 
   return (
@@ -99,13 +105,46 @@ const AdminToolbar = ({ adminData, handleLogout }: AdminToolbarProps) => {
               cursor: "pointer",
               "&:hover": { opacity: 0.8 },
             }}
-          />    
+            onClick={handleOpenDialog}
+          />
+
+          <Modal
+            open={openDialog}
+            onClose={handleCloseDialog}
+            aria-labelledby="avatar-modal"
+            aria-describedby="enlarged view of user avatar"
+          >
+            <Box
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                bgcolor: "background.paper",
+                boxShadow: 24,
+                p: 2,
+                outline: "none",
+                borderRadius: "4px",
+              }}
+            >
+              <img
+                src={adminData.image?.url}
+                alt={adminData.name || adminData.username || "User"}
+                style={{
+                  maxWidth: "90vw",
+                  maxHeight: "90vh",
+                  objectFit: "contain",
+                }}
+                onClick={handleClose}
+              />
+            </Box>
+          </Modal>
           <Box>
             <Typography variant="body1" sx={{ fontWeight: 700 }}>
-              {adminData?.name || "User"}  
+              {adminData?.name}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              {adminData.role || "Admin"}
+              {adminData.role}
             </Typography>
           </Box>
           <IconButton

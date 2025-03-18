@@ -15,5 +15,12 @@ export enum IconType {
     SVG = 'svg',
     EXE = 'exe',
     RAR = 'rar',
+
+    // for code
+    PYTHON = 'py',
+    JS = 'js',
+    TS = 'ts',
+    HTML = 'html',
+    CSS = 'css',
     DEFAULT = 'default'
   }

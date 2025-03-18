@@ -178,7 +178,7 @@ const UseMainController = () => {
     try {
       // Use a local loading state for just this section
       const localLoading = true;
-      console.log(localLoading)
+      console.log(localLoading);
       setError(null);
 
       const endpoint =
@@ -251,10 +251,8 @@ const UseMainController = () => {
 
   const handleDetailsClick = async () => {
     if (selectedDocument) {
-      // Simply open the collapse view using state
       setCollapseOpen(true);
 
-      // Only fetch these when details are opened
       if (fileHistory.length === 0) {
         await handleGetHistory();
       }
@@ -471,6 +469,7 @@ const UseMainController = () => {
     (item: Document) => {
       if (item.type === "folder") {
         setLoading(true);
+        setPage(0);
 
         const newFolderPath = item.path;
 
@@ -665,17 +664,17 @@ const UseMainController = () => {
       return;
     }
 
-    // Show confirmation dialog first
+    const itemType = selectedDocument.itemType === "folder" ? "ໂຟເດີ້" : "ໄຟລ໌";
+
     const result = await Swal.fire({
       title: "ທ່ານແນ່ໃຈບໍ່ ?",
-      text: `ທ່ານຕ້ອງການປ່ຽນຊື່ໂຟເດີ້ເປັນ "${newName}"?`,
+      text: `ທ່ານຕ້ອງການປ່ຽນຊື່${itemType}ເປັນ "${newName}"?`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "ຕົກລົງ",
       cancelButtonText: "ຍົກເລີກ",
     });
 
-    // If the user cancels, do nothing
     if (!result.isConfirmed) {
       return;
     }
@@ -684,35 +683,31 @@ const UseMainController = () => {
       setIsSubmitting(true);
       setLoading(true);
 
-      let endPoint;
-
-      if (selectedDocument.itemType === "folder") {
-        endPoint = `${UPDATE_FOLDER_END_POINT}/${selectedDocument.id}`;
-      } else {
-        endPoint = `${UPDATE_FILE_END_POINT}/${selectedDocument.id}`;
-      }
+      let endPoint =
+        selectedDocument.itemType === "folder"
+          ? `${UPDATE_FOLDER_END_POINT}/${selectedDocument.id}`
+          : `${UPDATE_FILE_END_POINT}/${selectedDocument.id}`;
 
       const res = await axiosInstance.patch(endPoint, {
         name: newName,
       });
 
-      // Update the selected document with the new data from the API response
-      setSelectedDocument(res.data);
-
       if (res?.status === 200) {
-        setLoading(false);
+        setSelectedDocument({ ...res.data }); // Ensure state updates
+
         await Swal.fire({
           icon: "success",
-          title: "ໂຟເດີ້ຖືກປ່ຽນຊື່ສຳເລັດ!",
-          text: `ໂຟເດີ້ຖືກປ່ຽນຊື່ເປັນ "${newName}" ສຳເລັດແລ້ວ.`,
+          title: `${itemType}ຖືກປ່ຽນຊື່ສຳເລັດ!`,
+          text: `${itemType}ຖືກປ່ຽນຊື່ເປັນ "${newName}" ສຳເລັດແລ້ວ.`,
           showConfirmButton: false,
           timer: 2000,
         });
-      }
 
-      handleGetData();
-      if (folderPath) {
-        handleGetDocumentsByPath();
+        // Refetch updated data
+        await handleGetData();
+        if (folderPath) {
+          await handleGetDocumentsByPath();
+        }
       }
     } catch (error) {
       console.error(error);

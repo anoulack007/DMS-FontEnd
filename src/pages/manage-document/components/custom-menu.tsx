@@ -43,22 +43,22 @@ const CustomMenu = ({
 
   const ListMenu = [
     {
-      label: "Delete",
+      label: "ລຶບ",
       icon: <DeleteIcon />,
       onclick: handleDelete,
     },
     {
-      label: "Move to",
+      label: "ຍ້າຍ",
       icon: <MoveToInboxIcon />,
       onclick: handleMoveToClick,
     },
     {
-      label: "Download",
+      label: "ດາວໂຫຼດ",
       icon: <DownloadIcon />,
       onclick: handleDownload,
     },
     {
-      label: "Rename",
+      label: "ປ່ຽນຊື່",
       icon: <EditIcon />,
       onclick: hanldeFolderRename,
     },

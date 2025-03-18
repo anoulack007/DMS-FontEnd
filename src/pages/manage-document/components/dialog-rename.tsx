@@ -25,20 +25,29 @@ interface RenameDocumentDialogProps {
 const RenameDocumentDialog: React.FC<RenameDocumentDialogProps> = ({
   ctrl,
 }) => {
+  const handleClose = () => {
+    ctrl.setRenameDialogOpen(false);
+    ctrl.handleChangeName("");
+  };
   return (
     <Dialog
       open={ctrl.renameDialogOpen}
-      onClose={() => ctrl.setRenameDialogOpen(false)}
+      onClose={handleClose}
       maxWidth="xs"
       fullWidth
     >
-      <form onSubmit={ctrl.handleRenameFolder}>
-        <DialogTitle>Rename Document</DialogTitle>
+      <form
+        onSubmit={(e) => {
+          ctrl.handleRenameFolder(e);
+          ctrl.handleChangeName(""); // Clear input when submitting
+        }}
+      >
+        <DialogTitle>ປ່ຽນຊື່ ເອກະສານ</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="New name"
+            label="ຊື່ໃໝ່"
             fullWidth
             value={ctrl.newName}
             onChange={(e) => ctrl.handleChangeName(e.target.value)}
@@ -53,7 +62,7 @@ const RenameDocumentDialog: React.FC<RenameDocumentDialogProps> = ({
               color: "white",
             }}
           >
-            {ctrl.isSubmitting ? <CircularProgress size={24} /> : "Rename"}
+            {ctrl.isSubmitting ? <CircularProgress size={24} /> : "ປ່ຽນຊື່"}
           </Button>
         </DialogActions>
       </form>

@@ -33,6 +33,9 @@ import SvgImage from "../../assets/logo/svg.svg.svg";
 import ExeImage from "../../assets/logo/exe.svg.svg";
 import RarImage from "../../assets/logo/rar_ic.svg";
 import Jpeg from '../../assets/logo/jpeg.png'
+import Python from '../../assets/logo/python_ic.svg'
+import Html from '../../assets/logo/html-icon.svg'
+import Js from '../../assets/logo/javascript_icon.svg'
 
 import { IconType } from "../../enums/icon-enums";
 import DialogInviteMember from "./components/dialog-inviteMember";
@@ -80,7 +83,13 @@ export const getIconByType = (type: string) => {
     case IconType.RAR:
       return <img height={45} src={RarImage} alt="rar" />;
     case IconType.JPEG:
-      return <img height={45} src={Jpeg} alt="rar" />;
+      return <img height={45} src={Jpeg} alt="jpeg" />;
+    case IconType.PYTHON:
+      return <img height={45} src={Python} alt="python" />;
+    case IconType.HTML:
+      return <img height={45} src={Html} alt="html" />;
+    case IconType.JS:
+      return <img height={45} src={Js} alt="Javascript" />;
     default:
       return <img src={FoldeImage} alt="folder" />;
   }
