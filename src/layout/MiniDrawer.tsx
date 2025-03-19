@@ -31,7 +31,8 @@ import FileUploadDialog from "./components/dilog-uploadFile";
 import { MANAGE_DOC_PATH } from "../routes/paths";
 import CreateFolderDialog from "./components/dialog-createFolder";
 
-import LOGO_NIT from "../assets/Image/drawer/dennis.jpg";
+// import LOGO_NIT from "../assets/Image/drawer/dennis.jpg";
+import LOGO_IQURI from "../assets/logo/IQURI.svg";
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open",
@@ -71,7 +72,7 @@ const MiniDrawer = () => {
           <IconButton
             onClick={() => ctrl?.handleNavigateToMain(MANAGE_DOC_PATH)}
           >
-            <img height={90} width={90} src={LOGO_NIT} alt="iQURi" />
+            <img height={90} width={90} src={LOGO_IQURI} alt="iQURi" />
           </IconButton>
         </Box>
 
