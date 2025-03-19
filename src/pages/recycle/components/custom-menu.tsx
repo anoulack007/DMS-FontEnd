@@ -1,30 +1,35 @@
 import { Box, Button, Divider } from "@mui/material";
 
 //icons
-import DetailI_ic from '../../../assets/Image/Detail_ic.svg'
+import DetailI_ic from "../../../assets/Image/Detail_ic.svg";
 
 // Icons
 import DeleteIcon from "@mui/icons-material/Delete";
-import RestoreOutlinedIcon from '@mui/icons-material/RestoreOutlined';
+import RestoreOutlinedIcon from "@mui/icons-material/RestoreOutlined";
 
 interface Props {
   selectedCount: number;
-  onDetailsClick: () => void; // Update the prop to accept a document
+  onDetailsClick: () => void;
   handleDelete: (e: React.FormEvent) => void;
   handleRestore: (e: React.FormEvent) => void;
 }
 
-const CustomMenu = ({ selectedCount, onDetailsClick, handleDelete, handleRestore }: Props) => {
+const CustomMenu = ({
+  selectedCount,
+  onDetailsClick,
+  handleDelete,
+  handleRestore,
+}: Props) => {
   const ListMenu = [
     {
-      label: "ກູ້ຄືນ", 
+      label: "ກູ້ຄືນ",
       icon: <RestoreOutlinedIcon />,
-      onclick: handleRestore
+      onclick: handleRestore,
     },
     {
       label: "ລຶບ",
       icon: <DeleteIcon />,
-      onclick: handleDelete
+      onclick: handleDelete,
     },
   ];
 
@@ -34,8 +39,8 @@ const CustomMenu = ({ selectedCount, onDetailsClick, handleDelete, handleRestore
         display: "flex",
         alignItems: "center",
         padding: "10px 20px",
-        bgcolor: "white", // Background color similar to the image
-        borderRadius: 1, // For slightly rounded corners
+        bgcolor: "white",
+        borderRadius: 1,
         gap: 5,
         boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
         mb: 3,
@@ -57,22 +62,19 @@ const CustomMenu = ({ selectedCount, onDetailsClick, handleDelete, handleRestore
         </Button>
       ))}
 
-      {/* Right-aligned buttons */}
       <Box sx={{ ml: "auto", display: "flex", alignItems: "center" }}>
-        {/* "selectedCount" button */}
         <Button
           sx={{
             border: "1px solid #ccc",
             textTransform: "none",
             padding: "6px 12px",
             color: "#021016",
-            borderRadius: 5
+            borderRadius: 5,
           }}
         >
           {selectedCount} selected
         </Button>
 
-        {/* Vertical Divider */}
         <Divider
           orientation="vertical"
           flexItem
@@ -84,16 +86,16 @@ const CustomMenu = ({ selectedCount, onDetailsClick, handleDelete, handleRestore
           }}
         />
 
-        {/* "Details" button */}
         <Button
           onClick={onDetailsClick}
           sx={{
             textTransform: "none",
             color: "#021016",
-            gap: 1
+            gap: 1,
           }}
         >
-          <img src={DetailI_ic} alt="Detail" />Details
+          <img src={DetailI_ic} alt="Detail" />
+          Details
         </Button>
       </Box>
     </Box>

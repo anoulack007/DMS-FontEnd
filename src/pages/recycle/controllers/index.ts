@@ -37,7 +37,7 @@ interface Document {
   updatedAt: string;
 }
 
-interface DateRangeFilter {
+export interface DateRangeFilter {
   startDate: Date | null;
   endDate: Date | null;
 }
@@ -155,12 +155,10 @@ const UseMainController = () => {
           : []),
       ];
 
-      // Sort by createdAt in descending order (newest first)
       const sortedDocuments = documents.sort((a, b) => {
-        // Make sure to handle possible undefined createdAt values
-        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
-        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
-        return dateB.getTime() - dateA.getTime(); // Descending order (newest to oldest)
+        const dateA = a.updatedAt ? new Date(a.updatedAt) : new Date(0);
+        const dateB = b.updatedAt ? new Date(b.updatedAt) : new Date(0);
+        return dateB.getTime() - dateA.getTime();
       });
 
       setDocuments(sortedDocuments);
@@ -174,22 +172,18 @@ const UseMainController = () => {
   };
 
   // Search function to filter documents by name or documentId
-  const handleSearch = (searchValue: any) => {
+  const handleSearch = (searchValue: string) => {
     setSearchTerm(searchValue);
-    // We'll apply the search filter in the effect hook below
   };
 
   // Date filter handler
   const handleDateFilterChange = (newDateFilter: DateRangeFilter) => {
     setDateFilter(newDateFilter);
-    applyFilters(searchTerm, newDateFilter);
   };
 
-  // Apply all filters (search term and date range)
   const applyFilters = (search: string, dates: DateRangeFilter) => {
     let filtered = [...documents];
 
-    // Apply search filter
     if (search.trim() !== "") {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(
@@ -199,7 +193,6 @@ const UseMainController = () => {
       );
     }
 
-    // Apply date filter
     if (dates.startDate || dates.endDate) {
       filtered = filtered.filter((doc) => {
         const docDate = doc.createdAt ? new Date(doc.createdAt) : null;
@@ -225,10 +218,9 @@ const UseMainController = () => {
     }
 
     setFilteredDocuments(filtered);
-    setPage(0); // Reset to first page when filters change
+    setPage(0);
   };
 
-  // Reset all filters
   const resetFilters = () => {
     setSearchTerm("");
     setDateFilter({ startDate: null, endDate: null });
@@ -236,7 +228,6 @@ const UseMainController = () => {
     setPage(0);
   };
 
-  // Enhanced selection handlers
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     const currentPageItems = getPaginatedData();
     if (event.target.checked) {
@@ -256,7 +247,6 @@ const UseMainController = () => {
         ? prev.filter((item) => item !== id)
         : [...prev, id];
 
-      // Update selected document based on selection
       if (doc) {
         if (!prev.includes(id)) {
           setSelectedDocument(doc);
@@ -288,9 +278,11 @@ const UseMainController = () => {
   const handleDelete = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
+    const itemType = selectedDocument?.type === "folder" ? "ໂຟເດີ້" : "ໄຟລ໌";
+
     const result = await Swal.fire({
       title: "ທ່ານແນ່ໃຈບໍ່?",
-      text: "ຄຳສັ່ງນີ້ຈະລຶບລາຍການດັ່ງກ່າວອອກຖາວອນ.",
+      text: `ຄຳສັ່ງນີ້ຈະລຶບ${itemType}ດັ່ງກ່າວອອກຖາວອນ.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "ລຶບ",
@@ -298,6 +290,7 @@ const UseMainController = () => {
     });
 
     if (result.isConfirmed) {
+      setLoading(true);
       try {
         const endpoint =
           selectedDocument?.type === "folder"
@@ -310,9 +303,11 @@ const UseMainController = () => {
           icon: "success",
           title: "ລຶບແລ້ວ!",
           text: "ລາຍການດັ່ງກ່າວໄດ້ຖືກລຶບຖິ້ມແລ້ວ.",
+          showConfirmButton: false,
+          timer: 1500,
         });
 
-        handleGetData();
+        await handleGetData();
         setSelectedDocument(null);
         setSelectedItems([]);
       } catch (error) {
@@ -322,6 +317,8 @@ const UseMainController = () => {
           title: "Oops...",
           text: "ລຶບລາຍການບໍ່ສຳເລັດ. ກະລຸນາລອງອີກຄັ້ງ.",
         });
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -329,9 +326,11 @@ const UseMainController = () => {
   const handleRestore = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
+    const itemType = selectedDocument?.type === "folder" ? "ໂຟເດີ້" : "ໄຟລ໌";
+
     const result = await Swal.fire({
       title: "ທ່ານແນ່ໃຈບໍ່?",
-      text: "ການປະຕິບັດນີ້ຈະກູ້ຄືນໄຟລ໌.",
+      text: `ການປະຕິບັດນີ້ຈະກູ້ຄືນ${itemType}.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "ກູ້ຄືນ",
@@ -355,7 +354,9 @@ const UseMainController = () => {
         await Swal.fire({
           icon: "success",
           title: "ກູ້ຄືນແລ້ວ!",
-          text: "ໄຟລ໌ໄດ້ຖືກກູ້ຄືນຢ່າງສໍາເລັດແລ້ວ.",
+          text: `${itemType}ໄດ້ຖືກກູ້ຄືນຢ່າງສໍາເລັດແລ້ວ.`,
+          showConfirmButton: false,
+          timer: 1500,
         });
 
         handleGetData();
@@ -399,10 +400,8 @@ const UseMainController = () => {
 
     // Search and filter
     searchTerm,
-    setSearchTerm,
-    handleSearch,
     dateFilter,
-    setDateFilter,
+    handleSearch,
     handleDateFilterChange,
     resetFilters,
     filteredDocuments,
