@@ -577,7 +577,7 @@ const UseMainController = () => {
 
     setDocuments(filteredDocuments);
     handleFilterClose(field);
-  };
+  };  
 
   const handleDeleteFolder = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -623,9 +623,9 @@ const UseMainController = () => {
           });
         }
 
-        handleGetData();
+        await handleGetData();
         if (folderPath) {
-          handleGetDocumentsByPath();
+          await handleGetDocumentsByPath();
         }
       } catch (error) {
         console.error("Delete error:", error);
