@@ -58,6 +58,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
             <TableRow>
               <TableCell></TableCell>
               <TableCell>ຊື່ເອກະສານ</TableCell>
+              <TableCell>ປະເພດ</TableCell>
               <TableCell>ລະຫັດເອກະສານ</TableCell>
               <TableCell>ຊື່ຜູ້ລົບ</TableCell>
               <TableCell>ລົບໃນວັນທິ</TableCell>
@@ -129,6 +130,9 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                         <Typography>{item?.name}</Typography>
                       </Box>
                     </Box>
+                  </TableCell>
+                  <TableCell sx={{ borderBottom: "none" }}>
+                    {item?.type ? item?.type : "folder"}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {item?.documentId}
