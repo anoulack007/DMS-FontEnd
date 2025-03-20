@@ -33,6 +33,10 @@ import CreateFolderDialog from "./components/dialog-createFolder";
 
 // import LOGO_NIT from "../assets/Image/drawer/dennis.jpg";
 import LOGO_IQURI from "../assets/logo/IQURI.svg";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
+import { checkPermission } from "../utils/functions/checkPermission";
+import { UserRole } from "../enums/role";
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== "open",
@@ -50,6 +54,8 @@ const Drawer = styled(MuiDrawer, {
 const MiniDrawer = () => {
   const ctrl = UseDrawerController();
   const location = useLocation();
+
+  const authData = useSelector((state: RootState) => state?.auth?.data);
 
   const isManageDocument =
     location.pathname === MANAGE_DOC_PATH || location.pathname === "/";
@@ -151,83 +157,124 @@ const MiniDrawer = () => {
 
         <Box sx={{ ml: 1, bgcolor: "white", borderRadius: "8px" }}>
           <Box sx={{ px: "8px", py: "24px" }}>
-            <Typography sx={{ pl: "16px", color: "#746E6E" }}>
-              ຈັດການເອກະສານ
-            </Typography>
-            <List>
-              {MENU_ITEM_LISTS.map((item, index) => {
-                const isItemActive =
-                  currentPath === item.path ||
-                  (currentPath === "" && index === 0);
-                return (
-                  <NavItem
-                    key={item.path}
-                    item={item}
-                    open={isItemActive}
-                    active={isItemActive}
-                  />
-                );
-              })}
-            </List>
+            {/* Manage Documents - Visible to ADMIN, PROJECT_MANAGER, USER */}
+            {authData?.role === UserRole.ADMIN ||
+            authData?.role === UserRole.PROJECT_MANAGER ||
+            authData?.role === UserRole.USER ? (
+              <>
+                <Typography sx={{ pl: "16px", color: "#746E6E" }}>
+                  ຈັດການເອກະສານ
+                </Typography>
+                <List>
+                  {MENU_ITEM_LISTS.map((item, index) => {
+                    const isItemActive =
+                      currentPath === item.path ||
+                      (currentPath === "" && index === 0);
+                    return (
+                      <NavItem
+                        key={item.path}
+                        item={item}
+                        open={isItemActive}
+                        active={isItemActive}
+                        display={checkPermission(
+                          authData?.role?.toString() || "",
+                          item.path
+                        )}
+                      />
+                    );
+                  })}
+                </List>
+              </>
+            ) : null}
 
-            <Typography sx={{ pl: "16px", color: "#746E6E" }}>
-              ຕິດຕາມເອກະສານ
-            </Typography>
-            <List>
-              {FOLLOW_DOCUMENT_LISTS.map((item, index) => {
-                const isItemActive =
-                  currentPath === item.path ||
-                  (currentPath === "" && index === 0);
-                return (
-                  <NavItem
-                    key={item.path}
-                    item={item}
-                    open={isItemActive}
-                    active={isItemActive}
-                  />
-                );
-              })}
-            </List>
+            {/* Follow Documents - Visible to ADMIN, PROJECT_MANAGER */}
+            {authData?.role === UserRole.ADMIN ||
+            authData?.role === UserRole.PROJECT_MANAGER ? (
+              <>
+                <Typography sx={{ pl: "16px", color: "#746E6E" }}>
+                  ຕິດຕາມເອກະສານ
+                </Typography>
+                <List>
+                  {FOLLOW_DOCUMENT_LISTS.map((item, index) => {
+                    const isItemActive =
+                      currentPath === item.path ||
+                      (currentPath === "" && index === 0);
+                    return (
+                      <NavItem
+                        key={item.path}
+                        item={item}
+                        open={isItemActive}
+                        active={isItemActive}
+                        display={checkPermission(
+                          authData?.role?.toString() || "",
+                          item.path
+                        )}
+                      />
+                    );
+                  })}
+                </List>
+              </>
+            ) : null}
 
-            <Typography sx={{ pl: "16px", color: "#746E6E" }}>
-              ຈັດການຜູ້ໃຊ້
-            </Typography>
-            <List>
-              {USER_MANAGE_LISTS.map((item, index) => {
-                const isItemActive =
-                  currentPath === item.path ||
-                  (currentPath === "" && index === 0);
-                return (
-                  <NavItem
-                    key={item.path}
-                    item={item}
-                    open={isItemActive}
-                    active={isItemActive}
-                  />
-                );
-              })}
-            </List>
+            {/* User Management - Visible to ADMIN, HR */}
+            {authData?.role === UserRole.ADMIN ||
+            authData?.role === UserRole.HR ? (
+              <>
+                <Typography sx={{ pl: "16px", color: "#746E6E" }}>
+                  ຈັດການຜູ້ໃຊ້
+                </Typography>
+                <List>
+                  {USER_MANAGE_LISTS.map((item, index) => {
+                    const isItemActive =
+                      currentPath === item.path ||
+                      (currentPath === "" && index === 0);
+                    return (
+                      <NavItem
+                        key={item.path}
+                        item={item}
+                        open={isItemActive}
+                        active={isItemActive}
+                        display={checkPermission(
+                          authData?.role?.toString() || "",
+                          item.path
+                        )}
+                      />
+                    );
+                  })}
+                </List>
+              </>
+            ) : null}
 
-            {/* Add Report Section */}
-            <Typography sx={{ pl: "16px", color: "#746E6E" }}>
-              ລາຍງານ
-            </Typography>
-            <List sx={{ marginBottom: "24px" }}>
-              {REPORT_ITEM_LISTS.map((item) => {
-                const isItemActive =
-                  currentPath === item.path ||
-                  (item.children &&
-                    item.children.some((child) => child.path === currentPath));
-                return (
-                  <NavItem
-                    key={item.path}
-                    item={item}
-                    open={isItemActive}
-                    active={isItemActive}
-                  />
-                );
-              })}
-            </List>
+            {/* Reports - Visible to ADMIN, PROJECT_MANAGER */}
+            {authData?.role === UserRole.ADMIN ? (
+              <>
+                <Typography sx={{ pl: "16px", color: "#746E6E" }}>
+                  ລາຍງານ
+                </Typography>
+                <List sx={{ marginBottom: "24px" }}>
+                  {REPORT_ITEM_LISTS.map((item) => {
+                    const isItemActive =
+                      currentPath === item.path ||
+                      (item.children &&
+                        item.children.some(
+                          (child) => child.path === currentPath
+                        ));
+                    return (
+                      <NavItem
+                        key={item.path}
+                        item={item}
+                        open={isItemActive}
+                        active={isItemActive}
+                        display={checkPermission(
+                          authData?.role?.toString() || "",
+                          item.path
+                        )}
+                      />
+                    );
+                  })}
+                </List>
+              </>
+            ) : null}
           </Box>
         </Box>
       </Drawer>

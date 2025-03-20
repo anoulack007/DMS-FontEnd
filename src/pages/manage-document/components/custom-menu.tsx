@@ -106,7 +106,7 @@ const CustomMenu = ({
               borderRadius: 5,
             }}
           >
-            {selectedCount} selected
+            {selectedCount} ລາຍການ
           </Button>
 
           {/* Vertical Divider */}
