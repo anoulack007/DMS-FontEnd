@@ -23,71 +23,27 @@ import UseMainController from "./controller";
 
 //icons
 import FoldeImage from "../../assets/Image/image 11.png";
-import ZipImage from "../../assets/logo/zip_ic.svg";
-import PngImage from "../../assets/logo/png.svg";
-import DocsImage from "../../assets/logo/doc_ic.svg";
-import XlsxImage from "../../assets/logo/excel_ic.svg";
-import ImageImage from "../../assets/logo/image_ic.svg";
-import JpegImage from "../../assets/logo/jpg.svg.svg";
-import PptImage from "../../assets/logo/ptt_ic.svg";
-import Mp3Image from "../../assets/logo/music_ic.svg";
-import VideoImage from "../../assets/logo/video_ic.svg";
-import PdfImage from "../../assets/logo/pdf_ic.svg";
-import TxtImage from "../../assets/logo/txt.svg.svg";
-import SvgImage from "../../assets/logo/svg.svg.svg";
-import ExeImage from "../../assets/logo/exe.svg.svg";
-import RarImage from "../../assets/logo/rar_ic.svg";
-
-import { IconType } from "../../enums/icon-enums";
 import CustomMenu from "../manage-document/components/custom-menu";
 import DocumentTable from "./components/table";
 import { getEventChipColor } from "../../utils/constant/eventChipColor";
-
-const getIconByType = (type: string) => {
-  switch (type) {
-    case IconType.FOLDER:
-      return <img src={FoldeImage} alt="folder" />;
-    case IconType.ZIP:
-      return <img src={ZipImage} alt="zip" />;
-    case IconType.PNG:
-      return <img height={45} src={PngImage} alt="png" />;
-    case IconType.DOCX:
-      return <img src={DocsImage} alt="docs" />;
-    case IconType.XLSX:
-      return <img src={XlsxImage} alt="xlsx" />;
-    case IconType.IMAGE:
-      return <img src={ImageImage} alt="image" />;
-    case IconType.JPG:
-      return <img height={45} src={JpegImage} alt="jpeg" />;
-    case IconType.PPT:
-      return <img src={PptImage} alt="ppt" />;
-    case IconType.MP3:
-      return <img src={Mp3Image} alt="mp3" />;
-    case IconType.MP4:
-      return <img src={VideoImage} alt="video" />;
-    case IconType.PDF:
-      return <img src={PdfImage} alt="pdf" />;
-    case IconType.TXT:
-      return <img height={45} src={TxtImage} alt="txt" />;
-    case IconType.SVG:
-      return <img height={45} src={SvgImage} alt="svg" />;
-    case IconType.EXE:
-      return <img height={45} src={ExeImage} alt="exe" />;
-    case IconType.RAR:
-      return <img height={45} src={RarImage} alt="rar" />;
-    default:
-      return <img src={FoldeImage} alt="folder" />;
-  }
-};
+import { getIconByType } from "../manage-document";
+import EventFilter from "./components/input-eventFilter";
 
 const FollowDocumentPage = () => {
   const ctrl = UseMainController();
 
   return (
     <Box>
-      <Typography mb={5} color="#838383" variant="h5" fontWeight={700}>
-        ຕິດຕາມເອກະສານ
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography mb={5} color="#838383" variant="h5" fontWeight={700}>
+          ຕິດຕາມເອກະສານ
+        </Typography>
+
+        <EventFilter
+          eventFilter={ctrl.eventFilter}
+          handleEventFilterChange={ctrl.handleEventFilterChange}
+        />
+      </Box>
       {ctrl?.selectedItems.length > 0 && (
         <CustomMenu
           selectedCount={ctrl.selectedItems.length}

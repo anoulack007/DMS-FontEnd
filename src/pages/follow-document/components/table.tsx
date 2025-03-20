@@ -92,11 +92,11 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           <TableHead>
             <TableRow>
               <TableCell></TableCell>
-              <TableCell width={500}>Document Name</TableCell>
-              <TableCell>Creation Date</TableCell>
-              <TableCell>User Name</TableCell>
-              <TableCell>Company</TableCell>
-              <TableCell>Event</TableCell>
+              <TableCell width={500}>ຊື່ເອກະສານ</TableCell>
+              <TableCell>ວັນທີ</TableCell>
+              <TableCell>ຊື່ຜູ້ໃຊ້</TableCell>
+              <TableCell>ບໍລິສັດ</TableCell>
+              <TableCell>ເຫດການ</TableCell>
             </TableRow>
           </TableHead>
           <TableBody sx={{ borderBottom: "1px solid #919EAB3D" }}>
@@ -176,7 +176,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {item.createdAt
-                      ? new Date(item.createdAt).toLocaleString()
+                      ? new Date(item.createdAt).toLocaleDateString()
                       : ""}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>

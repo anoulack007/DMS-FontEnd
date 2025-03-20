@@ -59,7 +59,7 @@ const UseMainController = () => {
   }>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [error, _setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null
   );
@@ -77,6 +77,23 @@ const UseMainController = () => {
   const [renameDialogOpen, setRenameDialogOpen] = useState<boolean>(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState<boolean>(false);
   const [email, setEmail] = useState<string>(null!);
+  const [eventFilter, setEventFilter] = useState<string>("");
+
+  const handleEventFilterChange = (value: string) => {
+    setEventFilter(value);
+    setPage(0);
+    
+    // Filter documents based on the event type
+    const filtered = value 
+      ? allDocuments.filter(doc => doc.event === value)
+      : allDocuments;
+    
+    setTotalCount(filtered.length);
+    
+    // Update displayed documents with the first page of filtered results
+    const paginatedDocs = filtered.slice(0, rowsPerPage);
+    setDocuments(paginatedDocs);
+  };
 
   const handleGetData = async () => {
     try {
@@ -100,6 +117,7 @@ const UseMainController = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      setError("Failed to fetch documents");
     } finally {
       setLoading(false);
     }
@@ -115,8 +133,6 @@ const UseMainController = () => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0); // Reset to first page when changing rows per page
   };
-
- 
 
   const handleDetailsClick = () => {
     if (selectedItems) {
@@ -484,13 +500,23 @@ const UseMainController = () => {
 
   useEffect(() => {
     if (allDocuments.length > 0) {
-      const paginatedDocs = allDocuments.slice(
+      // Apply event filter if it exists
+      const filtered = eventFilter 
+        ? allDocuments.filter(doc => doc.event === eventFilter)
+        : allDocuments;
+      
+      setTotalCount(filtered.length);
+      
+      // Then apply pagination to the filtered documents
+      const paginatedDocs = filtered.slice(
         page * rowsPerPage,
         page * rowsPerPage + rowsPerPage
       );
       setDocuments(paginatedDocs);
     }
-  }, [page, rowsPerPage, allDocuments]);
+  }, [page, rowsPerPage, allDocuments, eventFilter]);
+
+  // Remove the problematic useEffect that was using yourApiCall
 
   return {
     page,
@@ -528,7 +554,6 @@ const UseMainController = () => {
     handleFilterClose,
     handleFilter,
     handleDrawerClose,
-    // handleDocumentClick,
     handleFolderClick,
     handleDetailsClick,
     handleRenameFolder,
@@ -536,6 +561,9 @@ const UseMainController = () => {
     handleDeleteFolder,
     handleIviteMember,
     handleDownload,
+    // Add these for event filtering
+    eventFilter,
+    handleEventFilterChange,
   };
 };
 

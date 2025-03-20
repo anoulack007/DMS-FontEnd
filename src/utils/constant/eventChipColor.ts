@@ -11,6 +11,10 @@ export const getEventChipColor = (event: string) => {
         return '#1F509A';
       case 'AddMember':
         return '#9C27B0';
+      case 'Restore':
+        return '#00897B';
+      case 'RemoveMember':
+        return '#D32F2F';
       default:
         return 'gray';
     }
