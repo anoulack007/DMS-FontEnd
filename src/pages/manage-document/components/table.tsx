@@ -85,7 +85,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                 <p style={{ fontWeight: "bold" }}>ວັນທີແກ້ໄຂ</p>
               </TableCell>
               <TableCell>
-                <p style={{ fontWeight: "bold" }}>ຂະໜາດຟໄຟລ໌</p>
+                <p style={{ fontWeight: "bold" }}>ຂະໜາດໄຟລ໌</p>
               </TableCell>
               <TableCell>
                 <p style={{ fontWeight: "bold" }}>ສະຖານະ</p>

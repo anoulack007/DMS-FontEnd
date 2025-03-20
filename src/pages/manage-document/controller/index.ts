@@ -154,12 +154,6 @@ const UseMainController = () => {
         ...Array.from(subfoldersMap.values())
       );
 
-      // If no data was processed, set an empty array
-      if (processedData.length === 0) {
-        console.warn("No documents or subfolders found in the response");
-        setError("No documents or subfolders found in the selected folder");
-      }
-
       setDocuments(processedData);
       setAllDocuments(processedData);
     } catch (error) {
@@ -577,7 +571,7 @@ const UseMainController = () => {
 
     setDocuments(filteredDocuments);
     handleFilterClose(field);
-  };  
+  };
 
   const handleDeleteFolder = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
