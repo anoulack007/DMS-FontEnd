@@ -64,11 +64,11 @@ const handleLogin = async (e: any) => {
     
     // Show SweetAlert error message
     Swal.fire({
-      icon: 'error',
-      title: 'Login Failed',
+      icon: 'warning',
+      title: 'ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ',
       text: errorMsg,
       confirmButtonColor: '#3085d6',
-      confirmButtonText: 'Try Again'
+      confirmButtonText: 'ລອງອີກຄັ້ງ'
     });
     
     setErrorMessage(errorMsg);

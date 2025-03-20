@@ -138,7 +138,7 @@ const LoginPage = () => {
                       {ctrl.loading ? (
                         <CircularProgress size={20} color="inherit" />
                       ) : (
-                        "Login"
+                        "ເຂົ້າສູ່ລະບົບ"
                       )}
                     </Button>
                   </Box>
