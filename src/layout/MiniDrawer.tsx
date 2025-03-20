@@ -57,6 +57,8 @@ const MiniDrawer = () => {
 
   const authData = useSelector((state: RootState) => state?.auth?.data);
 
+  const userRole = useSelector((state: RootState) => state?.auth?.data?.role);
+
   const isManageDocument =
     location.pathname === MANAGE_DOC_PATH || location.pathname === "/";
 
@@ -83,31 +85,33 @@ const MiniDrawer = () => {
         </Box>
 
         <Box sx={{ p: 1 }}>
-          <Button
-            disabled={!isManageDocument}
-            fullWidth
-            sx={{
-              p: 3,
-              height: 55,
-              bgcolor: "#2C3E50",
-              color: "white",
-              borderRadius: 8,
-              textTransform: "none",
-              gap: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-              "&.Mui-disabled": {
-                bgcolor: "#95A5A6",
-                color: "rgba(255, 255, 255, 0.7)",
-                cursor: "not-allowed",
-              },
-            }}
-            onClick={ctrl?.handleClick}
-          >
-            <img src={Add_ic} alt="Add" style={{ marginRight: 8 }} />
-            ອັບໂຫຼດເອກະສານ
-          </Button>
+          {userRole !== "HR" && (
+            <Button
+              disabled={!isManageDocument}
+              fullWidth
+              sx={{
+                p: 3,
+                height: 55,
+                bgcolor: "#2C3E50",
+                color: "white",
+                borderRadius: 8,
+                textTransform: "none",
+                gap: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-start",
+                "&.Mui-disabled": {
+                  bgcolor: "#95A5A6",
+                  color: "rgba(255, 255, 255, 0.7)",
+                  cursor: "not-allowed",
+                },
+              }}
+              onClick={ctrl?.handleClick}
+            >
+              <img src={Add_ic} alt="Add" style={{ marginRight: 8 }} />
+              ອັບໂຫຼດເອກະສານ
+            </Button>
+          )}
           <Menu
             anchorEl={ctrl?.anchorEl}
             open={ctrl?.opening}
