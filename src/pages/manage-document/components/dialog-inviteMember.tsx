@@ -79,18 +79,18 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
 
     try {
       const result = await Swal.fire({
-        title: "Are you sure?",
-        text: "Do you want to invite this member?",
+        title: "ທ່ານແນ່ໃຈບໍ?",
+        text: "ທ່ານຕ້ອງການເຊີນສະມາຊິກນີ້ບໍ?",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Yes, invite!",
-        cancelButtonText: "Cancel",
+        confirmButtonText: "ຕົກລົງ",
+        cancelButtonText: "ຍົກເລີກ",
       });
 
       if (result.isConfirmed) {
         Swal.fire({
-          title: "Sending Invite...",
-          text: "Please wait while the invite is being sent.",
+          title: "ກຳລັງສົ່ງຄຳເຊີນ...",
+          text: "ກະລຸນາລໍຖ້າໃນຂະນະທີ່ຄຳເຊີນກຳລັງຖືກສົ່ງ.",
           icon: "info",
           allowOutsideClick: false,
           didOpen: () => {
@@ -103,29 +103,26 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
 
         // Create arrays with single user's credentials
         const username = selectedUser?.username ? [selectedUser.username] : [];
-        const email = selectedUser?.email ? [selectedUser.email] : [];
 
         if (selectedDocument?.itemType === "folder") {
           endpoint = INVITE_MEMBER_FOLDER_END_POINT;
           payload = {
             folderId: selectedDocument?.id,
             username, // Send as array
-            email, // Include emails as well
           };
         } else {
           endpoint = INVITE_MEMBER_FILE_END_POINT;
           payload = {
             fileId: selectedDocument?.id,
-            email, // Send as array
-            username, // Include usernames as well
+            email: selectedUser?.email
           };
         }
 
         await axiosInstance.post(endpoint, payload);
 
         Swal.fire({
-          title: "Success!",
-          text: "Member has been successfully invited.",
+          title: "ສຳເລັດ!",
+          text: "ເຊີນສະມາຊິກສຳເລັດແລ້ວ.",
           icon: "success",
           showConfirmButton: false,
           timer: 1500,
@@ -170,7 +167,7 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
               <ArrowBackIcon />
             </IconButton>
             <Typography variant="h6" sx={{ ml: 1 }}>
-              Invite Member
+              ເຊີນສະມາຊິກ
             </Typography>
           </Box>
         </DialogTitle>
@@ -189,7 +186,7 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
                 {...params}
                 fullWidth
                 variant="outlined"
-                placeholder="Select User"
+                placeholder="ເລືອກຜູ້ໃຊ້"
                 slotProps={{
                   input: {
                     ...params.InputProps,
@@ -240,7 +237,7 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
               borderRadius: 3,
             }}
           >
-            Cancel
+            ຍົກເລີກ
           </Button>
           <Button
             type="submit"
@@ -257,7 +254,7 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
               borderRadius: 3,
             }}
           >
-            Send
+            ສົ່ງ
           </Button>
         </DialogActions>
       </form>

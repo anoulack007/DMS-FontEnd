@@ -131,7 +131,7 @@ const CustomMenu = ({
             }}
           >
             <img src={DetailI_ic} alt="Detail" />
-            Details
+            ລາຍລະອຽດ
           </Button>
         </Box>
       </Box>
