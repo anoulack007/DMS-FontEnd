@@ -1,3 +1,5 @@
+import { UserRole } from "../enums/role";
+
 export interface UserModel {
   id: number;
   userId: string;
@@ -14,5 +16,5 @@ export interface UserModel {
     path: string;
   };
   company: string;
-  role: string;
+  role: UserRole;
 }

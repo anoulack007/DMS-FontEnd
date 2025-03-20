@@ -7,14 +7,14 @@ import {
   Typography,
   Button,
   Stack,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import UseMainController from "./controllers";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 //icons
-
 import CustomMenu from "./components/custom-menu";
-
 import SearchIcon from "@mui/icons-material/Search";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -26,67 +26,103 @@ import DocumentDetailCollapse from "./components/collapse";
 
 const RecyclePage = () => {
   const ctrl = UseMainController();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Box>
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { xs: 'flex-start', md: 'center' },
           mb: 3,
           justifyContent: "space-between",
+          gap: { xs: 2, md: 0 },
         }}
       >
-        <Typography color="#838383" variant="h5" fontWeight={700}>
+        <Typography color="#838383" variant="h5" fontWeight={700} mb={{ xs: 1, md: 0 }}>
           ຖັງຂີ້ເຫຍື້ອ
         </Typography>
 
-        <Box sx={{ display: "flex", gap: 3 }}>
+        <Box 
+          sx={{ 
+            display: "flex", 
+            flexDirection: { xs: 'column', md: 'row' },
+            width: { xs: '100%', md: 'auto' },
+            gap: { xs: 2, md: 3 }
+          }}
+        >
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <FilterAltIcon color="action" />
-              <Typography variant="subtitle2">ການກັ່ນຕອງຕາມວັນທີ</Typography>
+            <Stack 
+              direction={{ xs: 'column', sm: 'row' }} 
+              spacing={{ xs: 1, sm: 2 }} 
+              alignItems={{ xs: 'flex-start', sm: 'center' }}
+              flexWrap="wrap"
+              sx={{ width: '100%' }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'nowrap' }}>
+                <FilterAltIcon color="action" />
+                <Typography variant="subtitle2" noWrap>ການກັ່ນຕອງຕາມວັນທີ</Typography>
+              </Box>
 
-              <DatePicker
-                label="ວັນທີເລີ່ມຕົ້ນ"
-                value={ctrl.dateFilter.startDate}
-                onChange={(newValue: any) =>
-                  ctrl.handleDateFilterChange({
-                    ...ctrl.dateFilter,
-                    startDate: newValue,
-                  })
-                }
-                format="MM/DD/YYYY"
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    sx: { width: 170 },
-                  },
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: { xs: 'column', sm: 'row' }, 
+                  gap: 2,
+                  width: { xs: '100%', sm: 'auto' },
                 }}
-              />
+              >
+                <DatePicker
+                  label="ວັນທີເລີ່ມຕົ້ນ"
+                  value={ctrl.dateFilter.startDate}
+                  onChange={(newValue: any) =>
+                    ctrl.handleDateFilterChange({
+                      ...ctrl.dateFilter,
+                      startDate: newValue,
+                    })
+                  }
+                  format="MM/DD/YYYY"
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      sx: { 
+                        width: { xs: '100%', sm: 170 },
+                      },
+                    },
+                  }}
+                />
 
-              <DatePicker
-                label="ວັນທີສິ້ນສຸດ"
-                value={ctrl.dateFilter.endDate}
-                onChange={(newValue: any) =>
-                  ctrl.handleDateFilterChange({
-                    ...ctrl.dateFilter,
-                    endDate: newValue,
-                  })
-                }
-                format="MM/DD/YYYY"
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    sx: { width: 170 },
-                  },
-                }}
-              />
+                <DatePicker
+                  label="ວັນທີສິ້ນສຸດ"
+                  value={ctrl.dateFilter.endDate}
+                  onChange={(newValue: any) =>
+                    ctrl.handleDateFilterChange({
+                      ...ctrl.dateFilter,
+                      endDate: newValue,
+                    })
+                  }
+                  format="MM/DD/YYYY"
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      sx: { 
+                        width: { xs: '100%', sm: 170 },
+                      },
+                    },
+                  }}
+                />
+              </Box>
 
               <Button
                 variant="outlined"
                 startIcon={<ClearIcon />}
-                sx={{ textTransform: "none" }}
+                sx={{ 
+                  textTransform: "none",
+                  alignSelf: { xs: 'flex-start', sm: 'center' },
+                }}
                 onClick={ctrl.resetFilters}
                 size="small"
               >
@@ -95,9 +131,12 @@ const RecyclePage = () => {
             </Stack>
           </LocalizationProvider>
 
-          <Divider orientation="vertical" flexItem />
+          {!isSmall && (
+            <Divider orientation={isMobile ? "horizontal" : "vertical"} flexItem />
+          )}
 
           <TextField
+            fullWidth={isMobile}
             sx={{
               fontFamily: "NotoSansLao-Regular",
               borderRadius: 24,
@@ -108,6 +147,8 @@ const RecyclePage = () => {
               "& .MuiOutlinedInput-notchedOutline": {
                 border: "none",
               },
+              width: { xs: '100%', md: 'auto' },
+              minWidth: { sm: '200px' },
             }}
             placeholder="ຄົ້ນຫາເອກະສານ..."
             value={ctrl.searchTerm}

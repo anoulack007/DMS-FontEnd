@@ -611,7 +611,7 @@ const UseMainController = () => {
           await Swal.fire({
             icon: "success",
             title: "ລົບສຳເລັດ!",
-            text: `The ${isFolder ? "folder" : "file"} ຖືກລົບສຳເລັດແລ້ວ.`,
+            text: `${isFolder ? "folder" : "file"} ຖືກລົບສຳເລັດແລ້ວ.`,
             showConfirmButton: false,
             timer: 2000,
           });

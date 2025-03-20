@@ -18,14 +18,17 @@ interface NavItemProps {
   item: MENU_ITEM_LISTS_PROPS;
   open?: boolean;
   active?: boolean;
+  display: boolean;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ item, active = false }) => {
+const NavItem: React.FC<NavItemProps> = ({ item, active = false, display }) => {
   const navigate = useNavigate();
   const location = useLocation(); // Get current location
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const hasChildren = item.children && item.children.length > 0;
+  
+  if (!display) return null;
 
   // Check if parent item is active
   const isParentActive =

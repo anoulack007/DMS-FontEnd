@@ -338,6 +338,7 @@ const UseMainController = () => {
     });
 
     if (result.isConfirmed) {
+      setLoading(true);
       try {
         const endpoint =
           selectedDocument?.type === "folder"
@@ -359,11 +360,13 @@ const UseMainController = () => {
           timer: 1500,
         });
 
-        handleGetData();
+        await handleGetData();
         setSelectedDocument(null);
         setSelectedItems([]);
       } catch (error) {
         ErrorResponse(error as ErrorModel);
+      } finally {
+        setLoading(false);
       }
     }
   };
