@@ -30,7 +30,7 @@ const UseMainController = () => {
       );
 
       // Filter only uploaded files/folders
-      const uploadedDocs = res?.data?.data?.filter((doc) => doc.event === "Delete");
+      const uploadedDocs = res?.data?.data?.filter((doc) => doc.event === "Restore");
       setUploadDocument(uploadedDocs);
       
       // Apply initial date filter

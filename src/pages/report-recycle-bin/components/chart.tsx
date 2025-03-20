@@ -50,7 +50,7 @@ const ExpensesChart: React.FC<ExpensesChartProps> = ({
         }}
       >
         <Typography variant="h5">
-          Chart ຍອດລວມເອກະສານ (Event Recycles)
+          Chart ຍອດລວມເອກະສານ (Event Restores)
         </Typography>
         <FormControl variant="outlined" size="small" sx={{ width: 120 }}>
           <Select

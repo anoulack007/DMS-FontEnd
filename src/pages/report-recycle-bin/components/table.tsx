@@ -153,7 +153,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   </TableCell>
 
                   <TableCell sx={{ borderBottom: "none" }}>
-                    <Chip label={document?.event} color="error" size="medium" />
+                    <Chip label={document?.event} color="success" size="medium" />
                   </TableCell>
                 </TableRow>
               ))
