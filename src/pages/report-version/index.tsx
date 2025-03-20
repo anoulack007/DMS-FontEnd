@@ -100,7 +100,7 @@ const ReportVersionPage = () => {
   return (
     <Box sx={{ p: 3, bgcolor: "#f5f5f5", minHeight: "100vh" }}>
       <Typography mb={5} color="#838383" variant="h5" fontWeight={700}>
-        ລາຍງານການອັບເດດເອກະສານ
+        ລາຍງານເວີຊັນເອກະສານ
       </Typography>
 
       <DateRangeHeader

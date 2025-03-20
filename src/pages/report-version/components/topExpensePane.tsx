@@ -32,7 +32,7 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
   return (
     <Paper sx={{ p: 2, height: "100%", borderRadius: "12px" }}>
       <Typography variant="h5" mb={2} textAlign="center">
-        ເອກະສານທີ່ຖືກອັບເດດທັງໝົດ
+        ເອກະສານທີ່ມີເວີຊັນທັງໝົດ
       </Typography>
 
       {loading ? (
