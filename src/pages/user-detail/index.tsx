@@ -22,6 +22,8 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import AvatarUpload from "./components/UploadAvatar";
 import { Input } from "../../components/Input";
 import { GRAY1_COLOR } from "../../theme/colors";
+import { UserModel } from "../../models/user";
+import { UserRole } from "../../enums/role";
 
 const Item = styled(Paper)({
   padding: "30px",
@@ -182,7 +184,7 @@ const UserDetailPage = () => {
                     fontWeight={700}
                     variant="subtitle1"
                   >
-                    ຂໍ້ມູນຜູ້ໃຊ້
+                    ຕໍາແໜ່ງ
                   </Typography>
                   <Autocomplete
                     sx={{
@@ -206,6 +208,12 @@ const UserDetailPage = () => {
                     onChange={(_event, newValue) => {
                       if (ctrl?.roleRef?.current) {
                         ctrl.roleRef.current.value = newValue;
+
+                        // Fix with proper type casting
+                        ctrl.setData((prevData: UserModel | null) => {
+                          if (!prevData) return null;
+                          return { ...prevData, role: newValue as UserRole };
+                        });
                       }
                     }}
                     renderInput={(params) => (

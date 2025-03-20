@@ -146,6 +146,7 @@ const UseMainController = () => {
   }, [data]);
 
   return {
+    setData,
     openBackdrop,
     loading,
     roles,
