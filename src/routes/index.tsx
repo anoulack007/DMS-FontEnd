@@ -13,6 +13,7 @@ import {
   REPORT_DELETE_PATH,
   REPORT_UPDATE_DOC_PATH,
   REPORT_VERSION_DOC_PATH,
+  RESET_PASSWORD_PATH,
 } from "./paths";
 import LoginPage from "../pages/login";
 import NotFoundPage from "../404";
@@ -30,6 +31,7 @@ import ReportDeletePage from "../pages/report-delete";
 import ReportRecycleBinPage from "../pages/report-recycle-bin";
 import ReportUpdatePage from "../pages/report-update";
 import ReportVersionPage from "../pages/report-version";
+import ResetPasswordPage from "../pages/user-detail/components/Reset-password";
 
 const RoutesComponent = () => {
   return useRoutes([
@@ -88,6 +90,10 @@ const RoutesComponent = () => {
         {
           path: REPORT_VERSION_DOC_PATH,
           element: <ReportVersionPage />,
+        },
+        {
+          path: `${RESET_PASSWORD_PATH}/:id`,
+          element: <ResetPasswordPage />,
         },
       ],
     },

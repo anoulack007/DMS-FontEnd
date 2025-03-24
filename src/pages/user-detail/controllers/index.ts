@@ -25,7 +25,6 @@ const UseMainController = () => {
   const phoneNumberRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const usernameRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
   const companyRef = useRef<HTMLInputElement>(null);
   const roleRef = useRef<HTMLInputElement>(null);
 
@@ -95,25 +94,23 @@ const UseMainController = () => {
       formData.append("phoneNumber", phoneNumberRef.current?.value || "");
       formData.append("email", emailRef.current?.value || "");
       formData.append("username", usernameRef.current?.value || "");
-      formData.append("password", passwordRef.current?.value || "");
       formData.append("company", companyRef.current?.value || "");
       formData.append("role", roleRef.current?.value || "");
       if (avatarFile) formData.append("image", avatarFile);
 
       const res = await axiosInstance.patch(`${UPADTE_USER}/${id}`, formData);
-      if (res.status === 200) {
-        Swal.fire({
-          title: "Success!",
-          text: "User updated successfully",
-          icon: "success",
-          showCancelButton: false,
-          timer: 1500,
-        }).then((result) => {
-          if (result.isConfirmed) {
-            navigate(MANAGE_USER_PATH);
-          }
-        });
-      }
+
+      setOpenBackdrop(false);
+
+      await Swal.fire({
+        title: "ສຳເລັດ!",
+        text: "ແກ້ໄຂຂໍ້ມູນຜູ້ໃຊ້ສໍາເລັດ",
+        icon: "success",
+        showCancelButton: false,
+        timer: 1500,
+      });
+
+      navigate(MANAGE_USER_PATH);
     } catch (error) {
       Swal.fire({
         title: "Error!",
@@ -164,7 +161,6 @@ const UseMainController = () => {
     phoneNumberRef,
     emailRef,
     usernameRef,
-    passwordRef,
     companyRef,
     roleRef,
     avatarPreview,

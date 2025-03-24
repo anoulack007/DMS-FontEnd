@@ -15,7 +15,7 @@ import Grid from "@mui/material/Grid2";
 import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
 
-import { MANAGE_USER_PATH } from "../../routes/paths";
+import { MANAGE_USER_PATH, RESET_PASSWORD_PATH } from "../../routes/paths";
 
 // icon
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
@@ -38,29 +38,41 @@ const UserDetailPage = () => {
 
   return (
     <Box>
-      <Box sx={{ flexGrow: 1, width: "100%", height: 89 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Box sx={{ flexGrow: 1, width: "100%", height: 89, mb: 5 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            boxShadow: 1,
+            p: 2,
+            borderRadius: 2,
+          }}
+        >
           <IconButton
+            sx={{ bgcolor: GRAY1_COLOR }}
             onClick={() => ctrl?.handleSwitchPageClick(MANAGE_USER_PATH)}
           >
             <ArrowBackIosNewIcon />
           </IconButton>
-          <Typography variant="h4">ລາຍລະອຽດຜູ້ໃຊ້</Typography>
+          <Typography variant="h5">ລາຍລະອຽດຜູ້ໃຊ້</Typography>
         </Box>
       </Box>
 
       <form onSubmit={ctrl?.handleSubmit}>
-        <Grid container spacing={2}>
-          <Grid>
+        <Grid container spacing={3}>
+          {/* Profile picture section */}
+          <Grid size={{ xs: 12, md: 4, lg: 3 }}>
             <Card
               sx={{
-                width: "344px",
+                width: { xs: "100%", sm: "344px" },
                 height: "364px",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
                 borderRadius: "15px",
                 flexDirection: "column",
+                mx: { xs: "auto", md: 0 },
               }}
             >
               <AvatarUpload
@@ -74,15 +86,11 @@ const UserDetailPage = () => {
             </Card>
           </Grid>
 
-          {/* Form */}
-          <Grid size={6}>
+          {/* Form section */}
+          <Grid size={{ xs: 12, md: 8, lg: 9 }}>
             <Item>
-              <Grid
-                container
-                rowSpacing={1}
-                columnSpacing={{ xs: 1, sm: 2, md: 3 }}
-              >
-                <Grid size={6}>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography
                     textAlign="left"
                     fontWeight={700}
@@ -98,7 +106,7 @@ const UserDetailPage = () => {
                     required
                   />
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography
                     textAlign="left"
                     fontWeight={700}
@@ -114,7 +122,7 @@ const UserDetailPage = () => {
                     required
                   />
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography
                     textAlign="left"
                     fontWeight={700}
@@ -130,7 +138,7 @@ const UserDetailPage = () => {
                     required
                   />
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography
                     textAlign="left"
                     fontWeight={700}
@@ -146,7 +154,7 @@ const UserDetailPage = () => {
                     required
                   />
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography
                     textAlign="left"
                     fontWeight={700}
@@ -162,7 +170,7 @@ const UserDetailPage = () => {
                     required
                   />
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography
                     textAlign="left"
                     fontWeight={700}
@@ -178,7 +186,7 @@ const UserDetailPage = () => {
                     required
                   />
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography
                     textAlign="left"
                     fontWeight={700}
@@ -228,6 +236,9 @@ const UserDetailPage = () => {
                     disableClearable
                   />
                 </Grid>
+                <Grid sx={{ display: "flex", justifyContent: "center" }} size={{ xs: 12, md: 6 }}>
+                  <Button onClick={() => ctrl?.handleSwitchPageClick(`${RESET_PASSWORD_PATH}/${ctrl?.data?.id}`)} sx={{ width: '100%' }} >ປ່ຽນລະຫັດຜ່ານ</Button>
+                </Grid>
               </Grid>
 
               <Box sx={{ display: "flex", justifyContent: "end" }}>
@@ -235,9 +246,9 @@ const UserDetailPage = () => {
                   type="submit"
                   variant="contained"
                   color="primary"
-                  sx={{ mt: 3 }}
+                  sx={{ mt: 3, px: 5, py: 2 }}
                 >
-                  ບັນທຶກ
+                  ແກ້ໄຂ
                 </Button>
               </Box>
             </Item>

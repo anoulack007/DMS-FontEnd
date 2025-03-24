@@ -37,29 +37,30 @@ const FormCreateUserPage = () => {
 
   return (
     <Box>
-      <Box sx={{ flexGrow: 1, width: "100%", height: 89 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <IconButton
+      <Box sx={{ flexGrow: 1, width: "100%", height: 89, mb: 5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, p: 2, boxShadow: 1, borderRadius: 2 }}>
+          <IconButton sx={{ bgcolor: GRAY1_COLOR }}
             onClick={() => ctrl?.handleSwitchPageClick(MANAGE_USER_PATH)}
           >
             <ArrowBackIosNewIcon />
           </IconButton>
-          <Typography variant="h4">ເພິ່ມຜູ້ໃຊ້</Typography>
+          <Typography variant="h5" >ເພິ່ມຜູ້ໃຊ້</Typography>
         </Box>
       </Box>
 
       <form onSubmit={ctrl?.handleSubmit}>
         <Grid container spacing={2}>
-          <Grid>
+          <Grid size={{ xs: 12, md: 4, lg: 3 }}>
             <Card
               sx={{
-                width: "344px",
+                width: { xs: "100%", sm: "344px" },
                 height: "364px",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
                 borderRadius: "15px",
                 flexDirection: "column",
+                mx: { xs: "auto", md: 0 },
               }}
             >
               <AvatarUpload
@@ -74,7 +75,7 @@ const FormCreateUserPage = () => {
           </Grid>
 
           {/* Form */}
-          <Grid size={6}>
+          <Grid size={{ xs: 12, md: 8, lg: 6 }}>
             <Item>
               <Grid
                 container
@@ -256,7 +257,7 @@ const FormCreateUserPage = () => {
                   type="submit"
                   variant="contained"
                   color="primary"
-                  sx={{ mt: 3 }}
+                  sx={{ mt: 3, px: 5, py: 2}}
                 >
                   ບັນທຶກ
                 </Button>

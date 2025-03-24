@@ -104,19 +104,16 @@ const UseCreateController = () => {
       if (avatarFile) formData.append("image", avatarFile);
 
       const res = await axiosInstance.post(USER_CREATE, formData);
-      if (res?.data?.statusCode  === 201) {
-        Swal.fire({
-          title: "Success!",
-          text: "User updated successfully",
-          icon: "success",
-          showCancelButton: false,
-          timer: 1500,
-        }).then((result) => {
-          if (result.isConfirmed) {
-            navigate(MANAGE_USER_PATH);
-          }
-        });
-      }
+
+      Swal.fire({
+        title: "Success!",
+        text: "User updated successfully",
+        icon: "success",
+        showCancelButton: false,
+        timer: 1500,
+      });
+
+      navigate(MANAGE_USER_PATH);
     } catch (error) {
       Swal.fire({
         title: "Error!",
