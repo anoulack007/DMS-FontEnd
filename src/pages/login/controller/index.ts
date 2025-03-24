@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginSuccess } from "../../../store/authenticationSlice";
 import { getUserByToken, login } from "../../../service/Login";
-import { MANAGE_DOC_PATH, MANAGE_USER_PATH } from "../../../routes/paths";
+import { MANAGE_DOC_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
 import Swal from "sweetalert2";
 
@@ -56,14 +56,8 @@ const UseMainController = () => {
       // Update global state
       dispatch(loginSuccess(user));
 
-      const userRole = user?.role?.toLowerCase();
-      let redirectPath = MANAGE_DOC_PATH;
+      navigate(MANAGE_DOC_PATH);
 
-      if (userRole === "hr") {
-        redirectPath = MANAGE_USER_PATH;
-      }
-
-      navigate(redirectPath);
       setErrorMessage("");
     } catch (err: any) {
       console.error("Login error:", err);
