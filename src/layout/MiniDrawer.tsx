@@ -57,8 +57,6 @@ const MiniDrawer = () => {
 
   const authData = useSelector((state: RootState) => state?.auth?.data);
 
-  const userRole = useSelector((state: RootState) => state?.auth?.data?.role);
-
   const isManageDocument =
     location.pathname === MANAGE_DOC_PATH || location.pathname === "/";
 
@@ -85,33 +83,31 @@ const MiniDrawer = () => {
         </Box>
 
         <Box sx={{ p: 1 }}>
-          {userRole !== "HR" && (
-            <Button
-              disabled={!isManageDocument}
-              fullWidth
-              sx={{
-                p: 3,
-                height: 55,
-                bgcolor: "#2C3E50",
-                color: "white",
-                borderRadius: 8,
-                textTransform: "none",
-                gap: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-start",
-                "&.Mui-disabled": {
-                  bgcolor: "#95A5A6",
-                  color: "rgba(255, 255, 255, 0.7)",
-                  cursor: "not-allowed",
-                },
-              }}
-              onClick={ctrl?.handleClick}
-            >
-              <img src={Add_ic} alt="Add" style={{ marginRight: 8 }} />
-              ອັບໂຫຼດເອກະສານ
-            </Button>
-          )}
+          <Button
+            disabled={!isManageDocument}
+            fullWidth
+            sx={{
+              p: 3,
+              height: 55,
+              bgcolor: "#2C3E50",
+              color: "white",
+              borderRadius: 8,
+              textTransform: "none",
+              gap: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              "&.Mui-disabled": {
+                bgcolor: "#95A5A6",
+                color: "rgba(255, 255, 255, 0.7)",
+                cursor: "not-allowed",
+              },
+            }}
+            onClick={ctrl?.handleClick}
+          >
+            <img src={Add_ic} alt="Add" style={{ marginRight: 8 }} />
+            ອັບໂຫຼດເອກະສານ
+          </Button>
           <Menu
             anchorEl={ctrl?.anchorEl}
             open={ctrl?.opening}
@@ -164,7 +160,8 @@ const MiniDrawer = () => {
             {/* Manage Documents - Visible to ADMIN, PROJECT_MANAGER, USER */}
             {authData?.role === UserRole.ADMIN ||
             authData?.role === UserRole.PROJECT_MANAGER ||
-            authData?.role === UserRole.USER ? (
+            authData?.role === UserRole.USER ||
+            authData?.role === UserRole.HR ? (
               <>
                 <Typography sx={{ pl: "16px", color: "#746E6E" }}>
                   ຈັດການເອກະສານ
@@ -250,7 +247,8 @@ const MiniDrawer = () => {
             ) : null}
 
             {/* Reports - Visible to ADMIN, PROJECT_MANAGER */}
-            {authData?.role === UserRole.ADMIN ? (
+            {authData?.role === UserRole.ADMIN ||
+            authData?.role === UserRole.PROJECT_MANAGER ? (
               <>
                 <Typography sx={{ pl: "16px", color: "#746E6E" }}>
                   ລາຍງານ
