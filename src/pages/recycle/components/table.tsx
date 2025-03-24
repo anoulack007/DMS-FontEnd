@@ -165,8 +165,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                       {ctrl.searchTerm ||
                       ctrl.dateFilter.startDate ||
                       ctrl.dateFilter.endDate
-                        ? "No matching documents found. Try adjusting your filters."
-                        : "No documents in recycle bin."}
+                        ? "ບໍ່ພົບເອກະສານທີ່ກົງກັນ. ລອງເລືອກຕົວກອງຂອງທ່ານໃໝ່."
+                        : "ບໍ່ມີຂໍ້ມູນໃນຖັງຂີ້ເຫຍື້ອ."}
                     </Typography>
                   </Box>
                 </TableCell>
