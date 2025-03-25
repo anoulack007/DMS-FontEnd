@@ -37,4 +37,4 @@ export const PROJECT_MANAGER: string[] = [
 
 export const USER: string[] = [MANAGE_DOC_PATH, RECYCLE_PATH];
 
-export const HR: string[] = [MANAGE_DOC_PATH,MANAGE_USER_PATH];
+export const HR: string[] = [MANAGE_DOC_PATH,MANAGE_USER_PATH, RECYCLE_PATH];

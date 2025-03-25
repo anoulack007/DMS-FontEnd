@@ -161,7 +161,7 @@ const AdminToolbar = ({ adminData, handleLogout }: AdminToolbarProps) => {
       ) : (
         <Box sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
           <Typography alignContent={"center"}>
-            No user data available
+            ບໍ່ມີຂໍ້ມູນຜູ້ໃຊ້
           </Typography>
           <IconButton onClick={handleClick} size="small">
             <Avatar
@@ -224,7 +224,7 @@ const AdminToolbar = ({ adminData, handleLogout }: AdminToolbarProps) => {
             }}
           >
             <LogoutIcon fontSize="small" color="error" />
-            Logout
+            ອອກຈາກລະບົບ
           </Box>
         </MenuItem>
       </Menu>

@@ -15,6 +15,7 @@ export enum IconType {
     SVG = 'svg',
     EXE = 'exe',
     RAR = 'rar',
+    HEIC = 'heic',
 
     // for code
     PYTHON = 'py',

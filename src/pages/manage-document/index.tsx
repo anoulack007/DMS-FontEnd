@@ -36,6 +36,7 @@ import Jpeg from '../../assets/logo/jpeg.png'
 import Python from '../../assets/logo/python_ic.svg'
 import Html from '../../assets/logo/html-icon.svg'
 import Js from '../../assets/logo/javascript_icon.svg'
+import HeicImage from '../../assets/logo/heic.png'
 
 import { IconType } from "../../enums/icon-enums";
 import DialogInviteMember from "./components/dialog-inviteMember";
@@ -90,6 +91,8 @@ export const getIconByType = (type: string) => {
       return <img height={45} src={Html} alt="html" />;
     case IconType.JS:
       return <img height={45} src={Js} alt="Javascript" />;
+    case IconType.HEIC:
+      return <img height={45} src={HeicImage} alt="Heic" />;
     default:
       return <img src={FoldeImage} alt="folder" />;
   }

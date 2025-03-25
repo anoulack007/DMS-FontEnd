@@ -62,8 +62,8 @@ const UseDrawerController = () => {
 
       // On success, show SweetAlert2 success alert
       Swal.fire({
-        title: "Success!",
-        text: "Folder created successfully.",
+        title: "ສຳເລັດ!",
+        text: "ສ້າງໂຟເດີ້ສຳເລັດແລ້ວ.",
         icon: "success",
         showConfirmButton: false,
         timer: 1500,
@@ -86,13 +86,10 @@ const UseDrawerController = () => {
 
       // Show SweetAlert2 with the extracted error message
       Swal.fire({
-        title: "Error!",
+        title: "ຜິດຜາດ!",
         text: errorMessage,
         icon: "error",
-        confirmButtonText: "OK",
-        customClass: {
-          confirmButton: "your-custom-button-class",
-        },
+        confirmButtonText: "ຕົກລົງ",
       });
 
       console.error("Error creating folder:", error);

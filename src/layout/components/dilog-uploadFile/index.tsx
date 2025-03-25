@@ -102,7 +102,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
       // Validate document number
       if (!documentNumber?.trim()) {
         setError({
-          message: "Please enter a document number",
+          message: "ກະລຸນາກອກລະຫັດເອກະສານ",
         });
         return;
       }
@@ -152,9 +152,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
 
         setSnackbar({
           open: true,
-          message: `Successfully uploaded ${files.length} file${
-            files.length > 1 ? "s" : ""
-          }`,
+          message: `ອັບໂຫຼດສຳເລັດແລ້ວ ${files.length} ໄຟລ໌`,  
           severity: "success",
         });
 
@@ -282,7 +280,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
             />
 
             <Typography variant="h5" sx={{ mb: 1 }}>
-              Drag and drop your file
+              ເລືອກ ແລະ ວາງໄຟລ໌ຂອງທ່ານ
             </Typography>
 
             <Button
@@ -303,7 +301,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
                 },
               }}
             >
-              {uploading ? "Uploading..." : "Select File"}
+              {uploading ? "ກຳລັງອັບໂຫຼດ..." : "ເລືອກໄຟລ໌"}
             </Button>
 
             {uploading && (
