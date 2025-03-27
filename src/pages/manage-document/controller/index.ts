@@ -194,8 +194,8 @@ const UseMainController = () => {
     if (!selectedDocument) {
       await Swal.fire({
         icon: "warning",
-        title: "No Document Selected",
-        text: "Please select a document to change the status.",
+        title: "ບໍ່ໄດ້ເລືອກເອກະສານ",
+        text: "ກະລນາເລືອກເອກະສານເພື່ອປ່ຽນສະຖານະ.",
       });
       return;
     }
@@ -203,6 +203,8 @@ const UseMainController = () => {
     try {
       let endpoint;
       let payload;
+      
+      setLoading(true);
 
       if (selectedDocument?.itemType === "folder") {
         endpoint = `${UPDATE_FOLDER_END_POINT}/${selectedDocument?.id}`;
@@ -227,8 +229,8 @@ const UseMainController = () => {
 
       await Swal.fire({
         icon: "success",
-        title: "Status Updated!",
-        text: `The document status has been updated to "${newStatus}" successfully.`,
+        title: "ອັບເດດສຳເລັດ!",
+        text: `ສະຖານະເອກະສານໄດ້ຖືກປ່ຽນເປັນ "${newStatus}" ສຳເລັດແລ້ວ.`,
         showConfirmButton: false,
         timer: 2000,
       });
@@ -240,6 +242,8 @@ const UseMainController = () => {
         title: "Oops...",
         text: "Failed to update status. Please try again.",
       });
+    } finally {
+      setLoading(false)
     }
   };
 
