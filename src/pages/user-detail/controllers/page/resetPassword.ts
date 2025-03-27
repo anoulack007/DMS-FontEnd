@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import axiosInstance from "../../../../configs/axios";
-import { MANAGE_USER_PATH, USER_DETAIL_PATH } from "../../../../routes/paths";
+import { USER_DETAIL_PATH } from "../../../../routes/paths";
 import { RESET_PASSWORD } from "../../../../configs/endPoint/user";
 
 const useResetPasswordController = () => {
@@ -46,6 +46,7 @@ const useResetPasswordController = () => {
 
 
       const res = await axiosInstance.post(RESET_PASSWORD, data);
+      console.log(res)
 
       setOpenBackdrop(false);
 

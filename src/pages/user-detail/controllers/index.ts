@@ -99,6 +99,7 @@ const UseMainController = () => {
       if (avatarFile) formData.append("image", avatarFile);
 
       const res = await axiosInstance.patch(`${UPADTE_USER}/${id}`, formData);
+      console.log(res)
 
       setOpenBackdrop(false);
 

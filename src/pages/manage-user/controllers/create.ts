@@ -104,6 +104,7 @@ const UseCreateController = () => {
       if (avatarFile) formData.append("image", avatarFile);
 
       const res = await axiosInstance.post(USER_CREATE, formData);
+      console.log(res)
 
       Swal.fire({
         title: "Success!",
