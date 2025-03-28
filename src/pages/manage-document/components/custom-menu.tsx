@@ -1,12 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Box, Button, Divider } from "@mui/material";
 
-// Import the new MoveDialog component
-
-//icons
-import DetailI_ic from "../../../assets/Image/Detail_ic.svg";
-
 // Icons
+import DetailI_ic from "../../../assets/Image/Detail_ic.svg";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoveToInboxIcon from "@mui/icons-material/MoveToInbox";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -76,6 +72,7 @@ const CustomMenu = ({
           gap: 5,
           boxShadow: 2,
           mb: 3,
+          height: "60px", // Fixed height to prevent layout shift
         }}
       >
         {ListMenu.map((item, index) => (

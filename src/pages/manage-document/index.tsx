@@ -4,7 +4,6 @@ import {
   Typography,
   TextField,
   InputAdornment,
-  Collapse,
 } from "@mui/material";
 
 // import Access_IC from "../../assets/logo/access_ic.svg";
@@ -32,11 +31,11 @@ import TxtImage from "../../assets/logo/txt.svg.svg";
 import SvgImage from "../../assets/logo/svg.svg.svg";
 import ExeImage from "../../assets/logo/exe.svg.svg";
 import RarImage from "../../assets/logo/rar_ic.svg";
-import Jpeg from '../../assets/logo/jpeg.png'
-import Python from '../../assets/logo/python_ic.svg'
-import Html from '../../assets/logo/html-icon.svg'
-import Js from '../../assets/logo/javascript_icon.svg'
-import HeicImage from '../../assets/logo/heic.png'
+import Jpeg from "../../assets/logo/jpeg.png";
+import Python from "../../assets/logo/python_ic.svg";
+import Html from "../../assets/logo/html-icon.svg";
+import Js from "../../assets/logo/javascript_icon.svg";
+import HeicImage from "../../assets/logo/heic.png";
 
 import { IconType } from "../../enums/icon-enums";
 import DialogInviteMember from "./components/dialog-inviteMember";
@@ -103,47 +102,13 @@ const ManageDocumentPage = () => {
 
   return (
     <Box>
-      <Typography color="#838383" variant="h5" fontWeight={700}>
-        <p>ຈັດການເອກະສານ</p>
-      </Typography>
-
-      <Box sx={{ justifyContent: "space-between", display: "flex" }} my={3}>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <BreadcrumbCustom folders={ctrl?.allDocuments} />
-        </Box>
-        <TextField
-          value={ctrl?.searchTerm}
-          placeholder="ຄົ້ນຫາ..."
-          onChange={(e) => ctrl.handleSearch(e.target.value)}
-          sx={{
-            fontFamily: "NotoSansLao-Regular",
-            borderRadius: 24,
-            bgcolor: "#F6F6F6",
-            "& .MuiOutlinedInput-root": {
-              border: "none",
-            },
-            "& .MuiOutlinedInput-notchedOutline": {
-              border: "none",
-            },
-          }}
-          slotProps={{
-            input: {
-              style: {
-                borderRadius: 24,
-              },
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton>
-                    <SearchIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
+      {/* Breadcrumbs always at the top */}
+      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+        <BreadcrumbCustom folders={ctrl?.allDocuments} />
       </Box>
 
-      <Collapse in={ctrl?.selectedItems.length > 0}>
+      {/* Conditional rendering based on selection */}
+      {ctrl?.selectedItems.length > 0 ? (
         <CustomMenu
           selectedCount={ctrl.selectedItems.length}
           onDetailsClick={ctrl.handleDetailsClick}
@@ -151,7 +116,60 @@ const ManageDocumentPage = () => {
           handleDelete={ctrl?.handleDeleteFolder}
           handleDownload={ctrl?.handleDownload}
         />
-      </Collapse>
+      ) : (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+            height: "60px",
+          }}
+        >
+          <Typography
+            textAlign={"center"}
+            color="#838383"
+            variant="h5"
+            fontWeight={700}
+          >
+            ຈັດການເອກະສານ
+          </Typography>
+
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <TextField
+              value={ctrl?.searchTerm}
+              placeholder="ຄົ້ນຫາ..."
+              onChange={(e) => ctrl.handleSearch(e.target.value)}
+              sx={{
+                fontFamily: "NotoSansLao-Regular",
+                borderRadius: 24,
+                bgcolor: "#F6F6F6",
+                mb: 2,
+                "& .MuiOutlinedInput-root": {
+                  border: "none",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  border: "none",
+                },
+              }}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton>
+                        <SearchIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                  style: {
+                    borderRadius: 24,
+                  },
+                },
+              }}
+            />
+          </Box>
+        </Box>
+      )}
 
       <Box
         sx={{

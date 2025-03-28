@@ -114,7 +114,6 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
     }
   }, []);
 
-  // Function to fetch root folders
   const fetchRootFolders = useCallback(async () => {
     try {
       setLoading(true);
@@ -127,85 +126,96 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
 
       const processedData: FileItem[] = [];
 
-      // Process normal folders
+      // Process normal folders - filter only root folders (no parentId)
       if (responseData.folders && Array.isArray(responseData.folders)) {
-        responseData.folders.forEach((folder: any) => {
-          processedData.push({
-            type: "folder",
-            name: folder.name || "Unnamed folder",
-            size: folder.size ? `${folder.size} bytes` : "Unknown size",
-            lastModified: folder.updatedAt
-              ? new Date(folder.updatedAt).toLocaleDateString()
-              : "Unknown date",
-            _id: folder.id || folder._id,
-            id: folder.id || folder._id,
-            status: folder?.status,
-            path: folder.path || "/" + folder.name,
-            parentId: folder.parentId,
+        responseData.folders
+          .filter((folder: any) => !folder.parentId) // Filter only root folders
+          .forEach((folder: any) => {
+            processedData.push({
+              type: "folder",
+              name: folder.name || "Unnamed folder",
+              size: folder.size ? `${folder.size} bytes` : "Unknown size",
+              lastModified: folder.updatedAt
+                ? new Date(folder.updatedAt).toLocaleDateString()
+                : "Unknown date",
+              _id: folder.id || folder._id,
+              id: folder.id || folder._id,
+              status: folder?.status,
+              path: folder.path || "/" + folder.name,
+              parentId: folder.parentId,
+            });
           });
-        });
       }
       // Fallback if folders are under 'folder' key instead
       else if (responseData.folder && Array.isArray(responseData.folder)) {
-        responseData.folder.forEach((folder: any) => {
-          processedData.push({
-            type: "folder",
-            name: folder.name || "Unnamed folder",
-            size: folder.size ? `${folder.size} bytes` : "Unknown size",
-            lastModified: folder.updatedAt
-              ? new Date(folder.updatedAt).toLocaleDateString()
-              : "Unknown date",
-            _id: folder.id || folder._id,
-            id: folder.id || folder._id,
-            status: folder?.status,
-            path: folder.path || "/" + folder.name,
-            parentId: folder.parentId,
+        responseData.folder
+          .filter((folder: any) => !folder.parentId) // Filter only root folders
+          .forEach((folder: any) => {
+            processedData.push({
+              type: "folder",
+              name: folder.name || "Unnamed folder",
+              size: folder.size ? `${folder.size} bytes` : "Unknown size",
+              lastModified: folder.updatedAt
+                ? new Date(folder.updatedAt).toLocaleDateString()
+                : "Unknown date",
+              _id: folder.id || folder._id,
+              id: folder.id || folder._id,
+              status: folder?.status,
+              path: folder.path || "/" + folder.name,
+              parentId: folder.parentId,
+            });
           });
-        });
       }
       // Handle single folder object case
       else if (responseData.folder && !Array.isArray(responseData.folder)) {
         const folder = responseData.folder;
-        processedData.push({
-          type: "folder",
-          name: folder.name || "Unnamed folder",
-          size: folder.size ? `${folder.size} bytes` : "Unknown size",
-          lastModified: folder.updatedAt
-            ? new Date(folder.updatedAt).toLocaleDateString()
-            : "Unknown date",
-          _id: folder.id || folder._id,
-          id: folder.id || folder._id,
-          status: folder?.status,
-          path: folder.path || "/" + folder.name,
-          parentId: folder.parentId,
-        });
+        // Only add if it's a root folder
+        if (!folder.parentId) {
+          processedData.push({
+            type: "folder",
+            name: folder.name || "Unnamed folder",
+            size: folder.size ? `${folder.size} bytes` : "Unknown size",
+            lastModified: folder.updatedAt
+              ? new Date(folder.updatedAt).toLocaleDateString()
+              : "Unknown date",
+            _id: folder.id || folder._id,
+            id: folder.id || folder._id,
+            status: folder?.status,
+            path: folder.path || "/" + folder.name,
+            parentId: folder.parentId,
+          });
+        }
       }
 
-      // Process folderMembers (shared folders)
+      // Process folderMembers (shared folders) - filter only root folders
       if (
         responseData.folderMembers &&
         Array.isArray(responseData.folderMembers)
       ) {
-        responseData.folderMembers.forEach((folderMember: any) => {
-          if (folderMember.folder) {
-            processedData.push({
-              type: "folder",
-              name: folderMember.folder.name || "Unnamed shared folder",
-              size: folderMember.folder.size
-                ? `${folderMember.folder.size} bytes`
-                : "Unknown size",
-              lastModified: folderMember.folder.updatedAt
-                ? new Date(folderMember.folder.updatedAt).toLocaleDateString()
-                : "Unknown date",
-              _id: folderMember.folder.id || folderMember.folder._id,
-              id: folderMember.folder.id || folderMember.folder._id,
-              isShared: true,
-              status: folderMember?.status || "Unknown status",
-              path: folderMember.folder.path || "/" + folderMember.folder.name,
-              parentId: folderMember.folder.parentId,
-            });
-          }
-        });
+        responseData.folderMembers
+          .filter((folderMember: any) => 
+            folderMember.folder && !folderMember.folder.parentId
+          )
+          .forEach((folderMember: any) => {
+            if (folderMember.folder) {
+              processedData.push({
+                type: "folder",
+                name: folderMember.folder.name || "Unnamed shared folder",
+                size: folderMember.folder.size
+                  ? `${folderMember.folder.size} bytes`
+                  : "Unknown size",
+                lastModified: folderMember.folder.updatedAt
+                  ? new Date(folderMember.folder.updatedAt).toLocaleDateString()
+                  : "Unknown date",
+                _id: folderMember.folder.id || folderMember.folder._id,
+                id: folderMember.folder.id || folderMember.folder._id,
+                isShared: true,
+                status: folderMember?.status || "Unknown status",
+                path: folderMember.folder.path || "/" + folderMember.folder.name,
+                parentId: folderMember.folder.parentId,
+              });
+            }
+          });
       }
 
       setFileData(processedData);
@@ -219,8 +229,6 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
     }
   }, []);
 
-  // Handle folder double click
-  // Handle folder double click
   const handleFolderDoubleClick = useCallback(
     (folder: FileItem) => {
       if (folder.type === "folder") {
@@ -302,8 +310,9 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
     const destinationFolderId = localStorage.getItem("destinationFolderId");
     const originFolderId = localStorage.getItem("selectedDocumentId") || null;
     const docType = localStorage.getItem("selectedDocumentType") || null;
+    const originItemParentId = localStorage.getItem("currentParentId") || null;
 
-    // Only validate origin document selection, not destination (to allow root moves)
+    // Validation checks
     if (!originFolderId) {
       Swal.fire({
         title: "ບໍ່ໄດ້ເລືອກເອກະສານ",
@@ -319,6 +328,18 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
       Swal.fire({
         title: "ປະເພດເອກະສານບໍ່ຖືກຕ້ອງ",
         text: "ບໍ່ສາມາດລະບຸປະເພດເອກະສານໄດ້",
+        icon: "warning",
+        confirmButtonText: "ຕົກລົງ",
+        confirmButtonColor: "#2C3E50",
+      });
+      return;
+    }
+
+    // Check if moving to the same folder
+    if (destinationFolderId === originItemParentId) {
+      Swal.fire({
+        title: "ບໍ່ສາມາດຍ້າຍໄດ້",
+        text: `ເອກະສານຢູ່ໃນໂຟເດີ້ດຽວກັນແລ້ວ`,
         icon: "warning",
         confirmButtonText: "ຕົກລົງ",
         confirmButtonColor: "#2C3E50",
@@ -358,7 +379,6 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
       });
 
       let res;
-      console.log(res);
 
       if (docType === "folder") {
         res = await axiosInstance.patch(
@@ -391,6 +411,7 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
       localStorage.removeItem("selectedDocumentId");
       localStorage.removeItem("selectedDocumentType");
       localStorage.removeItem("destinationFolderId");
+      localStorage.removeItem("currentParentId");
     } catch (error: any) {
       console.error("Error moving items:", error);
       Swal.fire({
@@ -408,9 +429,18 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
   };
 
   // Filter files based on search term
-  const filteredData = fileData.filter((file) =>
-    file.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = fileData.filter((file) => {
+    // Filter by search term
+    const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Get the ID of the currently selected document
+    const selectedDocumentId = localStorage.getItem("selectedDocumentId");
+    
+    // Exclude the current folder/file from the list
+    const isNotCurrentItem = file._id !== selectedDocumentId;
+    
+    return matchesSearch && isNotCurrentItem;
+  });
 
   useEffect(() => {
     if (open) {

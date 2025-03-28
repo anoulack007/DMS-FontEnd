@@ -583,7 +583,7 @@ const UseMainController = () => {
 
     const result = await Swal.fire({
       title: "ທ່ານແນ່ໃຈບໍ່ ?",
-      text: "ການດຳເນີນການນີ້ຈະລົບອອກຢ່າງຖາວອນ.",
+      text: "ການດຳເນີນການນີ້ຈະຍ້າຍເອກະສານນີ້ໄປຖັງຂີ້ເຫຍື້ອ.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "ລົບ",
