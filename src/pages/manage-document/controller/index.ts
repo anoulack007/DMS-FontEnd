@@ -857,7 +857,6 @@ const UseMainController = () => {
     if (folderPath) {
       handleGetDocumentsByPath(folderPath);
     } else {
-      // If no folder path, fetch default documents
       handleGetData();
     }
 

@@ -70,7 +70,7 @@ const BreadcrumbCustom: React.FC<{ folders: Document[] }> = () => {
           <Typography
             key={index}
             color="primary"
-            sx={{ fontWeight: "bold", fontSize: 20 }}
+            sx={{ fontWeight: "bold", fontSize: 28 }}
           >
             {item.label}
           </Typography>
@@ -82,7 +82,7 @@ const BreadcrumbCustom: React.FC<{ folders: Document[] }> = () => {
               cursor: "pointer",
               textDecoration: "none",
               fontWeight: "bold",
-              fontSize: 20,
+              fontSize: 25,
               "&:hover": { textDecoration: "underline" },
             }}
             onClick={() => handleClick(item.path)}

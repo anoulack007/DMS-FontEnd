@@ -309,7 +309,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               },
             }}
           >
-            Show less
+            ໜ້ອຍລົງ
           </Button>
         )}
       </Box>
@@ -381,12 +381,12 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 3 }}>
             <Box>
               <FormControl fullWidth margin="normal" size="medium">
-                <InputLabel id="status-select-label">Status</InputLabel>
+                <InputLabel id="status-select-label">ສະຖານະ</InputLabel>
                 <Select
                   labelId="status-select-label"
                   id="status-select"
                   value={ctrl?.selectedDocument?.status ?? ""}
-                  label="Status"
+                  label="ສະຖານະ"
                   onChange={ctrl.handleChangeStatus}
                 >
                   {Object.values(STATUS_ENUMS).map((status) => (
@@ -398,7 +398,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               </FormControl>
 
               <Box sx={{ mt: 1 }}>
-                <Typography>Has access</Typography>
+                <Typography>ການເຂົ້າເຖິງ</Typography>
 
                 <Box sx={{ mt: 2, display: "flex" }}>
                   <IconButton onClick={() => ctrl?.setInviteDialogOpen(true)}>
@@ -411,15 +411,11 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
 
             <Divider />
 
-            <Typography fontSize={20} fontWeight={700}>
-              Details
-            </Typography>
-
-            <Box>
+              <Box>
               <Typography
                 sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
               >
-                ID
+                ລະຫັດເອກະສານ
               </Typography>
               <Box>{ctrl.selectedDocument?.id}</Box>
             </Box>
@@ -427,7 +423,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               <Typography
                 sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
               >
-                Created
+                ວັນທີສ້າງ
               </Typography>
               <Box>
                 {ctrl?.selectedDocument?.createdAt
@@ -441,7 +437,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               <Typography
                 sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
               >
-                Size
+                ຂະໜາດເອກະສານ
               </Typography>
               <Box>
                 {ctrl?.selectedDocument?.size
@@ -454,7 +450,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               <Typography
                 sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
               >
-                Version and Modification{" "}
+                ເວີ​ຊັນ ​ແລະ ​ການ​ດັດ​ແປງ​{" "}
               </Typography>
               <Box sx={{ mt: 2 }}>
                 <VersionListComponent versions={ctrl?.versionDocument || []} />
@@ -465,7 +461,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               <Typography
                 sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
               >
-                History Event
+                ປະຫວັດ
               </Typography>
             </Typography>
             <FileHistory fileHistory={ctrl?.fileHistory || []} />

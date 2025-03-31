@@ -68,7 +68,7 @@ export const FileHistory = ({ fileHistory }: FileHistoryProps) => {
               },
             }}
           >
-            {showAll ? "Show Less" : `See All (${fileHistory.length})`}
+            {showAll ? "ໜ້ອຍລົງ" : `ທັງໝົດ (${fileHistory.length})`}
           </Button>
         </Box>
       )}
