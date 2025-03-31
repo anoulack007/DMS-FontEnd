@@ -16,14 +16,27 @@ import {
   Button,
   InputAdornment,
 } from "@mui/material";
-import { FollowDocumentModel } from "..";
 import { getIconByType } from "../../manage-document";
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import SearchIcon from "@mui/icons-material/Search";
 import { IconType } from "../../../enums/icon-enums";
+export interface FileWithVersionInfo {
+  id: string;
+  name: string;
+  nameVersion: string;
+  type: string;
+  size: number;
+  status: string;
+  ownerId: string;
+  ownerName?: string;
+  versionNum: string;
+  event: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface DocumentTableProps {
-  documents: FollowDocumentModel[];
+  documents: FileWithVersionInfo[];
   loading: boolean;
   onSearch: (query: string) => void;
   onExport: () => void;
@@ -106,11 +119,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           <TableHead>
             <TableRow>
               <TableCell>ຊື່ເອກະສານ</TableCell>
-              <TableCell>ວັນທີສ້າງ</TableCell>
-              <TableCell>ຊື່ຜູ້ໃຊ້</TableCell>
-              <TableCell>ບໍລິສັດ</TableCell>
               <TableCell>ປະເພດ</TableCell>
-              <TableCell>ຈັດການ</TableCell>
+              <TableCell>ວັນທີສ້າງ</TableCell>
             </TableRow>
           </TableHead>
           <TableBody sx={{ borderBottom: "1px solid #E0E0E0" }}>
@@ -134,26 +144,16 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                       {document.type
                         ? getIconByType(document.type)
                         : getIconByType(IconType.FOLDER)}
-                      <Typography>{document.docName}</Typography>
+                      <Typography>{document.nameVersion}</Typography>
                     </Box>
+                  </TableCell>
+                  <TableCell sx={{ borderBottom: "none" }}>
+                    {document.type || "Folder"}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {document.createdAt
                       ? new Date(document.createdAt).toLocaleDateString()
                       : "3/13/2025, 9:28:06 PM"}
-                  </TableCell>
-                  <TableCell sx={{ borderBottom: "none" }}>
-                    {document.ownerName}
-                  </TableCell>
-                  <TableCell sx={{ borderBottom: "none" }}>
-                    {document.company}
-                  </TableCell>
-                  <TableCell sx={{ borderBottom: "none" }}>
-                    {document.type || "Folder"}
-                  </TableCell>
-
-                  <TableCell sx={{ borderBottom: "none" }}>
-                    <Chip label={document?.event} color="warning" size="medium" />
                   </TableCell>
                 </TableRow>
               ))

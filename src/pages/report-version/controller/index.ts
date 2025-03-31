@@ -1,20 +1,48 @@
 import { useEffect, useState, useCallback } from "react";
 import axiosInstance from "../../../configs/axios";
-import { GET_ALL_FOLLOW_DOCUMENT_END_POINT } from "../../../configs/endPoint/follow-documnet-endpoint";
-import { FollowDocumentModel } from "../../../models/follow-document";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
 import { debounce } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
+import { GET_OWNER_DOC_END_POINT } from "../../../configs/endPoint/file&folder";
 
 interface DateFilterType {
   startDate: Dayjs | null;
   endDate: Dayjs | null;
 }
 
+// Define type for the document API response
+interface DocumentApiResponse {
+  message: string;
+  data: {
+    folders: any[];
+    files: any[];
+    folderMembers: any[];
+    fileMembers: any[];
+  };
+  duration: string;
+  statusCode: number;
+}
+
+// Interface for processed data with version info
+export interface FileWithVersionInfo {
+  id: string;
+  name: string;
+  nameVersion: string;
+  type: string;
+  size: number;
+  status: string;
+  ownerId: string;
+  ownerName?: string;
+  versionNum: string;
+  event: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const UseMainController = () => {
-  const [uploadDocument, setUploadDocument] = useState<FollowDocumentModel[]>([]);
-  const [filteredDocuments, setFilteredDocuments] = useState<FollowDocumentModel[]>([]);
+  const [documents, setDocuments] = useState<FileWithVersionInfo[]>([]);
+  const [filteredDocuments, setFilteredDocuments] = useState<FileWithVersionInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [dateFilter, setDateFilter] = useState<DateFilterType>({
     startDate: dayjs().subtract(30, "day"),
@@ -22,19 +50,47 @@ const UseMainController = () => {
   });
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const handleGetReportUploadDocument = async () => {
+  const handleGetDocuments = async () => {
     try {
       setLoading(true);
-      const res = await axiosInstance.get<{ data: FollowDocumentModel[] }>(
-        GET_ALL_FOLLOW_DOCUMENT_END_POINT
-      );
+      const res = await axiosInstance.get<DocumentApiResponse>(GET_OWNER_DOC_END_POINT);
 
-      // Filter only uploaded files/folders
-      const uploadedDocs = res?.data?.data?.filter((doc) => doc.event === "Update");
-      setUploadDocument(uploadedDocs);
+      // Process files to extract version information
+      const processedFiles: FileWithVersionInfo[] = [];
+      
+      // Only process files (not folders)
+      const files = res?.data?.data?.files || [];
+      
+      files.forEach(file => {
+        // Extract version number from the version field
+        const versionNum = file.version || "v0";
+        
+        processedFiles.push({
+          id: file.id,
+          name: file.name,
+          nameVersion: file.nameVersion,
+          type: file.type,
+          size: file.size,
+          status: file.status,
+          ownerId: file.ownerId,
+          ownerName: file.ownerName || "Unknown", // You might need to fetch owner info if not included
+          versionNum: versionNum,
+          event: "Update", // Since we're focusing on files with versions
+          createdAt: file.createdAt,
+          updatedAt: file.updatedAt
+        });
+      });
+
+      const sortedData = processedFiles.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
+      });
+      
+      setDocuments(sortedData);
       
       // Apply initial date filter
-      applyFilters(uploadedDocs, searchQuery, dateFilter);
+      applyFilters(processedFiles, searchQuery, dateFilter);
     } catch (error) {
       console.error("Error fetching documents:", error);
     } finally {
@@ -44,13 +100,13 @@ const UseMainController = () => {
 
   // Combined filter function that applies both search and date filters
   const applyFilters = useCallback(
-    (docs: FollowDocumentModel[], query: string, dates: DateFilterType) => {
+    (docs: FileWithVersionInfo[], query: string, dates: DateFilterType) => {
       let filtered = [...docs];
 
       // Apply date filter
       if (dates.startDate && dates.endDate) {
         filtered = filtered.filter((doc) => {
-          const docDate = dayjs(doc.createdAt);
+          const docDate = dayjs(doc.updatedAt); // Using updatedAt for filtering
           return (
             docDate.isAfter(dates.startDate, "day") || docDate.isSame(dates.startDate, "day")) &&
             (docDate.isBefore(dates.endDate, "day") || docDate.isSame(dates.endDate, "day")
@@ -62,8 +118,8 @@ const UseMainController = () => {
       if (query) {
         filtered = filtered.filter(
           (doc) =>
-            doc.docName.toLowerCase().includes(query.toLowerCase()) ||
-            doc.ownerName.toLowerCase().includes(query.toLowerCase())
+            doc.name.toLowerCase().includes(query.toLowerCase()) ||
+            doc.ownerName?.toLowerCase().includes(query.toLowerCase())
         );
       }
 
@@ -76,9 +132,9 @@ const UseMainController = () => {
   const debouncedSearch = useCallback(
     debounce((query: string) => {
       setSearchQuery(query);
-      applyFilters(uploadDocument, query, dateFilter);
+      applyFilters(documents, query, dateFilter);
     }, 500),
-    [uploadDocument, dateFilter, applyFilters]
+    [documents, dateFilter, applyFilters]
   );
 
   const handleSearch = (query: string) => {
@@ -89,9 +145,9 @@ const UseMainController = () => {
   const handleDateFilterChange = useCallback(
     (newDateFilter: DateFilterType) => {
       setDateFilter(newDateFilter);
-      applyFilters(uploadDocument, searchQuery, newDateFilter);
+      applyFilters(documents, searchQuery, newDateFilter);
     },
-    [uploadDocument, searchQuery, applyFilters]
+    [documents, searchQuery, applyFilters]
   );
 
   // Reset filters function
@@ -102,8 +158,8 @@ const UseMainController = () => {
     };
     setDateFilter(defaultDateFilter);
     setSearchQuery("");
-    applyFilters(uploadDocument, "", defaultDateFilter);
-  }, [uploadDocument, applyFilters]);
+    applyFilters(documents, "", defaultDateFilter);
+  }, [documents, applyFilters]);
 
   const handleExportToExcel = () => {
     Swal.fire({
@@ -117,7 +173,17 @@ const UseMainController = () => {
       cancelButtonText: "ຍົກເລີກ",
     }).then((result) => {
       if (result.isConfirmed) {
-        const worksheet = XLSX.utils.json_to_sheet(filteredDocuments);
+        // Format data for Excel export
+        const exportData = filteredDocuments.map(doc => ({
+          "ຊື່ເອກະສານ": doc.name,
+          "ເວີຊັ່ນ": doc.versionNum,
+          "ປະເພດ": doc.type,
+          "ຂະໜາດ": `${(doc.size / 1024).toFixed(2)} KB`,
+          "ວັນທີປັບປຸງ": dayjs(doc.updatedAt).format("DD/MM/YYYY HH:mm"),
+          "ສະຖານະ": doc.status
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Documents");
 
@@ -126,19 +192,19 @@ const UseMainController = () => {
         Swal.fire(
           "ສົ່ງອອກແລ້ວ!",
           "ລາຍການເອກະສານຂອງທ່ານໄດ້ຖືກສົ່ງອອກແລ້ວ.",
-          "success"
+          "success",
         );
       }
     });
   };
 
   useEffect(() => {
-    handleGetReportUploadDocument();
+    handleGetDocuments();
   }, []);
 
   return {
     loading,
-    uploadDocument: filteredDocuments,
+    documents: filteredDocuments,
     handleSearch,
     handleExportToExcel,
     dateFilter,

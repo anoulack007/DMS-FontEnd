@@ -7,16 +7,20 @@ import DocumentTable from "./components/table";
 import UseMainController from "./controller";
 import ExpensesChart from "./components/chart";
 
-export interface FollowDocumentModel {
+// Interface for processed file information from controller
+interface FileWithVersionInfo {
   id: string;
-  docName: string;
-  ownerName: string;
-  categories: string;
+  name: string;
+  nameVersion: string;
   type: string;
-  company: string;
+  size: number;
+  status: string;
+  ownerId: string;
+  ownerName?: string;
+  versionNum: string;
   event: string;
-  updateBy: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ChartData {
@@ -25,6 +29,7 @@ export interface ChartData {
   type: number;
   color: string;
   amount: number;
+  category?: string;
 }
 
 // Array of colors for chart
@@ -44,14 +49,14 @@ const ReportVersionPage = () => {
 
   // Transform data for top expenses panel
   const topExpensesData = useMemo(() => {
-    if (!ctrl?.uploadDocument || ctrl?.uploadDocument.length === 0) {
+    if (!ctrl?.documents || ctrl?.documents.length === 0) {
       return [];
     }
 
     // Group data by document type
     const typeGroups: Record<string, number> = {};
 
-    ctrl?.uploadDocument.forEach((doc) => {
+    ctrl?.documents.forEach((doc) => {
       const type = doc.type || "Unknown"; // Default if missing
       typeGroups[type] = (typeGroups[type] || 0) + 1;
     });
@@ -66,16 +71,16 @@ const ReportVersionPage = () => {
       }))
       .sort((a, b) => b.title - a.title) // Sort from big to small
       .slice(0, 5); // Show only top 5 types
-  }, [ctrl?.uploadDocument]);
+  }, [ctrl?.documents]);
 
   const chartData = useMemo(() => {
-    if (!ctrl?.uploadDocument || ctrl?.uploadDocument.length === 0) {
+    if (!ctrl?.documents || ctrl?.documents.length === 0) {
       return [];
     }
 
     // Group by document type instead of categories
     const typeGroups: Record<string, number> = {};
-    ctrl?.uploadDocument.forEach((doc) => {
+    ctrl?.documents.forEach((doc) => {
       const type = doc.type || "Unknown"; // Default if missing
       if (!typeGroups[type]) {
         typeGroups[type] = 0;
@@ -84,7 +89,7 @@ const ReportVersionPage = () => {
     });
 
     // Calculate percentages
-    const total = ctrl?.uploadDocument.length;
+    const total = ctrl?.documents.length;
 
     // Convert to array format for chart
     return Object.entries(typeGroups).map(([type, count], index) => ({
@@ -95,7 +100,7 @@ const ReportVersionPage = () => {
       amount: Math.round((count / total) * 100), // Percentage
       category: type, // Adding for tooltip display
     }));
-  }, [ctrl?.uploadDocument]);
+  }, [ctrl?.documents]);
 
   return (
     <Box sx={{ p: 3, bgcolor: "#f5f5f5", minHeight: "100vh" }}>
@@ -125,7 +130,7 @@ const ReportVersionPage = () => {
       </Grid>
 
       <DocumentTable
-        documents={ctrl?.uploadDocument}
+        documents={ctrl?.documents} // Changed from uploadDocument to documents
         loading={ctrl?.loading}
         onSearch={ctrl?.handleSearch}
         onExport={ctrl?.handleExportToExcel}
