@@ -151,7 +151,10 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                       )}
                       <Box>
                         <Typography>
-                          {item?.name ?? item?.fileMembers?.file?.name}
+                          {item?.nameVersion ??
+                            item?.name ??
+                            item?.fileMembers?.file?.nameVersion ??
+                            item?.fileMembers?.file?.name}
                           {item.isShared && (
                             <span
                               style={{
