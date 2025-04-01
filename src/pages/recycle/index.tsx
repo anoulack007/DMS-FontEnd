@@ -20,9 +20,9 @@ import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import ClearIcon from "@mui/icons-material/Clear";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { getIconByType } from "../manage-document";
 import DocumentTable from "./components/table";
 import DocumentDetailCollapse from "./components/collapse";
+import { getIconByType } from "../../utils/functions/inconUtils";
 
 const RecyclePage = () => {
   const ctrl = UseMainController();
