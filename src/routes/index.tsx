@@ -32,6 +32,28 @@ import ReportRecycleBinPage from "../pages/report-recycle-bin";
 import ReportUpdatePage from "../pages/report-update";
 import ReportVersionPage from "../pages/report-version";
 import ResetPasswordPage from "../pages/user-detail/components/Reset-password";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
+import { UserRole } from "../enums/role";
+
+// Route Guard Component that checks role-specific access
+const RouteGuard = ({
+  element,
+  allowedRoles,
+}: {
+  element: React.ReactNode;
+  allowedRoles: UserRole[];
+}) => {
+  const authData = useSelector((state: RootState) => state?.auth?.data);
+  const userRole = authData?.role as UserRole | undefined;
+
+  // If user role is in allowed roles, render the element
+  return userRole && allowedRoles.includes(userRole) ? (
+    <>{element}</>
+  ) : (
+    <NotFoundPage />
+  );
+};
 
 const RoutesComponent = () => {
   return useRoutes([
@@ -53,7 +75,12 @@ const RoutesComponent = () => {
         },
         {
           path: MANAGE_USER_PATH,
-          element: <ManageUserPage />,
+          element: (
+            <RouteGuard
+              element={<ManageUserPage />}
+              allowedRoles={[UserRole.ADMIN, UserRole.HR]}
+            />
+          ),
         },
         {
           path: `${DOCUMENT_DETAIL_PATH}/:id`,
@@ -61,39 +88,84 @@ const RoutesComponent = () => {
         },
         {
           path: CREATE_USER_PATH,
-          element: <FormCreateUserPage />,
+          element: (
+            <RouteGuard
+              element={<FormCreateUserPage />}
+              allowedRoles={[UserRole.ADMIN, UserRole.HR]}
+            />
+          ),
         },
         {
           path: `${USER_DETAIL_PATH}/:id`,
-          element: <UserDetailPage />,
+          element: (
+            <RouteGuard
+              element={<UserDetailPage />}
+              allowedRoles={[UserRole.ADMIN, UserRole.HR]}
+            />
+          ),
         },
         {
           path: FOLLOW_DOCUMENT_PATH,
-          element: <FollowDocumentPage />,
-        },  
+          element: (
+            <RouteGuard
+              element={<FollowDocumentPage />}
+              allowedRoles={[UserRole.ADMIN, UserRole.PROJECT_MANAGER]}
+            />
+          ),
+        },
         {
           path: REPORT_UPLOAD_DOC_PATH,
-          element: <ReportUploadPage />,
+          element: (
+            <RouteGuard
+              element={<ReportUploadPage />}
+              allowedRoles={[UserRole.ADMIN, UserRole.PROJECT_MANAGER]}
+            />
+          ),
         },
         {
           path: REPORT_RECYCLE_PATH,
-          element: <ReportRecycleBinPage />,
+          element: (
+            <RouteGuard
+              element={<ReportRecycleBinPage />}
+              allowedRoles={[UserRole.ADMIN, UserRole.PROJECT_MANAGER]}
+            />
+          ),
         },
         {
           path: REPORT_DELETE_PATH,
-          element: <ReportDeletePage />,
+          element: (
+            <RouteGuard
+              element={<ReportDeletePage />}
+              allowedRoles={[UserRole.ADMIN, UserRole.PROJECT_MANAGER]}
+            />
+          ),
         },
         {
           path: REPORT_UPDATE_DOC_PATH,
-          element: <ReportUpdatePage />,
+          element: (
+            <RouteGuard
+              element={<ReportUpdatePage />}
+              allowedRoles={[UserRole.ADMIN, UserRole.PROJECT_MANAGER]}
+            />
+          ),
         },
         {
           path: REPORT_VERSION_DOC_PATH,
-          element: <ReportVersionPage />,
+          element: (
+            <RouteGuard
+              element={<ReportVersionPage />}
+              allowedRoles={[UserRole.ADMIN, UserRole.PROJECT_MANAGER]}
+            />
+          ),
         },
         {
           path: `${RESET_PASSWORD_PATH}/:id`,
-          element: <ResetPasswordPage />,
+          element: (
+            <RouteGuard
+              element={<ResetPasswordPage />}
+              allowedRoles={[UserRole.ADMIN, UserRole.HR]}
+            />
+          ),
         },
       ],
     },
