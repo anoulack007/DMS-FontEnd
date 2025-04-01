@@ -19,12 +19,12 @@ import {
   PanoramaFishEye as PanoramaFishEyeIcon,
   CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
-import { getIconByType } from "../../manage-document";
 import NO_DATA_IC from "../../../assets/logo/NotData.svg";
 import { FollowDocumentModel } from "../../../models/follow-document";
 import { IconType } from "../../../enums/icon-enums";
 import { STATUS_ENUMS } from "../../../enums/status-enum";
 import { getEventChipColor } from "../../../utils/constant/eventChipColor";
+import { getIconByType } from "../../../utils/functions/inconUtils";
 
 interface Document {
   id: string;

@@ -26,8 +26,8 @@ import FoldeImage from "../../assets/Image/image 11.png";
 import CustomMenu from "../manage-document/components/custom-menu";
 import DocumentTable from "./components/table";
 import { getEventChipColor } from "../../utils/constant/eventChipColor";
-import { getIconByType } from "../manage-document";
 import EventFilter from "./components/input-eventFilter";
+import { getIconByType } from "../../utils/functions/inconUtils";
 
 const FollowDocumentPage = () => {
   const ctrl = UseMainController();
