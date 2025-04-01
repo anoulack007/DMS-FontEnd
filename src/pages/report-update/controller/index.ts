@@ -122,7 +122,7 @@ const UseMainController = () => {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Documents");
 
-        XLSX.writeFile(workbook, "ລາຍງານເອກະສານ.xlsx");
+        XLSX.writeFile(workbook, "ລາຍງານເອກະສານການອັບເດດເອກະສານ.xlsx");
 
         Swal.fire(
           "ສົ່ງອອກແລ້ວ!",
