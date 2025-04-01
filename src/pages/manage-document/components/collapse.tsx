@@ -22,7 +22,6 @@ import Invite_IC from "../../../assets/logo/invite_ic.svg";
 import { Version } from "../../../models/file-model";
 import { MemberModel } from "../../../models/member-model";
 import { STATUS_ENUMS } from "../../../enums/status-enum";
-import { getIconByType } from "..";
 import { formatFileSize } from "../../../utils/functions/formarFile";
 import { VersionListComponent } from "./versionDocList";
 import { FileHistory } from "./historyFile";
@@ -34,6 +33,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { GET_FOLDER_MEMBER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
 import eventBus from "../../../utils/functions/eventBus";
+import { getIconByType } from "../../../utils/functions/inconUtils";
 
 interface Document {
   id: string;
