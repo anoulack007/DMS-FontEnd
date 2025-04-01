@@ -17,9 +17,9 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { FollowDocumentModel } from "..";
-import { getIconByType } from "../../manage-document";
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import SearchIcon from "@mui/icons-material/Search";
+import { getIconByType } from "../../../utils/functions/inconUtils";
 
 interface DocumentTableProps {
   documents: FollowDocumentModel[];

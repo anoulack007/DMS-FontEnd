@@ -11,15 +11,14 @@ import {
   Typography,
   CircularProgress,
   TablePagination,
-  Chip,
   TextField,
   Button,
   InputAdornment,
 } from "@mui/material";
-import { getIconByType } from "../../manage-document";
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import SearchIcon from "@mui/icons-material/Search";
 import { IconType } from "../../../enums/icon-enums";
+import { getIconByType } from "../../../utils/functions/inconUtils";
 export interface FileWithVersionInfo {
   id: string;
   name: string;

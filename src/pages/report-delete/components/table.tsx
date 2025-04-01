@@ -17,10 +17,10 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { FollowDocumentModel } from "..";
-import { getIconByType } from "../../manage-document";
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import SearchIcon from "@mui/icons-material/Search";
 import { IconType } from "../../../enums/icon-enums";
+import { getIconByType } from "../../../utils/functions/inconUtils";
 
 interface DocumentTableProps {
   documents: FollowDocumentModel[];
