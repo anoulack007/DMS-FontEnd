@@ -533,6 +533,8 @@ const UseMainController = () => {
 
     // Close collapse view without changing navigation
     setCollapseOpen(false);
+    setVersionDocument([]);
+    setFileHistory([]);
 
     // Update selected items
     setSelectedItems((prev) =>
@@ -848,6 +850,10 @@ const UseMainController = () => {
     if (action === "collapse") {
       handleGetHistory();
       handleGetDocumentVersion();
+    }
+    else {
+      setVersionDocument([]);
+      setFileHistory([]);
     }
   }, [searchParams]);
 

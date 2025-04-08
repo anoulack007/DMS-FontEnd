@@ -210,7 +210,7 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
                 _id: folderMember.folder.id || folderMember.folder._id,
                 id: folderMember.folder.id || folderMember.folder._id,
                 isShared: true,
-                status: folderMember?.status || "Unknown status",
+                status: folderMember?.folder?. status || "Unknown status",
                 path: folderMember.folder.path || "/" + folderMember.folder.name,
                 parentId: folderMember.folder.parentId,
               });
@@ -379,6 +379,7 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
       });
 
       let res;
+      console.log(res)
 
       if (docType === "folder") {
         res = await axiosInstance.patch(

@@ -1,14 +1,14 @@
-// components/FileHistory.tsx
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, Skeleton } from "@mui/material";
 import { useState } from "react";
 import { Version } from "../../../models/file-model";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 
 interface FileHistoryProps {
-  fileHistory: Version[];
+  fileHistory: Version[] | null;
+  isLoading?: boolean;
 }
 
-export const FileHistory = ({ fileHistory }: FileHistoryProps) => {
+export const FileHistory = ({ fileHistory, isLoading = false }: FileHistoryProps) => {
   const [showAll, setShowAll] = useState(false);
   const initialLimit = 3;
 
@@ -17,6 +17,28 @@ export const FileHistory = ({ fileHistory }: FileHistoryProps) => {
     return new Date(date).toLocaleDateString();
   };
 
+  // Show loading skeletons when data is loading
+  if (isLoading) {
+    return (
+      <Box>
+        {[...Array(3)].map((_, index) => (
+          <Box
+            key={index}
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              p: 1,
+            }}
+          >
+            <Skeleton width="60%" height={24} />
+            <Skeleton width="20%" height={24} />
+          </Box>
+        ))}
+      </Box>
+    );
+  }
+
   if (!fileHistory || fileHistory.length === 0) {
     return (
       <Typography
@@ -24,7 +46,7 @@ export const FileHistory = ({ fileHistory }: FileHistoryProps) => {
         variant="body2"
         color="text.secondary"
       >
-        No history available
+        ບໍ່ມີປະຫວັດ
       </Typography>
     );
   }
