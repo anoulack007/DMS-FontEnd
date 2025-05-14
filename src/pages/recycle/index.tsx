@@ -9,6 +9,7 @@ import {
   Stack,
   useMediaQuery,
   useTheme,
+  Badge,
 } from "@mui/material";
 import UseMainController from "./controllers";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -24,55 +25,85 @@ import DocumentTable from "./components/table";
 import DocumentDetailCollapse from "./components/collapse";
 import { getIconByType } from "../../utils/functions/inconUtils";
 
+
 const RecyclePage = () => {
   const ctrl = UseMainController();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
     <Box>
       <Box
         sx={{
           display: "flex",
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { xs: 'flex-start', md: 'center' },
+          flexDirection: { xs: "column", md: "row" },
+          alignItems: { xs: "flex-start", md: "center" },
           mb: 3,
           justifyContent: "space-between",
           gap: { xs: 2, md: 0 },
         }}
       >
-        <Typography color="#838383" variant="h5" fontWeight={700} mb={{ xs: 1, md: 0 }}>
-          ຖັງຂີ້ເຫຍື້ອ
-        </Typography>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography
+            variant="h5"
+            fontWeight={700}
+            color="#4A4A4A"
+            mb={{ xs: 1, md: 0 }}
+          >
+            ຖັງຂີ້ເຫຍື້ອ
+          </Typography>
+          <Badge
+            badgeContent={ctrl?.documents.length || 0}
+            color="error"
+            sx={{
+              "& .MuiBadge-badge": {
+                fontSize: "0.8rem",
+                height: "22px",
+                minWidth: "22px",
+                borderRadius: "50%",
+                padding: "0 6px",
+              },
+            }}
+          />
+        </Box>
 
-        <Box 
-          sx={{ 
-            display: "flex", 
-            flexDirection: { xs: 'column', md: 'row' },
-            width: { xs: '100%', md: 'auto' },
-            gap: { xs: 2, md: 3 }
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            width: { xs: "100%", md: "auto" },
+            gap: { xs: 2, md: 3 },
           }}
         >
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Stack 
-              direction={{ xs: 'column', sm: 'row' }} 
-              spacing={{ xs: 1, sm: 2 }} 
-              alignItems={{ xs: 'flex-start', sm: 'center' }}
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={{ xs: 1, sm: 2 }}
+              alignItems={{ xs: "flex-start", sm: "center" }}
               flexWrap="wrap"
-              sx={{ width: '100%' }}
+              sx={{ width: "100%" }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'nowrap' }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  flexWrap: "nowrap",
+                }}
+              >
                 <FilterAltIcon color="action" />
-                <Typography variant="subtitle2" noWrap>ການກັ່ນຕອງຕາມວັນທີ</Typography>
+                <Typography variant="subtitle2" noWrap>
+                  ການກັ່ນຕອງຕາມວັນທີ
+                </Typography>
               </Box>
 
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  flexDirection: { xs: 'column', sm: 'row' }, 
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
                   gap: 2,
-                  width: { xs: '100%', sm: 'auto' },
+                  width: { xs: "100%", sm: "auto" },
                 }}
               >
                 <DatePicker
@@ -84,12 +115,12 @@ const RecyclePage = () => {
                       startDate: newValue,
                     })
                   }
-                  format="MM/DD/YYYY"
+                  format="DD/MM/YYYY"
                   slotProps={{
                     textField: {
                       size: "small",
-                      sx: { 
-                        width: { xs: '100%', sm: 170 },
+                      sx: {
+                        width: { xs: "100%", sm: 170 },
                       },
                     },
                   }}
@@ -104,12 +135,12 @@ const RecyclePage = () => {
                       endDate: newValue,
                     })
                   }
-                  format="MM/DD/YYYY"
+                  format="DD/MM/YYYY"
                   slotProps={{
                     textField: {
                       size: "small",
-                      sx: { 
-                        width: { xs: '100%', sm: 170 },
+                      sx: {
+                        width: { xs: "100%", sm: 170 },
                       },
                     },
                   }}
@@ -119,9 +150,9 @@ const RecyclePage = () => {
               <Button
                 variant="outlined"
                 startIcon={<ClearIcon />}
-                sx={{ 
+                sx={{
                   textTransform: "none",
-                  alignSelf: { xs: 'flex-start', sm: 'center' },
+                  alignSelf: { xs: "flex-start", sm: "center" },
                 }}
                 onClick={ctrl.resetFilters}
                 size="small"
@@ -132,7 +163,10 @@ const RecyclePage = () => {
           </LocalizationProvider>
 
           {!isSmall && (
-            <Divider orientation={isMobile ? "horizontal" : "vertical"} flexItem />
+            <Divider
+              orientation={isMobile ? "horizontal" : "vertical"}
+              flexItem
+            />
           )}
 
           <TextField
@@ -147,8 +181,8 @@ const RecyclePage = () => {
               "& .MuiOutlinedInput-notchedOutline": {
                 border: "none",
               },
-              width: { xs: '100%', md: 'auto' },
-              minWidth: { sm: '200px' },
+              width: { xs: "100%", md: "auto" },
+              minWidth: { sm: "200px" },
             }}
             placeholder="ຄົ້ນຫາເອກະສານ..."
             value={ctrl.searchTerm}

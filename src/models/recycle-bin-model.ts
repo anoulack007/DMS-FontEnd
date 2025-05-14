@@ -1,3 +1,5 @@
+import { folderModel } from "./Document";
+
 interface Owner {
   company: string;
   email: string;
@@ -24,5 +26,8 @@ export interface RecycleBinDocument {
   createdAt: string; 
   updatedAt: string; 
   owner: Owner;
-  folder: string;
+  folder: {
+    name: string;
+    path: string;
+  };
 }

@@ -58,6 +58,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
             <TableRow>
               <TableCell></TableCell>
               <TableCell>ຊື່ເອກະສານ</TableCell>
+              <TableCell>ທີ່ມາ</TableCell>
+              <TableCell>ເວີຊັນ</TableCell>
               <TableCell>ປະເພດ</TableCell>
               <TableCell>ລະຫັດເອກະສານ</TableCell>
               <TableCell>ຊື່ຜູ້ລົບ</TableCell>
@@ -132,6 +134,12 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                     </Box>
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
+                    {item?.folder?.path ? item?.folder?.path : "ໜ້າຫຼັກ"}
+                  </TableCell>
+                  <TableCell sx={{ borderBottom: "none" }}>
+                    {item?.version ? item?.version : "ບໍ່ມີເວີຊັນ"}
+                  </TableCell>
+                  <TableCell sx={{ borderBottom: "none" }}>
                     {item?.type ? item?.type : "folder"}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
@@ -142,7 +150,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {item?.updatedAt
-                      ? new Date(item?.updatedAt).toLocaleString()
+                      ? new Date(item.updatedAt).toLocaleDateString("en-GB")
                       : ""}
                   </TableCell>
                 </TableRow>
@@ -175,7 +183,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={7} align="right">
+              <TableCell colSpan={10} align="right">
                 <TablePagination
                   component="div"
                   count={ctrl?.filteredDocuments.length}

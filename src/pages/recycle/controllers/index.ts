@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, version } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DOCUMENT_DETAIL_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
@@ -31,6 +31,7 @@ interface Document {
   status: STATUS_ENUMS;
   isFolder: boolean;
   parentId: string;
+  version: string;
   isPinned: boolean;
   isDelete: boolean;
   createdAt: string;
@@ -125,7 +126,7 @@ const UseMainController = () => {
           ? Object.values(res?.data?.data?.deletedFile).map((file: any) => ({
               id: file?.id,
               name: file?.name,
-              documentId: file?.id,
+              documentId: file?.documentId,
               owner: {
                 name: file?.owner?.name || "N/A",
                 company: file?.owner?.company,
@@ -133,8 +134,13 @@ const UseMainController = () => {
               },
               updatedAt: file?.updatedAt,
               createdAt: file?.createdAt,
+              version: file?.version,
               type: file?.type,
               size: file?.size || null,
+              folder: {
+                name: file.folder?.name,
+                path: file.folder?.path,
+              },
             }))
           : []),
         ...(res?.data?.data?.deletedFolders
