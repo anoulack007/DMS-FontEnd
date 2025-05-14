@@ -1,4 +1,4 @@
-import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
+import React, { useState, useRef, DragEvent, ChangeEvent, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -19,16 +19,16 @@ import CloseIcon from "@mui/icons-material/Close";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 
 import axios from "axios";
-import { CREATE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
 import axiosInstance from "../../../configs/axios";
 import HistoryEduOutlinedIcon from "@mui/icons-material/HistoryEduOutlined";
 import eventBus from "../../../utils/functions/eventBus";
+import { FILE_UPLOAD_VERSION_END_POINT } from "../../../configs/endPoint/files-endpoint";
 
 interface FileUploadDialogProps {
   open: boolean;
   onClose: () => void;
   folderId?: string;
-  status?: "PRIVATE" | "PUBLIC";
+  documentNumber?: string; 
 }
 
 interface UploadError {
@@ -42,11 +42,11 @@ interface SnackbarState {
   severity: "success" | "error" | "info" | "warning";
 }
 
-const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
+const FileUploadVersionDialog: React.FC<FileUploadDialogProps> = ({
   open,
   onClose,
   folderId,
-  status = "PRIVATE",
+  documentNumber = "", 
 }) => {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,6 +59,13 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
     message: "",
     severity: "success",
   });
+
+  // Effect to update document number field when it changes
+  useEffect(() => {
+    if (documentNumberRef.current && documentNumber) {
+      documentNumberRef.current.value = documentNumber;
+    }
+  }, [documentNumber, open]);
 
   const handleCloseSnackbar = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
@@ -113,11 +120,13 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
         formData.append("folderId", "");
       }
 
-      // Add status
-      formData.append("status", status);
+      // Add documentNumber if provided
+      if (documentNumber) {
+        formData.append("documentId", documentNumber);
+      }
 
       const response = await axiosInstance.post(
-        CREATE_FILE_END_POINT,
+        FILE_UPLOAD_VERSION_END_POINT,
         formData,
         {
           headers: {
@@ -170,6 +179,8 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
     fileInputRef.current?.click();
   };
 
+  const isVersionUpload = documentNumber !== "";
+
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -182,7 +193,9 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
             alignItems: "center",
           }}
         >
-          <Typography variant="h4">ເລືອກເອກະສານ</Typography>
+          <Typography variant="h4">
+            {isVersionUpload ? "ອັບໂຫຼດເວີຊັນໃໝ່" : "ເລືອກເອກະສານ"}
+          </Typography>
           <IconButton
             aria-label="close"
             onClick={onClose}
@@ -194,11 +207,11 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
           </IconButton>
         </DialogTitle>
         <DialogContent>
-          {/* <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
-            ນໍາເຂົ້າເອກະສານຂອງທ່ານ
-          </Typography> */}
+          <Typography variant="h5" color="text.secondary" sx={{ mb: 2 }}>
+            {isVersionUpload ? "ອັບໂຫຼດເວີຊັນໃໝ່ຂອງເອກະສານ" : "ນໍາເຂົ້າເອກະສານຂອງທ່ານ"}
+          </Typography>
 
-          {/* <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 2 }}>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
               # ເລກລະຫັດເອກະສານ
             </Typography>
@@ -214,18 +227,19 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
                   ? error.message
                   : ""
               }
-              disabled={uploading}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <HistoryEduOutlinedIcon />
-                    </InputAdornment>
-                  ),
-                },
+              disabled={uploading || isVersionUpload} // Disable when uploading or it's a version upload
+              defaultValue={documentNumber}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <HistoryEduOutlinedIcon />
+                  </InputAdornment>
+                ),
+                readOnly: isVersionUpload, // Make read-only when it's a version upload
               }}
+              fullWidth
             />
-          </Box> */}
+          </Box>
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -266,7 +280,9 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
             />
 
             <Typography variant="h5" sx={{ mb: 1 }}>
-              ເລືອກ ແລະ ວາງໄຟລ໌ຂອງທ່ານ
+              {isVersionUpload 
+                ? "ເລືອກເວີຊັນໃໝ່ຂອງເອກະສານ" 
+                : "ເລືອກ ແລະ ວາງໄຟລ໌ຂອງທ່ານ"}
             </Typography>
 
             <Button
@@ -326,4 +342,4 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
   );
 };
 
-export default FileUploadDialog;
+export default FileUploadVersionDialog;

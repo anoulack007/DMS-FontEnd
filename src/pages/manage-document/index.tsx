@@ -27,6 +27,7 @@ import { formatFileSize } from "../../utils/functions/formarFile";
 import { getStatusColor, getTextColor } from "../../utils/functions/color";
 import { DocumentDetailsPanel } from "./components/collapse";
 import { getIconByType } from "../../utils/functions/inconUtils";
+import FileUploadVersionDialog from "./components/dialog-uploadVersionFile";
 
 const ManageDocumentPage = () => {
   const ctrl = UseMainController();
@@ -113,18 +114,13 @@ const ManageDocumentPage = () => {
         }}
       >
         <DocumentTable
-          ctrl={{
-            ...ctrl,
-            page: ctrl.page,
-            rowsPerPage: ctrl.rowsPerPage,
-            handleChangePage: ctrl.handleChangePage,
-            handleChangeRowsPerPage: ctrl.handleChangeRowsPerPage,
-          }}
-          isAnyItemSelected={ctrl.selectedItems.length > 0}
+          ctrl={ctrl}
+          isAnyItemSelected={ctrl?.selectedItems.length > 0}
           getIconByType={getIconByType}
           formatFileSize={formatFileSize}
           getStatusColor={getStatusColor}
           getTextColor={getTextColor}
+          handleUploadVersion={ctrl?.handleUploadVersion}
         />
 
         <DocumentDetailsPanel ctrl={ctrl} />
@@ -139,6 +135,12 @@ const ManageDocumentPage = () => {
           INVITE_MEMBER_FILE_END_POINT={INVITE_MEMBER_FILE_END_POINT}
           axiosInstance={axiosInstance}
           ErrorResponse={ErrorResponse}
+        />
+
+        <FileUploadVersionDialog
+          open={ctrl?.versionUploadOpen}
+          onClose={() => ctrl?.setVersionUploadOpen(false)}
+          documentNumber={ctrl?.selectedDocumentNumber}
         />
       </Box>
     </Box>

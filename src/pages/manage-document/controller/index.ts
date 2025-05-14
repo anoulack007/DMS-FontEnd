@@ -44,6 +44,7 @@ const UseMainController = () => {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null
   );
+  console.log(selectedDocument);
   const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
   const [fileHistory, setFileHistory] = useState<Version[]>([]);
 
@@ -61,6 +62,13 @@ const UseMainController = () => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [versionDocument, setVersionDocument] = useState<Version[]>([]);
+  const [versionUploadOpen, setVersionUploadOpen] = useState(false);
+  const [selectedDocumentNumber, setSelectedDocumentNumber] = useState("");
+
+  const handleUploadVersion = (documentNumber: string) => {
+    setSelectedDocumentNumber(documentNumber);
+    setVersionUploadOpen(true);
+  };
 
   const handleGetDocumentsByPath = async (path?: string) => {
     try {
@@ -84,33 +92,63 @@ const UseMainController = () => {
 
       // Safely check and process files
       if (responseData.files && Array.isArray(responseData.files)) {
-        responseData.files.forEach((file: FileModel) => {
-          const fileName = file.name;
+        // Group files by their base name (without version)
+        const fileGroups = new Map();
 
-          if (
-            !filesMap.has(fileName) ||
-            new Date(file.updatedAt) >
-              new Date(filesMap.get(fileName).updatedAt)
-          ) {
-            filesMap.set(fileName, {
-              id: file.id,
-              name: file.name,
-              nameVersion: file.nameVersion,
-              type: file.type || getFileTypeFromName(file.name),
-              url: file.url,
-              documentNumber: file.documentNumber,
-              documentId: file.documentId,
-              createdAt: file.createdAt,
-              updatedAt: file.updatedAt,
-              size: file.size,
-              status: file.status || "PUBLIC",
-              itemType: "file",
-              isFolder: false,
-              version: file.version || "1.0",
-              sOwned: true,
-              isShared: false,
-            });
+        responseData.files.forEach((file: FileModel) => {
+          // Extract the base name (without version info)
+          const baseFileName = file.name.replace(/_v\d+(\.\w+)?$/, "$1");
+
+          // Use the base name and documentId as the key to group versions of the same file
+          const fileKey = `${baseFileName}_${file.documentId}`;
+
+          if (!fileGroups.has(fileKey)) {
+            fileGroups.set(fileKey, []);
           }
+
+          fileGroups.get(fileKey).push(file);
+        });
+
+        // For each group, find the latest version based on version number and updatedAt date
+        fileGroups.forEach((versions, fileKey) => {
+          // Sort versions by numeric version and then by updatedAt date as a tiebreaker
+          versions.sort((a: any, b: any) => {
+            // Extract version numbers (defaulting to 0 if not found)
+            const versionA = parseFloat(a.version || "0") || 0;
+            const versionB = parseFloat(b.version || "0") || 0;
+
+            if (versionB !== versionA) {
+              return versionB - versionA; // Higher version wins
+            }
+
+            // If versions are same, use latest updatedAt
+            return (
+              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+            );
+          });
+
+          // Get the latest version (first after sorting)
+          const latestFile = versions[0];
+
+          filesMap.set(fileKey, {
+            id: latestFile.id,
+            name: latestFile.name,
+            nameVersion: latestFile.nameVersion,
+            folderId: latestFile.folderId,
+            type: latestFile.type || getFileTypeFromName(latestFile.name),
+            url: latestFile.url,
+            documentNumber: latestFile.documentNumber,
+            documentId: latestFile.documentId,
+            createdAt: latestFile.createdAt,
+            updatedAt: latestFile.updatedAt,
+            size: latestFile.size,
+            status: latestFile.status || "PUBLIC",
+            itemType: "file",
+            isFolder: false,
+            version: latestFile.version || "1.0",
+            sOwned: true,
+            isShared: false,
+          });
         });
       } else {
         console.warn("No files found in the response");
@@ -129,6 +167,7 @@ const UseMainController = () => {
             subfoldersMap.set(folderName, {
               id: subfolder.id,
               name: subfolder.name,
+              folderId: subfolder.folderId,
               documentId: subfolder.documentId,
               path: subfolder.path,
               parentId: subfolder.parentId,
@@ -202,16 +241,20 @@ const UseMainController = () => {
 
     try {
       let endpoint;
-      let payload;
-      
+      let payload: { status: STATUS_ENUMS; folderId?: string | number };
+
       setLoading(true);
+
+      payload = { status: newStatus };
+
+      if (selectedDocument) {
+        payload.folderId = selectedDocument.folderId;
+      }
 
       if (selectedDocument?.itemType === "folder") {
         endpoint = `${UPDATE_FOLDER_END_POINT}/${selectedDocument?.id}`;
-        payload = { status: newStatus };
       } else {
         endpoint = `${UPDATE_FILE_END_POINT}/${selectedDocument?.id}`;
-        payload = { status: newStatus };
       }
 
       const res = await axiosInstance.patch(endpoint, payload);
@@ -243,7 +286,7 @@ const UseMainController = () => {
         text: "Failed to update status. Please try again.",
       });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -275,57 +318,66 @@ const UseMainController = () => {
       const responseData = response?.data?.data;
       const processedData = [];
 
+      // Use documentId as the key to group different versions of the same document
       const filesMap = new Map();
+      const documentVersionsMap = new Map();
 
+      // Process owned files
       if (responseData.files && Array.isArray(responseData.files)) {
         responseData.files.forEach((file: FileModel) => {
           if (file.folderId) {
             return;
           }
 
-          const fileName = file.name;
+          const documentId = file.documentId;
 
-          if (
-            !filesMap.has(fileName) ||
-            new Date(file.updatedAt) >
-              new Date(filesMap.get(fileName).updatedAt)
-          ) {
-            filesMap.set(fileName, {
-              id: file.id,
-              name: file.name,
-              nameVersion: file.nameVersion,
-              type: file.type || getFileTypeFromName(file.name),
-              documentNumber: file.documentNumber,
-              documentId: file.documentId,
-              createdAt: file.createdAt,
-              updatedAt: file.updatedAt,
-              url: file?.url,
-              size: file.size,
-              status: file.status || "PUBLIC",
-              itemType: "file",
-              isFolder: false,
-              version: file.version || "1.0",
-              isOwned: true,
-              isShared: false,
-            });
+          // Group files by documentId to handle versions
+          if (!documentVersionsMap.has(documentId)) {
+            documentVersionsMap.set(documentId, []);
           }
+
+          documentVersionsMap.get(documentId).push({
+            id: file.id,
+            name: file.name,
+            nameVersion: file.nameVersion,
+            type: file.type || getFileTypeFromName(file.name),
+            documentNumber: file.documentNumber,
+            documentId: file.documentId,
+            createdAt: file.createdAt,
+            updatedAt: file.updatedAt,
+            folderId: file.folderId,
+            url: file?.url,
+            size: file.size,
+            status: file.status || "PUBLIC",
+            itemType: "file",
+            isFolder: false,
+            version: file.version || "1.0",
+            isOwned: true,
+            isShared: false,
+          });
         });
       }
 
-      // Process fileMembers
+      // Process fileMembers (shared files)
       if (responseData.fileMembers && Array.isArray(responseData.fileMembers)) {
         responseData.fileMembers.forEach((fileMember: fileMember) => {
           if (fileMember.file && fileMember.file.folderId) {
             return;
           }
 
-          let fileData;
-
           if (fileMember.file) {
-            fileData = {
+            const documentId = fileMember.file.documentId;
+
+            // Group files by documentId to handle versions
+            if (!documentVersionsMap.has(documentId)) {
+              documentVersionsMap.set(documentId, []);
+            }
+
+            documentVersionsMap.get(documentId).push({
               id: fileMember.file.id,
               name: fileMember.file.name,
               nameVersion: fileMember.file.nameVersion,
+              folderId: fileMember.file.folderId,
               type:
                 fileMember.file.type ||
                 getFileTypeFromName(fileMember.file.name),
@@ -341,20 +393,44 @@ const UseMainController = () => {
               version: fileMember.file.version || "1.0",
               isShared: true,
               isOwned: false,
-            };
-
-            const fileName = fileData.name;
-
-            if (
-              !filesMap.has(fileName) ||
-              new Date(fileData.updatedAt) >
-                new Date(filesMap.get(fileName).updatedAt)
-            ) {
-              filesMap.set(fileName, fileData);
-            }
+            });
           }
         });
       }
+
+      // Process each group to find the latest version
+      documentVersionsMap.forEach((versions, documentId) => {
+        // Sort versions - first by version number in filename, then by version field, then by date
+        versions.sort((a: any, b: any) => {
+          // Extract version from filename (e.g., "_v1" -> 1)
+          const versionAMatch = a.name.match(/_v(\d+)/);
+          const versionBMatch = b.name.match(/_v(\d+)/);
+
+          const versionA = versionAMatch ? parseInt(versionAMatch[1], 10) : 0;
+          const versionB = versionBMatch ? parseInt(versionBMatch[1], 10) : 0;
+
+          if (versionB !== versionA) {
+            return versionB - versionA; // Higher version wins
+          }
+
+          // If filename versions are identical, use the version field
+          const numVersionA = parseFloat(a.version || "0") || 0;
+          const numVersionB = parseFloat(b.version || "0") || 0;
+
+          if (numVersionB !== numVersionA) {
+            return numVersionB - numVersionA;
+          }
+
+          // If all version info is the same, use latest updatedAt
+          return (
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          );
+        });
+
+        // Add only the latest version to filesMap
+        const latestVersion = versions[0];
+        filesMap.set(documentId, latestVersion);
+      });
 
       // Add all latest files to the processed data
       processedData.push(...Array.from(filesMap.values()));
@@ -376,6 +452,7 @@ const UseMainController = () => {
               name: folder.name,
               type: "folder",
               documentNumber: folder.documentId,
+              folderId: folder.folderId,
               documentId: folder.documentId,
               createdAt: folder.createdAt,
               updatedAt: folder.updatedAt,
@@ -405,6 +482,7 @@ const UseMainController = () => {
             id: folder.id,
             name: folder.name,
             type: "folder",
+            folderId: folder.folderId,
             documentNumber: folder.documentId,
             documentId: folder.documentId,
             createdAt: folder.createdAt,
@@ -430,6 +508,7 @@ const UseMainController = () => {
             processedData.push({
               id: folderMember.folder.id,
               name: folderMember.folder.name,
+              folderId: folderMember.folderId,
               type: "folder",
               documentNumber: folderMember.folder.documentId,
               documentId: folderMember.folder.documentId,
@@ -503,6 +582,8 @@ const UseMainController = () => {
           }
         };
 
+        setSelectedItems([]);
+
         // Execute the refetch
         refetchData();
       }
@@ -528,6 +609,7 @@ const UseMainController = () => {
     if (doc) {
       setSelectedDocument(doc);
       localStorage.setItem("selectedDocumentId", id);
+      localStorage.setItem("selectedDocumentNumber", doc?.documentId);
       localStorage.setItem("selectedDocumentType", doc.type);
     }
 
@@ -625,7 +707,7 @@ const UseMainController = () => {
 
         await handleGetData();
         if (folderPath) {
-          await handleGetDocumentsByPath();
+          await handleGetDocumentsByPath(folderPath);
         }
       } catch (error) {
         console.error("Delete error:", error);
@@ -675,25 +757,29 @@ const UseMainController = () => {
       cancelButtonText: "ຍົກເລີກ",
     });
 
-    if (!result.isConfirmed) {
-      return;
-    }
+    if (!result.isConfirmed) return;
 
     try {
       setIsSubmitting(true);
       setLoading(true);
 
-      let endPoint =
+      const endPoint =
         selectedDocument.itemType === "folder"
           ? `${UPDATE_FOLDER_END_POINT}/${selectedDocument.id}`
           : `${UPDATE_FILE_END_POINT}/${selectedDocument.id}`;
 
-      const res = await axiosInstance.patch(endPoint, {
+      const payload: { name: string; folderId?: string | number } = {
         name: newName,
-      });
+      };
+
+      if (selectedDocument.folderId) {
+        payload.folderId = selectedDocument.folderId;
+      }
+
+      const res = await axiosInstance.patch(endPoint, payload);
 
       if (res?.status === 200) {
-        setSelectedDocument({ ...res.data }); // Ensure state updates
+        setSelectedDocument({ ...res.data });
 
         await Swal.fire({
           icon: "success",
@@ -703,10 +789,11 @@ const UseMainController = () => {
           timer: 2000,
         });
 
-        // Refetch updated data
         await handleGetData();
+
+        // ✅ Fix: Pass folderPath explicitly if needed
         if (folderPath) {
-          await handleGetDocumentsByPath();
+          await handleGetDocumentsByPath(folderPath);
         }
       }
     } catch (error) {
@@ -788,6 +875,7 @@ const UseMainController = () => {
   };
 
   const handleSearch = useCallback((searchValue: string) => {
+    setPage(0);
     setSearchTerm(searchValue);
   }, []);
 
@@ -850,8 +938,7 @@ const UseMainController = () => {
     if (action === "collapse") {
       handleGetHistory();
       handleGetDocumentVersion();
-    }
-    else {
+    } else {
       setVersionDocument([]);
       setFileHistory([]);
     }
@@ -897,6 +984,10 @@ const UseMainController = () => {
     };
   }, [searchParams]);
   return {
+    setVersionUploadOpen,
+    versionUploadOpen,
+    selectedDocumentNumber,
+    handleUploadVersion,
     versionDocument,
     handleChangePage,
     handleChangeRowsPerPage,

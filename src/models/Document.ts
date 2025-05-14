@@ -8,6 +8,7 @@ export interface Document {
   files: FileModel;
   folders: folderModel;
   folderMembers: folderMember;
+  folderId: string;
   path: string;
   documentId: string;
   modified: string;
@@ -95,6 +96,7 @@ export interface Subfolder {
   documentId: string;
   createdAt: string;
   updatedAt: string;
+  folderId: string;
   isDeleted: boolean;
   isPinned: boolean;
   name: string;

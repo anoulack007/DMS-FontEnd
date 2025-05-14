@@ -14,9 +14,12 @@ import {
   Paper,
   TablePagination,
   TableFooter,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import PanoramaFishEyeIcon from "@mui/icons-material/PanoramaFishEye";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import NO_DATA_IC from "../../../assets/logo/NotData.svg";
 import { getFileTypeFromName } from "../../../utils/functions/typefile";
 
@@ -27,6 +30,7 @@ interface DocumentTableProps {
   formatFileSize: (size: number) => string;
   getStatusColor: (status: string) => string;
   getTextColor: (status: string) => string;
+  handleUploadVersion?: (documentNumber: string) => void;
 }
 
 const DocumentTable: React.FC<DocumentTableProps> = ({
@@ -36,6 +40,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   formatFileSize,
   getStatusColor,
   getTextColor,
+  handleUploadVersion,
 }) => {
   // Get paginated data
   const paginatedData = ctrl.documents.slice(
@@ -76,6 +81,9 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                 <p style={{ fontWeight: "bold" }}>ຊື່ເອກະສານ</p>
               </TableCell>
               <TableCell>
+                <p style={{ fontWeight: "bold" }}>ເວີຊັນ</p>
+              </TableCell>
+              <TableCell>
                 <p style={{ fontWeight: "bold" }}>ປະເພດ</p>
               </TableCell>
               <TableCell>
@@ -90,18 +98,21 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
               <TableCell>
                 <p style={{ fontWeight: "bold" }}>ສະຖານະ</p>
               </TableCell>
+              <TableCell>
+                <p style={{ fontWeight: "bold" }}>ຈັດການ</p>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody sx={{ borderBottom: "1px solid #919EAB3D" }}>
             {ctrl?.loading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={8} align="center">
                   <CircularProgress />
                 </TableCell>
               </TableRow>
             ) : ctrl?.error ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={8} align="center">
                   {ctrl?.error}
                 </TableCell>
               </TableRow>
@@ -151,11 +162,24 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                       )}
                       <Box>
                         <Typography>
-                          {item?.nameVersion ??
-                            item?.name ??
-                            item?.fileMembers?.file?.nameVersion ??
-                            item?.fileMembers?.file?.name}
-                          {item.isShared && (
+                          {/* {(() => {
+                            const version = item?.version;
+                            const isV1OrHigher =
+                              version &&
+                              version.startsWith("v") &&
+                              parseInt(version.slice(1)) >= 1;
+
+                            const displayName = isV1OrHigher
+                              ? item?.nameVersion ??
+                                item?.fileMembers?.file?.nameVersion
+                              : item?.name ?? item?.fileMembers?.file?.name;
+
+                            return displayName;
+                          })()}  */}
+
+                          {item?.name ?? item?.fileMembers?.file?.name}
+
+                          {item?.isShared && (
                             <span
                               style={{
                                 color: "green",
@@ -171,13 +195,19 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                     </Box>
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
+                    {item?.version ?? "N/A"}
+                  </TableCell>
+                  <TableCell sx={{ borderBottom: "none" }}>
                     {item.itemType === "file"
                       ? item.type || getFileTypeFromName(item.name)
                       : "folder"}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
-                    {item.documentNumber ?? item.documentId}
+                    {item?.document
+                      ? item?.documentNumber ?? item?.documentId
+                      : item?.documentId}
                   </TableCell>
+
                   <TableCell sx={{ borderBottom: "none" }}>
                     {item.updatedAt
                       ? new Date(item.updatedAt).toLocaleDateString()
@@ -197,11 +227,29 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                       }}
                     />
                   </TableCell>
+                  <TableCell sx={{ borderBottom: "none" }}>
+                    {item.itemType === "file" && handleUploadVersion && (
+                      <Tooltip title="ອັບໂຫຼດເວີຊັນໃໝ່">
+                        <IconButton
+                          color="primary"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent row selection
+                            const docNumber =
+                              item?.documentNumber || item?.documentId;
+                            handleUploadVersion(docNumber);
+                          }}
+                          size="small"
+                        >
+                          <UploadFileIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow sx={{ height: "200px" }}>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={8} align="center">
                   <img height={"100px"} src={NO_DATA_IC} alt="No Data" />
                   <p>ບໍ່ມີຂໍ້ມູນ</p>
                 </TableCell>
@@ -210,7 +258,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={7} align="right">
+              <TableCell colSpan={8} align="right">
                 <TablePagination
                   component="div"
                   count={ctrl.documents.length}

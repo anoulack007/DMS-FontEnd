@@ -3,11 +3,15 @@ export const GET_ALL_FILE_END_POINT = "/files/get-all";
 
 export const GET_ALL_ROOT_FILE_END_POINT = "/files/get-root";
 
-export const CREATE_FILE_END_POINT = "/files/create";   
+export const CREATE_FILE_END_POINT = "/files/create";  
+
+export const FILE_UPLOAD_VERSION_END_POINT = "/files/upload-version";   
 
 export const DELETE_FILE_END_POINT: string = "/recycle-bin/file/delete"
 
 export const UPDATE_FILE_END_POINT:string = 'files/update'
+
+export const MOVE_FILE_END_POINT:string = 'files/move-file'
 
 export const DELETE_FILE_PERMANENT_END_POINT: string = '/files/delete';
 

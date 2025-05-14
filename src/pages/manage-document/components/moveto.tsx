@@ -31,7 +31,7 @@ import { GET_OWNER_DOC_END_POINT } from "../../../configs/endPoint/file&folder";
 import { getStatusColor, getTextColor } from "../../../utils/functions/color";
 import axiosInstance from "../../../configs/axios";
 import { MOVE_FOLDER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
-import { UPDATE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
+import { MOVE_FILE_END_POINT, UPDATE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
 import eventBus from "../../../utils/functions/eventBus";
 
 interface MoveDialogProps {
@@ -305,129 +305,131 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
   }, [pathHistory, fetchRootFolders, fetchFoldersByPath]);
 
   const handleMove = async () => {
-    onClose();
+  onClose();
 
-    const destinationFolderId = localStorage.getItem("destinationFolderId");
-    const originFolderId = localStorage.getItem("selectedDocumentId") || null;
-    const docType = localStorage.getItem("selectedDocumentType") || null;
-    const originItemParentId = localStorage.getItem("currentParentId") || null;
+  const destinationFolderId = localStorage.getItem("destinationFolderId");
+  const originFolderId = localStorage.getItem("selectedDocumentId") || null;
+  const docType = localStorage.getItem("selectedDocumentType") || null;
+  const originItemParentId = localStorage.getItem("currentParentId") || null;
+  const documentId = localStorage.getItem("selectedDocumentNumber") || null;
 
-    // Validation checks
-    if (!originFolderId) {
-      Swal.fire({
-        title: "ບໍ່ໄດ້ເລືອກເອກະສານ",
-        text: "ກະລຸນາເລືອກເອກະສານທີ່ຕ້ອງການຍ້າຍ",
-        icon: "warning",
-        confirmButtonText: "ຕົກລົງ",
-        confirmButtonColor: "#2C3E50",
-      });
-      return;
+  // Validation checks
+  if (!originFolderId) {
+    Swal.fire({
+      title: "ບໍ່ໄດ້ເລືອກເອກະສານ",
+      text: "ກະລຸນາເລືອກເອກະສານທີ່ຕ້ອງການຍ້າຍ",
+      icon: "warning",
+      confirmButtonText: "ຕົກລົງ",
+      confirmButtonColor: "#2C3E50",
+    });
+    return;
+  }
+
+  if (!docType) {
+    Swal.fire({
+      title: "ປະເພດເອກະສານບໍ່ຖືກຕ້ອງ",
+      text: "ບໍ່ສາມາດລະບຸປະເພດເອກະສານໄດ້",
+      icon: "warning",
+      confirmButtonText: "ຕົກລົງ",
+      confirmButtonColor: "#2C3E50",
+    });
+    return;
+  }
+
+  // if (destinationFolderId === originItemParentId) {
+  //   Swal.fire({
+  //     title: "ບໍ່ສາມາດຍ້າຍໄດ້",
+  //     text: `ເອກະສານຢູ່ໃນໂຟເດີ້ດຽວກັນແລ້ວ`,
+  //     icon: "warning",
+  //     confirmButtonText: "ຕົກລົງ",
+  //     confirmButtonColor: "#2C3E50",
+  //   });
+  //   return;
+  // }// Check if moving to the same folder
+  
+
+  // Confirm before moving
+  const result = await Swal.fire({
+    title: "ຢືນຢັນການຍ້າຍ",
+    text: `ທ່ານຕ້ອງການຍ້າຍ${docType === "folder" ? "ໂຟເດີ້" : "ເອກະສານ"}${
+      !destinationFolderId ? "ໄປຍັງໂຟເດີ້ຫຼັກ" : "ໄປຍັງໂຟເດີ້ທີ່ເລືອກ"
+    }ບໍ່?`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "ຍ້າຍ",
+    cancelButtonText: "ຍົກເລີກ",
+    confirmButtonColor: "#2C3E50",
+  });
+
+  if (!result.isConfirmed) {
+    return;
+  }
+
+  try {
+    setMovingFiles(true);
+
+    // Show loading state
+    Swal.fire({
+      title: "ກຳລັງຍ້າຍ...",
+      text: "ກະລຸນາລໍຖ້າ",
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    let res;
+
+    if (docType === "folder") {
+      res = await axiosInstance.patch(
+        `${MOVE_FOLDER_END_POINT}/${originFolderId}`,
+        {
+          destinationFolderId: destinationFolderId || null,
+        }
+      );
+    } else {
+      res = await axiosInstance.patch(
+        `${MOVE_FILE_END_POINT}`,
+        {
+          folderId: destinationFolderId || null,
+          documentId: documentId, // Added the documentId to payload
+        }
+      );
     }
 
-    if (!docType) {
-      Swal.fire({
-        title: "ປະເພດເອກະສານບໍ່ຖືກຕ້ອງ",
-        text: "ບໍ່ສາມາດລະບຸປະເພດເອກະສານໄດ້",
-        icon: "warning",
-        confirmButtonText: "ຕົກລົງ",
-        confirmButtonColor: "#2C3E50",
-      });
-      return;
-    }
-
-    // Check if moving to the same folder
-    if (destinationFolderId === originItemParentId) {
-      Swal.fire({
-        title: "ບໍ່ສາມາດຍ້າຍໄດ້",
-        text: `ເອກະສານຢູ່ໃນໂຟເດີ້ດຽວກັນແລ້ວ`,
-        icon: "warning",
-        confirmButtonText: "ຕົກລົງ",
-        confirmButtonColor: "#2C3E50",
-      });
-      return;
-    }
-
-    // Confirm before moving
-    const result = await Swal.fire({
-      title: "ຢືນຢັນການຍ້າຍ",
-      text: `ທ່ານຕ້ອງການຍ້າຍ${docType === "folder" ? "ໂຟເດີ້" : "ເອກະສານ"}${
-        !destinationFolderId ? "ໄປຍັງໂຟເດີ້ຫຼັກ" : "ໄປຍັງໂຟເດີ້ທີ່ເລືອກ"
-      }ບໍ່?`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "ຍ້າຍ",
-      cancelButtonText: "ຍົກເລີກ",
+    Swal.fire({
+      title: "ຍ້າຍສຳເລັດ",
+      text: `ຍ້າຍ${docType === "folder" ? "ໂຟເດີ້" : "ເອກະສານ"}${
+        !destinationFolderId ? "ໄປຍັງໂຟເດີ້ຫຼັກ" : ""
+      }ສຳເລັດແລ້ວ`,
+      icon: "success",
+      confirmButtonText: "ຕົກລົງ",
       confirmButtonColor: "#2C3E50",
     });
 
-    if (!result.isConfirmed) {
-      return;
-    }
+    eventBus.publish("DOCUMNETS_UPDATED", true);
 
-    try {
-      setMovingFiles(true);
-
-      // Show loading state
-      Swal.fire({
-        title: "ກຳລັງຍ້າຍ...",
-        text: "ກະລຸນາລໍຖ້າ",
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
-      let res;
-      console.log(res)
-
-      if (docType === "folder") {
-        res = await axiosInstance.patch(
-          `${MOVE_FOLDER_END_POINT}/${originFolderId}`,
-          {
-            destinationFolderId: destinationFolderId || null,
-          }
-        );
-      } else {
-        res = await axiosInstance.patch(
-          `${UPDATE_FILE_END_POINT}/${originFolderId}`,
-          {
-            folderId: destinationFolderId || null,
-          }
-        );
-      }
-
-      Swal.fire({
-        title: "ຍ້າຍສຳເລັດ",
-        text: `ຍ້າຍ${docType === "folder" ? "ໂຟເດີ້" : "ເອກະສານ"}${
-          !destinationFolderId ? "ໄປຍັງໂຟເດີ້ຫຼັກ" : ""
-        }ສຳເລັດແລ້ວ`,
-        icon: "success",
-        confirmButtonText: "ຕົກລົງ",
-        confirmButtonColor: "#2C3E50",
-      });
-
-      eventBus.publish("DOCUMNETS_UPDATED", true);
-
-      localStorage.removeItem("selectedDocumentId");
-      localStorage.removeItem("selectedDocumentType");
-      localStorage.removeItem("destinationFolderId");
-      localStorage.removeItem("currentParentId");
-    } catch (error: any) {
-      console.error("Error moving items:", error);
-      Swal.fire({
-        title: "ເກີດຂໍ້ຜິດພາດ",
-        text:
-          error.response?.data?.message ||
-          "ບໍ່ສາມາດຍ້າຍລາຍການໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
-        icon: "error",
-        confirmButtonText: "ຕົກລົງ",
-        confirmButtonColor: "#2C3E50",
-      });
-    } finally {
-      setMovingFiles(false);
-    }
-  };
+    // Clean up localStorage after successful operation
+    localStorage.removeItem("selectedDocumentId");
+    localStorage.removeItem("selectedDocumentType");
+    localStorage.removeItem("destinationFolderId");
+    localStorage.removeItem("currentParentId");
+  } catch (error: any) {
+    console.error("Error moving items:", error);
+    Swal.fire({
+      title: "ເກີດຂໍ້ຜິດພາດ",
+      text:
+        error.response?.data?.message ||
+        "ບໍ່ສາມາດຍ້າຍລາຍການໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
+      icon: "error",
+      confirmButtonText: "ຕົກລົງ",
+      confirmButtonColor: "#2C3E50",
+    });
+  } finally {
+    setMovingFiles(false);
+  }
+};
 
   // Filter files based on search term
   const filteredData = fileData.filter((file) => {
