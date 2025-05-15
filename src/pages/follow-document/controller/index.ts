@@ -4,18 +4,10 @@ import { DOCUMENT_DETAIL_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
 import Swal from "sweetalert2";
 import { STATUS_ENUMS } from "../../../enums/status-enum";
-import { ErrorResponse } from "../../../utils/functions/Error";
-import { ErrorModel } from "../../../models/Error";
-import {
-  INVITE_MEMBER_FOLDER_END_POINT,
-  UPDATE_FOLDER_END_POINT,
-} from "../../../configs/endPoint/folder-endpoint";
 import { IconType } from "../../../enums/icon-enums";
 import {
   DELETE_FILE_END_POINT,
   DELETE_FOLDER_END_POINT,
-  INVITE_MEMBER_FILE_END_POINT,
-  UPDATE_FILE_END_POINT,
 } from "../../../configs/endPoint/files-endpoint";
 import { FollowDocumentModel } from "../../../models/follow-document";
 import { GET_ALL_FOLLOW_DOCUMENT_END_POINT } from "../../../configs/endPoint/follow-documnet-endpoint";
@@ -167,7 +159,7 @@ const UseMainController = () => {
     setSelectedItems((prev) => {
       const newSelection = prev.includes(id)
         ? prev.filter((item) => item !== id)
-        : [id]; // Change to single selection
+        : [id]; // Change to single selection 
 
       // Update selected document based on selection
       if (doc) {
@@ -296,197 +288,8 @@ const UseMainController = () => {
     }
   };
 
-  const handleRenameFolder = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-
-    setRenameDialogOpen(false);
-
-    if (!selectedDocument) {
-      await Swal.fire({
-        icon: "warning",
-        title: "No Document Selected",
-        text: "Please select a document to rename the folder.",
-      });
-      return;
-    }
-
-    if (!newName || newName.trim() === "") {
-      await Swal.fire({
-        icon: "warning",
-        title: "Invalid Name",
-        text: "Please enter a valid name for the folder.",
-      });
-      return;
-    }
-
-    // Show confirmation dialog first
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: `Do you really want to rename the folder to "${newName}"?`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Yes, rename it!",
-      cancelButtonText: "No, keep it",
-    });
-
-    // If the user cancels, do nothing
-    if (!result.isConfirmed) {
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-
-      let endPoint;
-
-      if (selectedDocument.itemType === "folder") {
-        endPoint = `${UPDATE_FOLDER_END_POINT}/${selectedDocument.id}`;
-      } else {
-        endPoint = `${UPDATE_FILE_END_POINT}/${selectedDocument.id}`;
-      }
-
-      const res = await axiosInstance.patch(endPoint, {
-        name: newName,
-      });
-
-      // Update the selected document with the new data from the API response
-      setSelectedDocument(res.data);
-
-      await Swal.fire({
-        icon: "success",
-        title: "Folder Renamed!",
-        text: `The folder has been renamed to "${newName}" successfully.`,
-      });
-    } catch (error) {
-      console.error(error);
-      ErrorResponse(error as ErrorModel);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleChangeName = (value: string) => {
     setNewName(value);
-  };
-
-  const handleIviteMember = async () => {
-    setInviteDialogOpen(false);
-
-    try {
-      const result = await Swal.fire({
-        title: "Are you sure?",
-        text: "Do you want to invite this member?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, invite!",
-        cancelButtonText: "Cancel",
-      });
-
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: "Sending Invite...",
-          text: "Please wait while the invite is being sent.",
-          icon: "info",
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-
-        let endpoint;
-        let payload;
-
-        if (selectedDocument?.type === "folder") {
-          endpoint = INVITE_MEMBER_FOLDER_END_POINT;
-          payload = {
-            folderId: selectedDocument?.id,
-            email: email,
-          };
-        } else {
-          endpoint = INVITE_MEMBER_FILE_END_POINT;
-          payload = {
-            fileId: selectedDocument?.id,
-            email: email,
-          };
-        }
-
-        // Simulating API call with axios
-        await axiosInstance.post(endpoint, payload);
-
-        Swal.fire({
-          title: "Success!",
-          text: "Member has been successfully invited.",
-          icon: "success",
-        });
-      }
-    } catch (error) {
-      ErrorResponse(error as ErrorModel);
-    }
-  };
-
-  const handleDownload = async () => {
-    try {
-      if (!selectedDocument || !selectedDocument.url) {
-        Swal.fire({
-          title: "Warning!",
-          text: "Cannot download folders. Please select a file.",
-          icon: "warning",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-        return;
-      }
-
-      const result = await Swal.fire({
-        title: "Are you sure?",
-        text: `Do you want to download ${selectedDocument.name}?`,
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Yes, download it!",
-        cancelButtonText: "Cancel",
-      });
-
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: "Downloading...",
-          text: `Downloading ${selectedDocument.name}`,
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-
-        const response = await fetch(selectedDocument.url);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", selectedDocument.name);
-        document.body.appendChild(link);
-        link.click();
-
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(link);
-
-        Swal.fire({
-          title: "Success!",
-          text: "File downloaded successfully",
-          icon: "success",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        title: "Error!",
-        text: "Something went wrong while downloading the file",
-        icon: "error",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      console.error("Download error:", error);
-    }
   };
 
   useEffect(() => {
@@ -556,12 +359,8 @@ const UseMainController = () => {
     handleDrawerClose,
     handleFolderClick,
     handleDetailsClick,
-    handleRenameFolder,
     handleChangeName,
     handleDeleteFolder,
-    handleIviteMember,
-    handleDownload,
-    // Add these for event filtering
     eventFilter,
     handleEventFilterChange,
   };

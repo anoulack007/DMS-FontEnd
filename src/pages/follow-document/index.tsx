@@ -1,17 +1,10 @@
 import {
   Paper,
   Box,
-  CircularProgress,
   IconButton,
   Typography,
   Collapse,
   Divider,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
   Chip,
 } from "@mui/material";
 
@@ -23,18 +16,25 @@ import UseMainController from "./controller";
 
 //icons
 import FoldeImage from "../../assets/Image/image 11.png";
-import CustomMenu from "../manage-document/components/custom-menu";
 import DocumentTable from "./components/table";
 import { getEventChipColor } from "../../utils/constant/eventChipColor";
 import EventFilter from "./components/input-eventFilter";
 import { getIconByType } from "../../utils/functions/inconUtils";
+import CustomMenu from "./components/custom-menu";
 
 const FollowDocumentPage = () => {
   const ctrl = UseMainController();
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
         <Typography mb={5} color="#838383" variant="h5" fontWeight={700}>
           ຕິດຕາມເອກະສານ
         </Typography>
@@ -48,9 +48,7 @@ const FollowDocumentPage = () => {
         <CustomMenu
           selectedCount={ctrl.selectedItems.length}
           onDetailsClick={ctrl.handleDetailsClick}
-          hanldeFolderRename={() => ctrl?.setRenameDialogOpen(true)}
           handleDelete={ctrl?.handleDeleteFolder}
-          handleDownload={ctrl?.handleDownload}
         />
       )}
 
@@ -186,42 +184,6 @@ const FollowDocumentPage = () => {
             )}
           </Paper>
         </Collapse>
-
-        <Dialog
-          open={ctrl?.renameDialogOpen}
-          onClose={() => ctrl?.setRenameDialogOpen(false)}
-          maxWidth="xs"
-          fullWidth
-        >
-          <form onSubmit={ctrl.handleRenameFolder}>
-            <DialogTitle>Rename Document</DialogTitle>
-            <DialogContent>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="New name"
-                fullWidth
-                value={ctrl?.newName}
-                onChange={(e) => ctrl?.handleChangeName(e.target.value)}
-              />
-            </DialogContent>
-            <DialogActions>
-              {/* <Button onClick={onClose} disabled={ctrl?.isSubmitting}>
-                Cancel
-              </Button> */}
-              <Button
-                type="submit"
-                sx={{
-                  bgcolor: "#2C3E50",
-                  textTransform: "none",
-                  color: "white",
-                }}
-              >
-                {ctrl?.isSubmitting ? <CircularProgress size={24} /> : "Rename"}
-              </Button>
-            </DialogActions>
-          </form>
-        </Dialog>
       </Box>
     </Box>
   );

@@ -42,6 +42,7 @@ const EventFilter: React.FC<EventFilterProps> = ({
           <MenuItem value="AddMember">AddMember</MenuItem>
           <MenuItem value="RemoveMember">RemoveMember</MenuItem>
           <MenuItem value="Restore">Restore</MenuItem>
+          <MenuItem value="MoveFile">MoveFile</MenuItem>
           <MenuItem value="Download">Download</MenuItem>
         </Select>
       </FormControl>
