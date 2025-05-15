@@ -243,12 +243,12 @@ const UseMainController = () => {
     e.preventDefault();
 
     const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This action will permanently delete the item.",
+      title: "ທ່ານແນ່ໃຈບໍ່?",
+      text: "ຄຳສັ່ງນີ້ຈະລຶບລາຍການດັ່ງກ່າວອອກຖາວອນ.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Delete",
-      cancelButtonText: "Cancel",
+      confirmButtonText: "ຕົກລົງ",
+      cancelButtonText: "ຍົກເລີກ",
     });
 
     if (result.isConfirmed) {
