@@ -135,23 +135,23 @@ const FollowDocumentPage = () => {
               <Box
                 sx={{ display: "flex", flexDirection: "column", gap: 5, mt: 3 }}
               >
-                <Typography sx={{ fontSize: 16, fontWeight: 600 }}>
-                  details
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  ລາຍລະອຽດ
                 </Typography>
 
                 <Typography>
                   <strong>
-                    Owner <br /> {ctrl.selectedDocument?.ownerName}
+                    ເຈົ້າຂອງເອກະສານ <br /> {ctrl.selectedDocument?.ownerName}
                   </strong>
                 </Typography>
                 <Typography>
                   <strong>
-                    Company <br /> {ctrl.selectedDocument?.company}
+                    ບໍລິສັດ <br /> {ctrl.selectedDocument?.company}
                   </strong>
                 </Typography>
                 <Typography>
                   <strong>
-                    Created <br />
+                    ສ້າງໃນວັນທີ <br />
                   </strong>
                   {ctrl?.selectedDocument?.createdAt
                     ? new Date(
