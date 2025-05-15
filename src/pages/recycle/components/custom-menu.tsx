@@ -72,7 +72,7 @@ const CustomMenu = ({
             borderRadius: 5,
           }}
         >
-          {selectedCount} selected
+          {selectedCount} ລາຍການ
         </Button>
 
         <Divider
@@ -95,7 +95,7 @@ const CustomMenu = ({
           }}
         >
           <img src={DetailI_ic} alt="Detail" />
-          Details
+          ລາຍລະອຽດ
         </Button>
       </Box>
     </Box>

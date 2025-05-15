@@ -196,8 +196,10 @@ const UseMainController = () => {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(
         (doc) =>
-          (doc.name?.toLowerCase()?.includes(searchLower) || false) ||
-          (doc.documentId?.toLowerCase()?.includes(searchLower) || false)
+          doc.name?.toLowerCase()?.includes(searchLower) ||
+          false ||
+          doc.documentId?.toLowerCase()?.includes(searchLower) ||
+          false
       );
     }
 
@@ -211,29 +213,29 @@ const UseMainController = () => {
         try {
           // Parse the ISO date string to a Date object
           const docDate = new Date(dateStr);
-          
+
           // Start date filtering
           if (dates.startDate) {
             // Set start date to beginning of day
             const startDate = new Date(dates.startDate);
             startDate.setHours(0, 0, 0, 0);
-            
+
             if (docDate < startDate) {
               return false;
             }
           }
-          
+
           // End date filtering
           if (dates.endDate) {
             // Set end date to end of day for inclusive range
             const endDate = new Date(dates.endDate);
             endDate.setHours(23, 59, 59, 999);
-            
+
             if (docDate > endDate) {
               return false;
             }
           }
-          
+
           return true;
         } catch (e) {
           console.error("Date parsing error:", e);
@@ -412,6 +414,13 @@ const UseMainController = () => {
   useEffect(() => {
     handleGetData();
   }, []);
+
+  useEffect(() => {
+    if (selectedItems.length === 0) {
+      setCollapseOpen(false);
+      setSearchParams({});
+    }
+  }, [selectedItems]);
 
   useEffect(() => {
     const action = searchParams.get("action");

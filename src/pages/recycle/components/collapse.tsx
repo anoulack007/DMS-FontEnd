@@ -84,17 +84,17 @@ const DocumentDetailCollapse: React.FC<DocumentDetailCollapseProps> = ({ ctrl, g
           >
             <Typography>
               <strong>
-                Owner <br /> {ctrl.selectedDocument?.owner?.email}
+                ເຈົ້າຂອງເອກະສານ <br /> {ctrl.selectedDocument?.owner?.name}
               </strong>
             </Typography>
             <Typography>
               <strong>
-                Company <br /> {ctrl.selectedDocument?.owner?.company}
+                ບໍລິສັດ <br /> {ctrl.selectedDocument?.owner?.company}
               </strong>
             </Typography>
             <Typography>
               <strong>
-                Created <br />
+                ສ້າງໃນວັນທີ <br />
               </strong>
               {ctrl?.selectedDocument?.createdAt
                 ? new Date(
@@ -104,7 +104,7 @@ const DocumentDetailCollapse: React.FC<DocumentDetailCollapseProps> = ({ ctrl, g
             </Typography>
             <Typography>
               <strong>
-                Date deleted <br />{" "}
+                ລຶບໃນວັນທີ <br />{" "}
               </strong>{" "}
               {ctrl?.selectedDocument?.updatedAt
                 ? new Date(
@@ -114,7 +114,7 @@ const DocumentDetailCollapse: React.FC<DocumentDetailCollapseProps> = ({ ctrl, g
             </Typography>
             <Typography>
               <strong>
-                Deleted by <br /> {ctrl.selectedDocument?.owner?.name}
+               ລຶບໂດຍ <br /> {ctrl.selectedDocument?.owner?.name}
               </strong>
             </Typography>
           </Box>
