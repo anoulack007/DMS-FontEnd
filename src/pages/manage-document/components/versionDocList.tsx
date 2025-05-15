@@ -1,4 +1,3 @@
-// components/VersionList.tsx
 import { useState } from "react";
 import { Box, Typography, Button, CircularProgress } from "@mui/material";
 import {
@@ -7,6 +6,7 @@ import {
   KeyboardArrowUp,
 } from "@mui/icons-material";
 import { Version } from "../../../models/file-model";
+import Swal from "sweetalert2";
 
 interface VersionListProps {
   version: Version;
@@ -40,21 +40,46 @@ export const VersionList = ({ version }: VersionListProps) => {
         fullUrl = `https://${url}`;
       }
       
-      // Create a new anchor element
-      const link = document.createElement('a');
-      link.href = fullUrl;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
+      // Show SweetAlert2 confirmation dialog
+      const result = await Swal.fire({
+        title: 'ເປີດເອກະສານ',
+        text: 'ທ່ານຕ້ອງການດາວໂຫລດເອກະສານນີ້ບໍ່?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'ດາວໂຫລດ',
+        cancelButtonText: 'ຍົກເລີກ',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#808080',
+        reverseButtons: true
+      });
       
-      // Simulate checking if the file exists with a short delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // If user canceled, do nothing
+      if (result.dismiss === Swal.DismissReason.cancel || !result.isConfirmed) {
+        setIsLoading(false);
+        return;
+      }
       
-      // Trigger the download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // User confirmed download - open in new tab AND download
+      if (result.isConfirmed) {
+        // First open in a new tab
+        window.open(fullUrl, '_blank', 'noopener,noreferrer');
+        
+        // Then trigger download
+        const link = document.createElement('a');
+        link.href = fullUrl;
+        link.download = version.version || 'document'; // Use version number as filename or default to 'document'
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     } catch (error) {
-      console.error("Error downloading file:", error);
+      console.error("Error handling file:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'ຂໍອະໄພ',
+        text: 'ເກີດຂໍ້ຜິດພາດໃນການເປີດເອກະສານ',
+        confirmButtonText: 'ຕົກລົງ'
+      });
     } finally {
       // Hide loading state after a short delay to show the indicator
       setTimeout(() => {
@@ -107,7 +132,6 @@ export const VersionList = ({ version }: VersionListProps) => {
   );
 };
 
-// Create a new container component to handle the list and show more/less logic
 interface VersionListContainerProps {
   versions: Version[];
 }

@@ -417,7 +417,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               >
                 ລະຫັດເອກະສານ
               </Typography>
-              <Box>{ctrl.selectedDocument?.id}</Box>
+              <Box>{ctrl.selectedDocument?.documentId}</Box>
             </Box>
             <Box>
               <Typography

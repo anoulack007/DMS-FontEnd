@@ -891,12 +891,12 @@ const UseMainController = () => {
   };
 
   const handleGetDocumentVersion = async () => {
-    if (!selectedDocument?.documentNumber) return;
+    if (!selectedDocument?.documentId) return;
 
     try {
       // Don't set global loading state here
       const res = await axiosInstance.get(
-        `${GET_VERSION_FILE_END_POINT}/${selectedDocument.documentNumber}`
+        `${GET_VERSION_FILE_END_POINT}/${selectedDocument.documentId}`
       );
       setVersionDocument(res?.data?.data || []);
     } catch (error) {
