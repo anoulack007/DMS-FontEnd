@@ -245,6 +245,7 @@ const UseMainController = () => {
 
   // Handle search input changes
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPage(0);
     const query = event.target.value;
     setSearchQuery(query);
     debouncedSearch(query);
