@@ -25,7 +25,6 @@ import DocumentTable from "./components/table";
 import DocumentDetailCollapse from "./components/collapse";
 import { getIconByType } from "../../utils/functions/inconUtils";
 
-
 const RecyclePage = () => {
   const ctrl = UseMainController();
   const theme = useTheme();
@@ -115,7 +114,7 @@ const RecyclePage = () => {
                       startDate: newValue,
                     })
                   }
-                  format="DD/MM/YYYY"
+                  format="YYYY/MM/DD"
                   slotProps={{
                     textField: {
                       size: "small",
@@ -135,7 +134,7 @@ const RecyclePage = () => {
                       endDate: newValue,
                     })
                   }
-                  format="DD/MM/YYYY"
+                  format="YYYY/MM/DD"
                   slotProps={{
                     textField: {
                       size: "small",

@@ -150,7 +150,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {item?.updatedAt
-                      ? new Date(item.updatedAt).toLocaleDateString("en-GB")
+                      ? new Date(item.updatedAt).toLocaleDateString()
                       : ""}
                   </TableCell>
                 </TableRow>

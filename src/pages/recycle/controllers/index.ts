@@ -1,4 +1,4 @@
-import { useEffect, useState, version } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DOCUMENT_DETAIL_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
@@ -187,39 +187,58 @@ const UseMainController = () => {
     setDateFilter(newDateFilter);
   };
 
+  // Apply filters with improved date handling
   const applyFilters = (search: string, dates: DateRangeFilter) => {
     let filtered = [...documents];
 
+    // Text search filter
     if (search.trim() !== "") {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(
         (doc) =>
-          doc.name.toLowerCase().includes(searchLower) ||
-          doc.documentId.toLowerCase().includes(searchLower)
+          (doc.name?.toLowerCase()?.includes(searchLower) || false) ||
+          (doc.documentId?.toLowerCase()?.includes(searchLower) || false)
       );
     }
 
+    // Date filter with proper handling
     if (dates.startDate || dates.endDate) {
       filtered = filtered.filter((doc) => {
-        const docDate = doc.createdAt ? new Date(doc.createdAt) : null;
+        // First try to use createdAt, if not available, fallback to updatedAt
+        const dateStr = doc.createdAt || doc.updatedAt;
+        if (!dateStr) return false;
 
-        if (!docDate) return false;
-
-        if (dates.startDate && dates.endDate) {
-          // Set end date to end of day for inclusive range
-          const endDateAdjusted = new Date(dates.endDate);
-          endDateAdjusted.setHours(23, 59, 59, 999);
-          return docDate >= dates.startDate && docDate <= endDateAdjusted;
-        } else if (dates.startDate) {
-          return docDate >= dates.startDate;
-        } else if (dates.endDate) {
-          // Set end date to end of day for inclusive range
-          const endDateAdjusted = new Date(dates.endDate);
-          endDateAdjusted.setHours(23, 59, 59, 999);
-          return docDate <= endDateAdjusted;
+        try {
+          // Parse the ISO date string to a Date object
+          const docDate = new Date(dateStr);
+          
+          // Start date filtering
+          if (dates.startDate) {
+            // Set start date to beginning of day
+            const startDate = new Date(dates.startDate);
+            startDate.setHours(0, 0, 0, 0);
+            
+            if (docDate < startDate) {
+              return false;
+            }
+          }
+          
+          // End date filtering
+          if (dates.endDate) {
+            // Set end date to end of day for inclusive range
+            const endDate = new Date(dates.endDate);
+            endDate.setHours(23, 59, 59, 999);
+            
+            if (docDate > endDate) {
+              return false;
+            }
+          }
+          
+          return true;
+        } catch (e) {
+          console.error("Date parsing error:", e);
+          return false;
         }
-
-        return true;
       });
     }
 
