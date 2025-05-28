@@ -795,6 +795,8 @@ const UseMainController = () => {
         if (folderPath) {
           await handleGetDocumentsByPath(folderPath);
         }
+
+        setSelectedItems([]);
       }
     } catch (error) {
       console.error(error);

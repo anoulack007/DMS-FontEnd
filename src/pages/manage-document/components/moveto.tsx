@@ -31,7 +31,7 @@ import { GET_OWNER_DOC_END_POINT } from "../../../configs/endPoint/file&folder";
 import { getStatusColor, getTextColor } from "../../../utils/functions/color";
 import axiosInstance from "../../../configs/axios";
 import { MOVE_FOLDER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
-import { MOVE_FILE_END_POINT, UPDATE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
+import { MOVE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
 import eventBus from "../../../utils/functions/eventBus";
 
 interface MoveDialogProps {
@@ -310,7 +310,7 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
   const destinationFolderId = localStorage.getItem("destinationFolderId");
   const originFolderId = localStorage.getItem("selectedDocumentId") || null;
   const docType = localStorage.getItem("selectedDocumentType") || null;
-  const originItemParentId = localStorage.getItem("currentParentId") || null;
+  // const originItemParentId = localStorage.getItem("currentParentId") || null;
   const documentId = localStorage.getItem("selectedDocumentNumber") || null;
 
   // Validation checks
@@ -380,6 +380,7 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
     });
 
     let res;
+    console.log(res)
 
     if (docType === "folder") {
       res = await axiosInstance.patch(

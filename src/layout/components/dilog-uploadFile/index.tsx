@@ -10,8 +10,8 @@ import {
   LinearProgress,
   Alert,
   Snackbar,
-  TextField,
-  InputAdornment,
+  // TextField,
+  // InputAdornment,
 } from "@mui/material";
 
 //icons
@@ -21,7 +21,7 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import axios from "axios";
 import { CREATE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
 import axiosInstance from "../../../configs/axios";
-import HistoryEduOutlinedIcon from "@mui/icons-material/HistoryEduOutlined";
+// import HistoryEduOutlinedIcon from "@mui/icons-material/HistoryEduOutlined";
 import eventBus from "../../../utils/functions/eventBus";
 
 interface FileUploadDialogProps {
@@ -50,7 +50,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
 }) => {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const documentNumberRef = useRef<HTMLInputElement>(null);
+  // const documentNumberRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [error, setError] = useState<UploadError | null>(null);

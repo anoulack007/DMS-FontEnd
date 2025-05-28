@@ -8,20 +8,20 @@ import UseMainController from "./controller";
 import ExpensesChart from "./components/chart";
 
 // Interface for processed file information from controller
-interface FileWithVersionInfo {
-  id: string;
-  name: string;
-  nameVersion: string;
-  type: string;
-  size: number;
-  status: string;
-  ownerId: string;
-  ownerName?: string;
-  versionNum: string;
-  event: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// interface FileWithVersionInfo {
+//   id: string;
+//   name: string;
+//   nameVersion: string;
+//   type: string;
+//   size: number;
+//   status: string;
+//   ownerId: string;
+//   ownerName?: string;
+//   versionNum: string;
+//   event: string;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
 export interface ChartData {
   id: number;

@@ -1,4 +1,3 @@
-
 import FoldeImage from "../../assets/Image/image 11.png";
 import ZipImage from "../../assets/logo/zip_ic.svg";
 import PngImage from "../../assets/logo/png.svg";
@@ -19,13 +18,23 @@ import Python from "../../assets/logo/python_ic.svg";
 import Html from "../../assets/logo/html-icon.svg";
 import Js from "../../assets/logo/javascript_icon.svg";
 import HeicImage from "../../assets/logo/heic.png";
+import NotType from '../../assets/logo/research.png'
 import { IconType } from "../../enums/icon-enums";
 
+export const getIconByType = (type: string, isFolder?: boolean) => {
+  // If it's explicitly a folder, show folder icon
+  if (isFolder || type === IconType.FOLDER) {
+    return <img src={FoldeImage} alt="folder" />;
+  }
 
-export const getIconByType = (type: string) => {
+  // Check if the type exists in our enum values
+  const enumValues = Object.values(IconType);
+  if (!enumValues.includes(type as IconType)) {
+    return <img src={NotType} alt="unknown file type" />;
+  }
+
+  // Handle recognized file types
   switch (type) {
-    case IconType.FOLDER:
-      return <img src={FoldeImage} alt="folder" />;
     case IconType.ZIP:
       return <img src={ZipImage} alt="zip" />;
     case IconType.PNG:
@@ -64,7 +73,12 @@ export const getIconByType = (type: string) => {
       return <img height={45} src={Js} alt="Javascript" />;
     case IconType.HEIC:
       return <img height={45} src={HeicImage} alt="Heic" />;
+    case IconType.TS:
+    case IconType.CSS:
+    case IconType.DEFAULT:
+      // These are in enum but don't have specific icons yet
+      return <img src={NotType} alt="file" />;
     default:
-      return <img src={FoldeImage} alt="folder" />;
+      return <img src={NotType} alt="unknown file type" />;
   }
 };
