@@ -341,6 +341,7 @@ const UseMainController = () => {
             name: file.name,
             nameVersion: file.nameVersion,
             type: file.type || getFileTypeFromName(file.name),
+            owner: file.owner,
             documentNumber: file.documentNumber,
             documentId: file.documentId,
             createdAt: file.createdAt,
@@ -375,6 +376,7 @@ const UseMainController = () => {
 
             documentVersionsMap.get(documentId).push({
               id: fileMember.file.id,
+              owner: fileMember.file.owner,
               name: fileMember.file.name,
               nameVersion: fileMember.file.nameVersion,
               folderId: fileMember.file.folderId,
@@ -449,6 +451,7 @@ const UseMainController = () => {
 
             processedData.push({
               id: folder.id,
+              owner: folder.owner?.username,
               name: folder.name,
               type: "folder",
               documentNumber: folder.documentId,
@@ -487,6 +490,7 @@ const UseMainController = () => {
             documentId: folder.documentId,
             createdAt: folder.createdAt,
             updatedAt: folder.updatedAt,
+             owner: folder.owner?.username,
             size: folder.size || 0,
             status: folder.status || "PUBLIC",
             itemType: "folder",
@@ -509,6 +513,7 @@ const UseMainController = () => {
               id: folderMember.folder.id,
               name: folderMember.folder.name,
               folderId: folderMember.folderId,
+               owner: folderMember.owner,
               type: "folder",
               documentNumber: folderMember.folder.documentId,
               documentId: folderMember.folder.documentId,

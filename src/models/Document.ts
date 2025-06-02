@@ -18,12 +18,7 @@ export interface Document {
   version: string;
   documentNumber: string;
   status: STATUS_ENUMS;
-  owner: {
-    company: string;
-    email: string;
-    name: string;
-    username: string;
-  };
+  owner: string
   url: string;
   isFolder: boolean;
   parentId: string;
@@ -42,6 +37,7 @@ export interface folderModel {
   size: string;
   status: string;
   userId: string;
+  owner: string
   parentId: string;
   isDeleted: boolean;
   isPinned: boolean;
@@ -56,6 +52,7 @@ export interface FileModel {
   documentId: string;
   folderId: string;
   nameVersion: string;
+  owner: string
   pathLocal: string;
   pin: string;
   version: string;
@@ -77,6 +74,7 @@ export interface folderMember {
   folderId : string;
   folder: folderModel;
   id : string;
+  owner: string
   updatedAt: string
   userId: string;
   path: string;
@@ -87,6 +85,7 @@ export interface fileMember {
   fileId : string;
   file: FileModel;
   id : string;
+ owner: string
   updatedAt: string
   userId: string;
 }
@@ -96,6 +95,7 @@ export interface Subfolder {
   documentId: string;
   createdAt: string;
   updatedAt: string;
+  owner: string
   folderId: string;
   isDeleted: boolean;
   isPinned: boolean;

@@ -47,12 +47,7 @@ interface Document {
   itemType: string;
   documentNumber: string;
   status: STATUS_ENUMS;
-  owner: {
-    company: string;
-    email: string;
-    name: string;
-    username: string;
-  };
+  owner: string;
   url: string;
   isFolder: boolean;
   parentId: string;
@@ -418,6 +413,14 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
                 ລະຫັດເອກະສານ
               </Typography>
               <Box>{ctrl.selectedDocument?.documentId}</Box>
+            </Box>
+              <Box>
+              <Typography
+                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
+              >
+                ຜູ້ສ້າງ
+              </Typography>
+              <Box>{ctrl.selectedDocument?.owner}</Box>
             </Box>
             <Box>
               <Typography
