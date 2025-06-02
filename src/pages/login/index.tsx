@@ -20,14 +20,14 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 import Login_BG from "../../assets/Image/login/icons.webp";
 import FadePaper from "./components/FadePaper";
-import { BackgroundParticles } from "./components/BackgroundAnimation";
+// import { BackgroundParticles } from "./components/BackgroundAnimation";
 
 const LoginPage = () => {
   const ctrl = UseMainController();
 
   return (
     <>
-      <BackgroundParticles />
+      {/* <BackgroundParticles /> */}
 
       <Box
         sx={{
