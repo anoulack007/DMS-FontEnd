@@ -1,10 +1,12 @@
 import { IconType } from "../enums/icon-enums";
 import { STATUS_ENUMS } from "../enums/status-enum";
+import { MemberModel } from "./member-model";
 
 export interface Document {
   id: string;
   name: string;
-  fileMembers: fileMember;
+  fileMember: fileMember;
+  ownerId: string;
   files: FileModel;
   folders: folderModel;
   folderMembers: folderMember;
@@ -13,12 +15,16 @@ export interface Document {
   documentId: string;
   modified: string;
   size: string;
-  type: IconType; 
+  type: IconType;
   itemType: string;
   version: string;
   documentNumber: string;
   status: STATUS_ENUMS;
-  owner: string
+  owner: {
+    id: string;
+    username: string;
+    email: string;
+  };
   url: string;
   isFolder: boolean;
   parentId: string;
@@ -27,17 +33,43 @@ export interface Document {
   createdAt: string;
   updatedAt: string;
   isShared: boolean;
+  //  members: MemberModel[];
+  members: {
+    userId: string;
+    user: {
+      id: string;
+    };
+  }
+  // Permission flags
+  hasAccess: boolean;
+  canView: boolean;
+  isOwner: boolean;
+  isDisabled: boolean;
+  isMember: boolean;
+  canSelect: boolean;
+  accessLevel: 'owner' | 'member' | 'public-readonly' | 'no-access';
+  canNavigate: boolean;
 }
 
 export interface folderModel {
   id: string;
+  folderId: string;
+  members: {
+    user:{
+      id: string;
+    }
+  };
   name: string;
   ownerId: string;
   path: string;
   size: string;
   status: string;
   userId: string;
-  owner: string
+  owner: {
+    id: string;
+    username: string;
+    email: string;
+  };
   parentId: string;
   isDeleted: boolean;
   isPinned: boolean;
@@ -52,7 +84,16 @@ export interface FileModel {
   documentId: string;
   folderId: string;
   nameVersion: string;
-  owner: string
+  fileMember: {
+    user:{
+      id: string;
+    }
+  };
+  owner: {
+    id: string;
+    username: string;
+    emall: string;
+  };
   pathLocal: string;
   pin: string;
   version: string;
@@ -67,26 +108,48 @@ export interface FileModel {
   isPinned: boolean;
   createdAt: string;
   updatedAt: string;
+  members: MemberModel[];
+  // Permission flags
+  hasAccess: boolean;
+  canView: boolean;
+  isOwner: boolean;
+  isDisabled: boolean;
 }
 
 export interface folderMember {
-  createdAt : string;
-  folderId : string;
+  createdAt: string;
+  folderId: string;
   folder: folderModel;
-  id : string;
-  owner: string
-  updatedAt: string
+  id: string;
+  user: {
+    id: string;
+  }
+  owner: {
+    id: string;
+    username: string;
+    email: string;
+  };
+  members: MemberModel[];
+  updatedAt: string;
   userId: string;
   path: string;
 }
 
 export interface fileMember {
-  createdAt : string;
-  fileId : string;
+  createdAt: string;
+  fileId: string;
   file: FileModel;
-  id : string;
- owner: string
-  updatedAt: string
+  id: string;
+  user:{
+    id: string;
+    username: string;
+  }
+  owner: {
+    id: string;
+    username: string;
+    email: string;
+  };
+  updatedAt: string;
   userId: string;
 }
 
@@ -95,16 +158,26 @@ export interface Subfolder {
   documentId: string;
   createdAt: string;
   updatedAt: string;
-  owner: string
+  members : {
+    user: {
+      id: string;
+    }
+  }
+  owner: {
+    id: string;
+    username: string;
+    email: string;
+  };
   folderId: string;
   isDeleted: boolean;
   isPinned: boolean;
   name: string;
   itemType: string;
-  type: string
+  type: string;
   ownerid: string;
   parentId: string;
   path: string;
   size: number;
   status: string;
 }
+

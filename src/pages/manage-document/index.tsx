@@ -29,6 +29,7 @@ import { DocumentDetailsPanel } from "./components/collapse";
 import { getIconByType } from "../../utils/functions/inconUtils";
 import FileUploadVersionDialog from "./components/dialog-uploadVersionFile";
 
+
 const ManageDocumentPage = () => {
   const ctrl = UseMainController();
 

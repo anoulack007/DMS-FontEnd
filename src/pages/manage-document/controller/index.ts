@@ -28,11 +28,15 @@ import {
 } from "../../../models/Document";
 import { getFileTypeFromName } from "../../../utils/functions/typefile";
 import eventBus from "../../../utils/functions/eventBus";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
 
 type SortField = "name" | "modified" | "size" | "status";
 
 const UseMainController = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const currentUser = useSelector((state: RootState) => state.auth.data);
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [filterAnchorEl, setFilterAnchorEl] = useState<{
@@ -44,7 +48,6 @@ const UseMainController = () => {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     null
   );
-  console.log(selectedDocument);
   const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
   const [fileHistory, setFileHistory] = useState<Version[]>([]);
 
@@ -68,6 +71,149 @@ const UseMainController = () => {
   const handleUploadVersion = (documentNumber: string) => {
     setSelectedDocumentNumber(documentNumber);
     setVersionUploadOpen(true);
+  };
+
+  const validateDocumentAccess = (document: any): Document => {
+    if (!currentUser) {
+      return {
+        ...document,
+        hasAccess: false,
+        canView: false,
+        canSelect: false,
+        canModify: false,
+        canNavigate: false, // New property for folder navigation
+        isOwner: false,
+        isMember: false,
+        isDisabled: true,
+        showLockIcon: true,
+        accessLevel: "no-access",
+      };
+    }
+
+    const currentUserId = currentUser.id;
+    let hasAccess = false;
+    let canView = false;
+    let canSelect = false;
+    let canModify = false;
+    let canNavigate = false; // New property for folder navigation
+    let isOwner = false;
+    let isMember = false;
+    let showLockIcon = false;
+    let accessLevel: "owner" | "member" | "public-readonly" | "no-access" =
+      "no-access";
+
+    // Check if user is owner - check multiple possible owner properties
+    isOwner =
+      document.owner?.id === currentUserId ||
+      document.ownerId === currentUserId ||
+      document.owner === currentUserId;
+
+    if (isOwner) {
+      hasAccess = true;
+      canView = true;
+      canSelect = true;
+      canModify = true;
+      canNavigate = true; // Owners can navigate into folders
+      showLockIcon = false;
+      accessLevel = "owner";
+    } else {
+      // Check membership based on item type
+      if (document.itemType === "file" || document.type !== "folder") {
+        // For files - check fileMember property (single object)
+        isMember =
+          document.fileMember?.user?.id === currentUserId ||
+          document.fileMember?.userId === currentUserId ||
+          // Check if fileMembers is an array
+          (Array.isArray(document.fileMembers) &&
+            document.fileMembers.some(
+              (member: any) =>
+                member.user?.id === currentUserId ||
+                member.userId === currentUserId
+            )) ||
+          // Check if fileMembers is a single object
+          (!Array.isArray(document.fileMembers) &&
+            document.fileMembers &&
+            (document.fileMembers.user?.id === currentUserId ||
+              document.fileMembers.userId === currentUserId));
+      } else if (document.itemType === "folder" || document.type === "folder") {
+        // For folders - check members properties
+        isMember =
+          // Check if members is an array
+          (Array.isArray(document.members) &&
+            document.members.some(
+              (member: any) =>
+                member.user?.id === currentUserId ||
+                member.userId === currentUserId ||
+                member.id === currentUserId
+            )) ||
+          // Check if members is a single object
+          (!Array.isArray(document.members) &&
+            document.members &&
+            (document.members.user?.id === currentUserId ||
+              document.members.userId === currentUserId ||
+              document.members.id === currentUserId)) ||
+          // Check folderMembers (single object)
+          document.folderMembers?.user?.id === currentUserId ||
+          document.folderMembers?.userId === currentUserId ||
+          document.folderMember?.user?.id === currentUserId ||
+          document.folderMember?.userId === currentUserId;
+      }
+
+      if (isMember) {
+        hasAccess = true;
+        canView = true;
+        canSelect = true;
+        canModify = true;
+        canNavigate = true; // Members can navigate into folders
+        showLockIcon = false;
+        accessLevel = "member";
+      } else {
+        // For PUBLIC documents/folders, non-owners/non-members can only view
+        if (document.status === "PUBLIC") {
+          hasAccess = true;
+          canView = true;
+          canSelect = false; // Cannot select public documents if not owner/member
+          canModify = false;
+          canNavigate = false; // Cannot navigate into public folders if not owner/member
+          showLockIcon = true;
+          accessLevel = "public-readonly";
+        }
+        // For PRIVATE documents/folders, non-owners/non-members have no access
+        else if (document.status === "PRIVATE") {
+          hasAccess = false;
+          canView = false;
+          canSelect = false;
+          canModify = false;
+          canNavigate = false; // Cannot navigate into private folders
+          showLockIcon = true;
+          accessLevel = "no-access";
+        }
+        // Default case - no access
+        else {
+          hasAccess = false;
+          canView = false;
+          canSelect = false;
+          canModify = false;
+          canNavigate = false;
+          showLockIcon = true;
+          accessLevel = "no-access";
+        }
+      }
+    }
+
+    return {
+      ...document,
+      hasAccess,
+      canView,
+      canSelect,
+      canModify,
+      canNavigate, // New property
+      isOwner,
+      isMember,
+      isDisabled: !canSelect, // Disabled if cannot select
+      showLockIcon,
+      accessLevel,
+    };
   };
 
   const handleGetDocumentsByPath = async (path?: string) => {
@@ -130,7 +276,7 @@ const UseMainController = () => {
           // Get the latest version (first after sorting)
           const latestFile = versions[0];
 
-          filesMap.set(fileKey, {
+          const fileData = {
             id: latestFile.id,
             name: latestFile.name,
             nameVersion: latestFile.nameVersion,
@@ -138,6 +284,9 @@ const UseMainController = () => {
             type: latestFile.type || getFileTypeFromName(latestFile.name),
             url: latestFile.url,
             documentNumber: latestFile.documentNumber,
+            fileMember: latestFile.fileMember,
+            owner: latestFile.owner,
+            ownerId: latestFile.ownerId,
             documentId: latestFile.documentId,
             createdAt: latestFile.createdAt,
             updatedAt: latestFile.updatedAt,
@@ -148,7 +297,11 @@ const UseMainController = () => {
             version: latestFile.version || "1.0",
             sOwned: true,
             isShared: false,
-          });
+          };
+
+          // Apply validation
+          const validatedFile = validateDocumentAccess(fileData);
+          filesMap.set(fileKey, validatedFile);
         });
       } else {
         console.warn("No files found in the response");
@@ -164,13 +317,16 @@ const UseMainController = () => {
             new Date(subfolder.updatedAt) >
               new Date(subfoldersMap.get(folderName).updatedAt)
           ) {
-            subfoldersMap.set(folderName, {
+            const folderData = {
               id: subfolder.id,
               name: subfolder.name,
               folderId: subfolder.folderId,
               documentId: subfolder.documentId,
+              owner: subfolder.owner,
+              ownerId: subfolder.ownerid,
               path: subfolder.path,
               parentId: subfolder.parentId,
+              members: subfolder.members,
               createdAt: subfolder.createdAt,
               updatedAt: subfolder.updatedAt,
               size: subfolder.size,
@@ -180,7 +336,11 @@ const UseMainController = () => {
               isFolder: true,
               isDeleted: subfolder.isDeleted,
               isPinned: subfolder.isPinned,
-            });
+            };
+
+            // Apply validation
+            const validatedFolder = validateDocumentAccess(folderData);
+            subfoldersMap.set(folderName, validatedFolder);
           }
         });
       } else {
@@ -229,6 +389,7 @@ const UseMainController = () => {
 
   const handleChangeStatus = async (event: SelectChangeEvent<STATUS_ENUMS>) => {
     const newStatus = event.target.value as STATUS_ENUMS;
+    const folderPath = searchParams.get("folderPath");
 
     if (!selectedDocument) {
       await Swal.fire({
@@ -277,6 +438,14 @@ const UseMainController = () => {
         showConfirmButton: false,
         timer: 2000,
       });
+
+      setCollapseOpen(false);
+      setSelectedItems([]);
+
+      await handleGetData();
+      if (folderPath) {
+        await handleGetDocumentsByPath(folderPath);
+      }
     } catch (error) {
       console.error("Error updating status:", error);
 
@@ -342,10 +511,12 @@ const UseMainController = () => {
             nameVersion: file.nameVersion,
             type: file.type || getFileTypeFromName(file.name),
             owner: file.owner,
+            ownerId: file.ownerId,
             documentNumber: file.documentNumber,
             documentId: file.documentId,
             createdAt: file.createdAt,
             updatedAt: file.updatedAt,
+            fileMember: file.fileMember,
             folderId: file.folderId,
             url: file?.url,
             size: file.size,
@@ -377,8 +548,10 @@ const UseMainController = () => {
             documentVersionsMap.get(documentId).push({
               id: fileMember.file.id,
               owner: fileMember.file.owner,
+              ownerId: fileMember.file.ownerId,
               name: fileMember.file.name,
               nameVersion: fileMember.file.nameVersion,
+              fileMember: fileMember,
               folderId: fileMember.file.folderId,
               type:
                 fileMember.file.type ||
@@ -429,9 +602,10 @@ const UseMainController = () => {
           );
         });
 
-        // Add only the latest version to filesMap
+        // Add only the latest version to filesMap with validation
         const latestVersion = versions[0];
-        filesMap.set(documentId, latestVersion);
+        const validatedFile = validateDocumentAccess(latestVersion);
+        filesMap.set(documentId, validatedFile);
       });
 
       // Add all latest files to the processed data
@@ -449,13 +623,15 @@ const UseMainController = () => {
               return;
             }
 
-            processedData.push({
+            const folderData = {
               id: folder.id,
-              owner: folder.owner?.username,
+              owner: folder.owner,
+              ownerId: folder.ownerId,
               name: folder.name,
               type: "folder",
               documentNumber: folder.documentId,
               folderId: folder.folderId,
+              members: folder.members,
               documentId: folder.documentId,
               createdAt: folder.createdAt,
               updatedAt: folder.updatedAt,
@@ -466,7 +642,11 @@ const UseMainController = () => {
               path: folder.path,
               isOwned: true,
               isShared: false,
-            });
+            };
+
+            // Apply validation
+            const validatedFolder = validateDocumentAccess(folderData);
+            processedData.push(validatedFolder);
           });
           break;
         }
@@ -481,16 +661,18 @@ const UseMainController = () => {
         const folder = responseData.folder;
         // Skip if folder has a parentId
         if (!folder.parentId) {
-          processedData.push({
+          const folderData = {
             id: folder.id,
             name: folder.name,
             type: "folder",
             folderId: folder.folderId,
             documentNumber: folder.documentId,
+            members: folder.members,
             documentId: folder.documentId,
             createdAt: folder.createdAt,
             updatedAt: folder.updatedAt,
-             owner: folder.owner?.username,
+            owner: folder.owner,
+            ownerId: folder.ownerId,
             size: folder.size || 0,
             status: folder.status || "PUBLIC",
             itemType: "folder",
@@ -498,7 +680,11 @@ const UseMainController = () => {
             path: folder.path,
             isOwned: true,
             isShared: false,
-          });
+          };
+
+          // Apply validation
+          const validatedFolder = validateDocumentAccess(folderData);
+          processedData.push(validatedFolder);
         }
       }
 
@@ -509,11 +695,12 @@ const UseMainController = () => {
       ) {
         responseData.folderMembers.forEach((folderMember: folderMember) => {
           if (folderMember.folder && !folderMember.folder.parentId) {
-            processedData.push({
+            const folderData = {
               id: folderMember.folder.id,
               name: folderMember.folder.name,
               folderId: folderMember.folderId,
-               owner: folderMember.owner,
+              owner: folderMember.owner,
+              ownerId: folderMember.folder.ownerId,
               type: "folder",
               documentNumber: folderMember.folder.documentId,
               documentId: folderMember.folder.documentId,
@@ -526,7 +713,12 @@ const UseMainController = () => {
               isOwned: false,
               isShared: true,
               path: folderMember?.folder?.path,
-            });
+              folderMembers: folderMember,
+            };
+
+            // Apply validation
+            const validatedFolder = validateDocumentAccess(folderData);
+            processedData.push(validatedFolder);
           }
         });
       }
@@ -549,7 +741,34 @@ const UseMainController = () => {
 
   const handleFolderDoubleClick = useCallback(
     (item: Document) => {
-      if (item.type === "folder") {
+      if (item.type === "folder" || item.itemType === "folder") {
+        // Apply validation to get access permissions
+        const validatedFolder = validateDocumentAccess(item);
+
+        // Check if user can navigate into this folder
+        if (!validatedFolder.canNavigate) {
+          let title = "ບໍ່ມີສິດເຂົ້າເຖິງ";
+          let text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟນເດີນີ້.";
+
+          if (validatedFolder.accessLevel === "public-readonly") {
+            title = "ການເຂົ້າເຖິງແບບຈຳກັດ";
+            text =
+              "ໂຟນເດີສາທາລະນະນີ້ສາມາດເບິ່ງໄດ້ແຕ່ບໍ່ສາມາດເຂົ້າໄປໃນໂຟນເດີໄດ້. ພຽງແຕ່ເຈົ້າຂອງແລະສະມາຊິກເທົ່ານັ້ນທີ່ສາມາດເຂົ້າໄປໃນໂຟນເດີໄດ້.";
+          } else if (validatedFolder.accessLevel === "no-access") {
+            text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟນເດີນີ້.";
+          }
+
+          Swal.fire({
+            icon: "warning",
+            title: title,
+            text: text,
+            timer: 3000,
+            showConfirmButton: false,
+          });
+          return;
+        }
+
+        // If user can view the folder, proceed with navigation
         setLoading(true);
         setPage(0);
 
@@ -571,7 +790,7 @@ const UseMainController = () => {
           setSearchParams({ folderPath: newFolderPath });
         }
 
-        setSelectedDocument(item);
+        setSelectedDocument(validatedFolder); // Use validated folder with access info
 
         const refetchData = async () => {
           try {
@@ -596,42 +815,109 @@ const UseMainController = () => {
     [setSearchParams, handleGetDocumentsByPath, handleGetData, setLoading]
   );
 
-  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      setSelectedItems(documents.map((doc) => doc.id));
-    } else {
+  const handleSelectAll = () => {
+    const selectableDocuments = documents.filter((doc) => {
+      const validatedDoc = validateDocumentAccess(doc);
+      return validatedDoc.canSelect;
+    });
+
+    if (selectedItems.length === selectableDocuments.length) {
+      // Deselect all
       setSelectedItems([]);
+    } else {
+      // Select all selectable documents
+      setSelectedItems(selectableDocuments.map((doc) => doc.id));
     }
   };
 
   const handleSelectItem = (id: string) => {
-    // Get the current folder path from URL params or localStorage
     const currentFolderPath =
       searchParams.get("folderPath") ||
       localStorage.getItem("currentFolderPath");
 
     const doc = documents.find((document) => document.id === id);
+
     if (doc) {
-      setSelectedDocument(doc);
+      // Apply validation to get access permissions
+      const validatedDoc = validateDocumentAccess(doc);
+
+      // Check if user can select this document
+      if (!validatedDoc.canSelect) {
+        let title = "ບໍ່ມີສິດເຂົ້າເຖິງ";
+        let text = "ທ່ານບໍ່ມີສິດເລືອກເອກະສານນີ້.";
+
+        if (validatedDoc.accessLevel === "public-readonly") {
+          title = "ການເຂົ້າເຖິງແບບຈຳກັດ";
+          text =
+            "ເອກະສານສາທາລະນະນີ້ສາມາດເບິ່ງໄດ້ແຕ່ບໍ່ສາມາດເລືອກໄດ້. ພຽງແຕ່ເຈົ້າຂອງແລະສະມາຊິກເທົ່ານັ້ນທີ່ສາມາດເລືອກເອກະສານໄດ້.";
+        } else if (validatedDoc.accessLevel === "no-access") {
+          text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງເອກະສານນີ້.";
+        }
+
+        Swal.fire({
+          icon: "warning",
+          title: title,
+          text: text,
+          timer: 3000,
+          showConfirmButton: false,
+        });
+        return;
+      }
+
+      // If user can select, proceed with selection
+      setSelectedDocument(validatedDoc);
       localStorage.setItem("selectedDocumentId", id);
-      localStorage.setItem("selectedDocumentNumber", doc?.documentId);
-      localStorage.setItem("selectedDocumentType", doc.type);
+      localStorage.setItem("selectedDocumentNumber", validatedDoc?.documentId);
+      localStorage.setItem("selectedDocumentType", validatedDoc.type);
+
+      // Update selected items - only if user can select
+      setSelectedItems((prev) =>
+        prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      );
     }
 
-    // Close collapse view without changing navigation
     setCollapseOpen(false);
     setVersionDocument([]);
     setFileHistory([]);
 
-    // Update selected items
-    setSelectedItems((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-
-    // Maintain the current folder path in the URL if it exists
     if (currentFolderPath) {
       setSearchParams({ folderPath: currentFolderPath });
     }
+  };
+
+  // Filter out PRIVATE documents that user cannot access in the main data processing
+  const filterAccessibleDocuments = (documents: Document[]): Document[] => {
+    if (!currentUser?.id) {
+      // If no user, only show public documents but mark them as non-selectable
+      return documents
+        .filter((doc) => doc.status === "PUBLIC")
+        .map((doc) => validateDocumentAccess(doc));
+    }
+
+    // Return all documents with proper access validation
+    return documents.map((doc) => validateDocumentAccess(doc));
+  };
+
+  // Optional: Add helper function to show access denied message
+  const showAccessDeniedMessage = (accessLevel: string) => {
+    let title = "ບໍ່ມີສິດເຂົ້າເຖິງ";
+    let text = "ທ່ານບໍ່ມີສິດເລືອກລາຍການນີ້.";
+
+    if (accessLevel === "public-readonly") {
+      title = "ການເຂົ້າເຖິງແບບຈຳກັດ";
+      text =
+        "ເອກະສານສາທາລະນະນີ້ສາມາດເບິ່ງໄດ້ແຕ່ບໍ່ສາມາດເລືອກໄດ້. ພຽງແຕ່ເຈົ້າຂອງແລະສະມາຊິກເທົ່ານັ້ນທີ່ສາມາດເລືອກໄດ້.";
+    } else if (accessLevel === "no-access") {
+      text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງລາຍການນີ້.";
+    }
+
+    Swal.fire({
+      icon: "warning",
+      title: title,
+      text: text,
+      timer: 3000,
+      showConfirmButton: false,
+    });
   };
 
   const isSelected = (id: string) => selectedItems.includes(id);
@@ -709,6 +995,8 @@ const UseMainController = () => {
             timer: 2000,
           });
         }
+
+        setSelectedItems([]);
 
         await handleGetData();
         if (folderPath) {
@@ -991,6 +1279,7 @@ const UseMainController = () => {
     };
   }, [searchParams]);
   return {
+    filterAccessibleDocuments,
     setVersionUploadOpen,
     versionUploadOpen,
     selectedDocumentNumber,
@@ -1036,6 +1325,7 @@ const UseMainController = () => {
     handleChangeStatus,
     handleDownload,
     handleSearch,
+    showAccessDeniedMessage,
   };
 };
 

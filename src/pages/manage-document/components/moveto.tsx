@@ -33,6 +33,8 @@ import axiosInstance from "../../../configs/axios";
 import { MOVE_FOLDER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
 import { MOVE_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
 import eventBus from "../../../utils/functions/eventBus";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
 
 interface MoveDialogProps {
   open: boolean;
@@ -52,6 +54,11 @@ interface FileItem {
   isShared?: boolean;
   path?: string;
   parentId?: string;
+  ownerId?: string;
+  members?: any[];
+  folderMembers?: any;
+  owner?: any;
+  isAccessible?: boolean; // New field to track accessibility
 }
 
 const MoveDialog: React.FC<MoveDialogProps> = ({
@@ -70,6 +77,78 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
   >([{ path: "root", id: "", name: "Root" }]);
   const [movingFiles, setMovingFiles] = useState<boolean>(false);
 
+    const currentUserId = useSelector((state: RootState) => state.auth.data?.id);
+
+
+  const validateFolderAccess = (folder: any): FileItem => {
+    const userId = currentUserId;
+    let isAccessible = false; // Default to false - always require permission
+
+    // Check if user is the owner
+    const isOwner =
+      folder.ownerId === userId || folder.owner?.id === userId;
+
+    if (isOwner) {
+      isAccessible = true; // Owners can always select their folders
+    } else {
+      // Check if user is a member (required for both PUBLIC and PRIVATE folders)
+      const isMember = checkMembership(folder, userId);
+      if (isMember) {
+        isAccessible = true; // Members can select folders they belong to
+      }
+    }
+
+    return {
+      type: folder.type || "folder",
+      name: folder.name || "Unnamed folder",
+      size: folder.size ? `${folder.size} bytes` : "Unknown size",
+      lastModified: folder.updatedAt
+        ? new Date(folder.updatedAt).toLocaleDateString()
+        : "Unknown date",
+      _id: folder.id || folder._id,
+      id: folder.id || folder._id,
+      status: folder.status || "Unknown status",
+      path: folder.path || "/" + folder.name,
+      parentId: folder.parentId,
+      ownerId: folder.ownerId,
+      members: folder.members,
+      folderMembers: folder.folderMembers,
+      owner: folder.owner,
+      isShared: folder.isShared || false,
+      isAccessible: isAccessible,
+    };
+  };
+
+  // Helper function to check membership
+  const checkMembership = (folder: any, userId: any): boolean => {
+    // Check direct members array
+    if (folder.members && Array.isArray(folder.members)) {
+      const isMember = folder.members.some(
+        (member: any) =>
+          member.id === userId || member.userId === userId || member === userId
+      );
+      if (isMember) return true;
+    }
+
+    // Check folderMembers structure (for shared folders)
+    if (folder.folderMembers) {
+      const folderMember = folder.folderMembers;
+      if (folderMember.userId === userId || folderMember.user?.id === userId) {
+        return true;
+      }
+    }
+
+    // Check if folder has a folderMembers array
+    if (folder.folderMembers && Array.isArray(folder.folderMembers)) {
+      const isMember = folder.folderMembers.some(
+        (member: any) => member.userId === userId || member.user?.id === userId
+      );
+      if (isMember) return true;
+    }
+
+    return false;
+  };
+
   // Function to fetch folders by path
   const fetchFoldersByPath = useCallback(async (path: string) => {
     try {
@@ -84,22 +163,14 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
 
       const processedData: FileItem[] = [];
 
-      // Process subfolders
+      // Process subfolders with validation
       if (responseData.subFolders && Array.isArray(responseData.subFolders)) {
         responseData.subFolders.forEach((subfolder: any) => {
-          processedData.push({
+          const validatedFolder = validateFolderAccess({
+            ...subfolder,
             type: "folder",
-            name: subfolder.name || "Unnamed folder",
-            size: subfolder.size ? `${subfolder.size} bytes` : "Unknown size",
-            lastModified: subfolder.updatedAt
-              ? new Date(subfolder.updatedAt).toLocaleDateString()
-              : "Unknown date",
-            _id: subfolder.id || subfolder._id,
-            id: subfolder.id || subfolder._id,
-            status: subfolder?.status || "Unknown status",
-            path: subfolder.path || path + "/" + subfolder.name,
-            parentId: subfolder.parentId,
           });
+          processedData.push(validatedFolder);
         });
       }
 
@@ -131,19 +202,11 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
         responseData.folders
           .filter((folder: any) => !folder.parentId) // Filter only root folders
           .forEach((folder: any) => {
-            processedData.push({
+            const validatedFolder = validateFolderAccess({
+              ...folder,
               type: "folder",
-              name: folder.name || "Unnamed folder",
-              size: folder.size ? `${folder.size} bytes` : "Unknown size",
-              lastModified: folder.updatedAt
-                ? new Date(folder.updatedAt).toLocaleDateString()
-                : "Unknown date",
-              _id: folder.id || folder._id,
-              id: folder.id || folder._id,
-              status: folder?.status,
-              path: folder.path || "/" + folder.name,
-              parentId: folder.parentId,
             });
+            processedData.push(validatedFolder);
           });
       }
       // Fallback if folders are under 'folder' key instead
@@ -151,19 +214,11 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
         responseData.folder
           .filter((folder: any) => !folder.parentId) // Filter only root folders
           .forEach((folder: any) => {
-            processedData.push({
+            const validatedFolder = validateFolderAccess({
+              ...folder,
               type: "folder",
-              name: folder.name || "Unnamed folder",
-              size: folder.size ? `${folder.size} bytes` : "Unknown size",
-              lastModified: folder.updatedAt
-                ? new Date(folder.updatedAt).toLocaleDateString()
-                : "Unknown date",
-              _id: folder.id || folder._id,
-              id: folder.id || folder._id,
-              status: folder?.status,
-              path: folder.path || "/" + folder.name,
-              parentId: folder.parentId,
             });
+            processedData.push(validatedFolder);
           });
       }
       // Handle single folder object case
@@ -171,19 +226,11 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
         const folder = responseData.folder;
         // Only add if it's a root folder
         if (!folder.parentId) {
-          processedData.push({
+          const validatedFolder = validateFolderAccess({
+            ...folder,
             type: "folder",
-            name: folder.name || "Unnamed folder",
-            size: folder.size ? `${folder.size} bytes` : "Unknown size",
-            lastModified: folder.updatedAt
-              ? new Date(folder.updatedAt).toLocaleDateString()
-              : "Unknown date",
-            _id: folder.id || folder._id,
-            id: folder.id || folder._id,
-            status: folder?.status,
-            path: folder.path || "/" + folder.name,
-            parentId: folder.parentId,
           });
+          processedData.push(validatedFolder);
         }
       }
 
@@ -193,27 +240,19 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
         Array.isArray(responseData.folderMembers)
       ) {
         responseData.folderMembers
-          .filter((folderMember: any) => 
-            folderMember.folder && !folderMember.folder.parentId
+          .filter(
+            (folderMember: any) =>
+              folderMember.folder && !folderMember.folder.parentId
           )
           .forEach((folderMember: any) => {
             if (folderMember.folder) {
-              processedData.push({
+              const validatedFolder = validateFolderAccess({
+                ...folderMember.folder,
                 type: "folder",
-                name: folderMember.folder.name || "Unnamed shared folder",
-                size: folderMember.folder.size
-                  ? `${folderMember.folder.size} bytes`
-                  : "Unknown size",
-                lastModified: folderMember.folder.updatedAt
-                  ? new Date(folderMember.folder.updatedAt).toLocaleDateString()
-                  : "Unknown date",
-                _id: folderMember.folder.id || folderMember.folder._id,
-                id: folderMember.folder.id || folderMember.folder._id,
                 isShared: true,
-                status: folderMember?.folder?. status || "Unknown status",
-                path: folderMember.folder.path || "/" + folderMember.folder.name,
-                parentId: folderMember.folder.parentId,
+                folderMembers: folderMember,
               });
+              processedData.push(validatedFolder);
             }
           });
       }
@@ -231,6 +270,18 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
 
   const handleFolderDoubleClick = useCallback(
     (folder: FileItem) => {
+      // Don't allow navigation into inaccessible folders
+      if (!folder.isAccessible) {
+        Swal.fire({
+          title: "ບໍ່ສາມາດເຂົ້າເຖິງໄດ້",
+          text: "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟເດີ້ນີ້",
+          icon: "warning",
+          confirmButtonText: "ຕົກລົງ",
+          confirmButtonColor: "#2C3E50",
+        });
+        return;
+      }
+
       if (folder.type === "folder") {
         const newPath = folder.path || `/${folder.name}`;
         const newFolderId = folder._id || folder.id || "";
@@ -305,146 +356,157 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
   }, [pathHistory, fetchRootFolders, fetchFoldersByPath]);
 
   const handleMove = async () => {
-  onClose();
+    onClose();
 
-  const destinationFolderId = localStorage.getItem("destinationFolderId");
-  const originFolderId = localStorage.getItem("selectedDocumentId") || null;
-  const docType = localStorage.getItem("selectedDocumentType") || null;
-  // const originItemParentId = localStorage.getItem("currentParentId") || null;
-  const documentId = localStorage.getItem("selectedDocumentNumber") || null;
+    const destinationFolderId = localStorage.getItem("destinationFolderId");
+    const originFolderId = localStorage.getItem("selectedDocumentId") || null;
+    const docType = localStorage.getItem("selectedDocumentType") || null;
+    const documentId = localStorage.getItem("selectedDocumentNumber") || null;
 
-  // Validation checks
-  if (!originFolderId) {
-    Swal.fire({
-      title: "ບໍ່ໄດ້ເລືອກເອກະສານ",
-      text: "ກະລຸນາເລືອກເອກະສານທີ່ຕ້ອງການຍ້າຍ",
-      icon: "warning",
-      confirmButtonText: "ຕົກລົງ",
-      confirmButtonColor: "#2C3E50",
-    });
-    return;
-  }
-
-  if (!docType) {
-    Swal.fire({
-      title: "ປະເພດເອກະສານບໍ່ຖືກຕ້ອງ",
-      text: "ບໍ່ສາມາດລະບຸປະເພດເອກະສານໄດ້",
-      icon: "warning",
-      confirmButtonText: "ຕົກລົງ",
-      confirmButtonColor: "#2C3E50",
-    });
-    return;
-  }
-
-  // if (destinationFolderId === originItemParentId) {
-  //   Swal.fire({
-  //     title: "ບໍ່ສາມາດຍ້າຍໄດ້",
-  //     text: `ເອກະສານຢູ່ໃນໂຟເດີ້ດຽວກັນແລ້ວ`,
-  //     icon: "warning",
-  //     confirmButtonText: "ຕົກລົງ",
-  //     confirmButtonColor: "#2C3E50",
-  //   });
-  //   return;
-  // }// Check if moving to the same folder
-  
-
-  // Confirm before moving
-  const result = await Swal.fire({
-    title: "ຢືນຢັນການຍ້າຍ",
-    text: `ທ່ານຕ້ອງການຍ້າຍ${docType === "folder" ? "ໂຟເດີ້" : "ເອກະສານ"}${
-      !destinationFolderId ? "ໄປຍັງໂຟເດີ້ຫຼັກ" : "ໄປຍັງໂຟເດີ້ທີ່ເລືອກ"
-    }ບໍ່?`,
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "ຍ້າຍ",
-    cancelButtonText: "ຍົກເລີກ",
-    confirmButtonColor: "#2C3E50",
-  });
-
-  if (!result.isConfirmed) {
-    return;
-  }
-
-  try {
-    setMovingFiles(true);
-
-    // Show loading state
-    Swal.fire({
-      title: "ກຳລັງຍ້າຍ...",
-      text: "ກະລຸນາລໍຖ້າ",
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-
-    let res;
-    console.log(res)
-
-    if (docType === "folder") {
-      res = await axiosInstance.patch(
-        `${MOVE_FOLDER_END_POINT}/${originFolderId}`,
-        {
-          destinationFolderId: destinationFolderId || null,
-        }
-      );
-    } else {
-      res = await axiosInstance.patch(
-        `${MOVE_FILE_END_POINT}`,
-        {
-          folderId: destinationFolderId || null,
-          documentId: documentId, // Added the documentId to payload
-        }
-      );
+    // Validation checks
+    if (!originFolderId) {
+      Swal.fire({
+        title: "ບໍ່ໄດ້ເລືອກເອກະສານ",
+        text: "ກະລຸນາເລືອກເອກະສານທີ່ຕ້ອງການຍ້າຍ",
+        icon: "warning",
+        confirmButtonText: "ຕົກລົງ",
+        confirmButtonColor: "#2C3E50",
+      });
+      return;
     }
 
-    Swal.fire({
-      title: "ຍ້າຍສຳເລັດ",
-      text: `ຍ້າຍ${docType === "folder" ? "ໂຟເດີ້" : "ເອກະສານ"}${
-        !destinationFolderId ? "ໄປຍັງໂຟເດີ້ຫຼັກ" : ""
-      }ສຳເລັດແລ້ວ`,
-      icon: "success",
-      confirmButtonText: "ຕົກລົງ",
+    if (!docType) {
+      Swal.fire({
+        title: "ປະເພດເອກະສານບໍ່ຖືກຕ້ອງ",
+        text: "ບໍ່ສາມາດລະບຸປະເພດເອກະສານໄດ້",
+        icon: "warning",
+        confirmButtonText: "ຕົກລົງ",
+        confirmButtonColor: "#2C3E50",
+      });
+      return;
+    }
+
+    // Check if destination folder is accessible (if one is selected)
+    if (destinationFolderId) {
+      const destinationFolder = fileData.find(
+        (f) => (f._id || f.id) === destinationFolderId
+      );
+      if (destinationFolder && !destinationFolder.isAccessible) {
+        Swal.fire({
+          title: "ບໍ່ສາມາດຍ້າຍໄດ້",
+          text: "ທ່ານບໍ່ມີສິດຍ້າຍໄປຍັງໂຟເດີ້ນີ້",
+          icon: "warning",
+          confirmButtonText: "ຕົກລົງ",
+          confirmButtonColor: "#2C3E50",
+        });
+        return;
+      }
+    }
+
+    // Confirm before moving
+    const result = await Swal.fire({
+      title: "ຢືນຢັນການຍ້າຍ",
+      text: `ທ່ານຕ້ອງການຍ້າຍ${docType === "folder" ? "ໂຟເດີ້" : "ເອກະສານ"}${
+        !destinationFolderId ? "ໄປຍັງໂຟເດີ້ຫຼັກ" : "ໄປຍັງໂຟເດີ້ທີ່ເລືອກ"
+      }ບໍ່?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "ຍ້າຍ",
+      cancelButtonText: "ຍົກເລີກ",
       confirmButtonColor: "#2C3E50",
     });
 
-    eventBus.publish("DOCUMNETS_UPDATED", true);
+    if (!result.isConfirmed) {
+      return;
+    }
 
-    // Clean up localStorage after successful operation
-    localStorage.removeItem("selectedDocumentId");
-    localStorage.removeItem("selectedDocumentType");
-    localStorage.removeItem("destinationFolderId");
-    localStorage.removeItem("currentParentId");
-  } catch (error: any) {
-    console.error("Error moving items:", error);
-    Swal.fire({
-      title: "ເກີດຂໍ້ຜິດພາດ",
-      text:
-        error.response?.data?.message ||
-        "ບໍ່ສາມາດຍ້າຍລາຍການໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
-      icon: "error",
-      confirmButtonText: "ຕົກລົງ",
-      confirmButtonColor: "#2C3E50",
-    });
-  } finally {
-    setMovingFiles(false);
-  }
-};
+    try {
+      setMovingFiles(true);
 
-  // Filter files based on search term
+      // Show loading state
+      Swal.fire({
+        title: "ກຳລັງຍ້າຍ...",
+        text: "ກະລຸນາລໍຖ້າ",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      let res;
+      console.log(res)
+
+      if (docType === "folder") {
+        res = await axiosInstance.patch(
+          `${MOVE_FOLDER_END_POINT}/${originFolderId}`,
+          {
+            destinationFolderId: destinationFolderId || null,
+          }
+        );
+      } else {
+        res = await axiosInstance.patch(`${MOVE_FILE_END_POINT}`, {
+          folderId: destinationFolderId || null,
+          documentId: documentId,
+        });
+      }
+
+      Swal.fire({
+        title: "ຍ້າຍສຳເລັດ",
+        text: `ຍ້າຍ${docType === "folder" ? "ໂຟເດີ້" : "ເອກະສານ"}${
+          !destinationFolderId ? "ໄປຍັງໂຟເດີ້ຫຼັກ" : ""
+        }ສຳເລັດແລ້ວ`,
+        icon: "success",
+        confirmButtonText: "ຕົກລົງ",
+        confirmButtonColor: "#2C3E50",
+      });
+
+      eventBus.publish("DOCUMNETS_UPDATED", true);
+
+      // Clean up localStorage after successful operation
+      localStorage.removeItem("selectedDocumentId");
+      localStorage.removeItem("selectedDocumentType");
+      localStorage.removeItem("destinationFolderId");
+      localStorage.removeItem("currentParentId");
+    } catch (error: any) {
+      console.error("Error moving items:", error);
+      Swal.fire({
+        title: "ເກີດຂໍ້ຜິດພາດ",
+        text:
+          error.response?.data?.message ||
+          "ບໍ່ສາມາດຍ້າຍລາຍການໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
+        icon: "error",
+        confirmButtonText: "ຕົກລົງ",
+        confirmButtonColor: "#2C3E50",
+      });
+    } finally {
+      setMovingFiles(false);
+    }
+  };
+
+  // Filter files based on search term and accessibility
   const filteredData = fileData.filter((file) => {
     // Filter by search term
-    const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = file.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
     // Get the ID of the currently selected document
     const selectedDocumentId = localStorage.getItem("selectedDocumentId");
-    
+
     // Exclude the current folder/file from the list
     const isNotCurrentItem = file._id !== selectedDocumentId;
-    
+
     return matchesSearch && isNotCurrentItem;
   });
+
+  // Separate accessible and inaccessible folders for rendering
+  const accessibleFolders = filteredData.filter(
+    (folder) => folder.isAccessible
+  );
+  const inaccessibleFolders = filteredData.filter(
+    (folder) => !folder.isAccessible
+  );
 
   useEffect(() => {
     if (open) {
@@ -573,7 +635,7 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
                 borderRadius: 1,
                 mb: 2,
                 overflow: "auto",
-                minHeight: "300px", // Set a min height for consistency
+                minHeight: "300px",
               }}
             >
               <Table>
@@ -618,58 +680,122 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredData.map((file, index) => (
-                      <TableRow
-                        key={file._id || file.id || index}
-                        sx={{
-                          "&:hover": { bgcolor: "#e0e0e0" },
-                          cursor: "pointer",
-                          height: 80,
-                          bgcolor:
-                            selectedFolderId === (file._id || file.id)
-                              ? "#e0e0e0"
-                              : "transparent",
-                        }}
-                        onClick={() =>
-                          setSelectedFolderId(file._id || file.id || "")
-                        }
-                        onDoubleClick={() => handleFolderDoubleClick(file)}
-                      >
-                        <TableCell>
-                          <Box sx={{ display: "flex", alignItems: "center" }}>
-                            {file?.type === "folder" ? (
-                              <FolderIcon sx={{ color: "#ffd54f", mr: 1 }} />
-                            ) : (
-                              <ArticleIcon sx={{ color: "#2196f3", mr: 1 }} />
-                            )}
-                            <Box>
-                              <Typography>
-                                {file?.name}{" "}
-                                <span
-                                  style={{ color: "green", fontWeight: 700 }}
-                                >
-                                  {file?.isShared && "(Shared)"}
-                                </span>
-                              </Typography>
+                    <>
+                      {/* Render accessible folders first */}
+                      {accessibleFolders.map((file, index) => (
+                        <TableRow
+                          key={file._id || file.id || index}
+                          sx={{
+                            "&:hover": { bgcolor: "#e0e0e0" },
+                            cursor: "pointer",
+                            height: 80,
+                            bgcolor:
+                              selectedFolderId === (file._id || file.id)
+                                ? "#e0e0e0"
+                                : "transparent",
+                          }}
+                          onClick={() =>
+                            setSelectedFolderId(file._id || file.id || "")
+                          }
+                          onDoubleClick={() => handleFolderDoubleClick(file)}
+                        >
+                          <TableCell>
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                              {file?.type === "folder" ? (
+                                <FolderIcon sx={{ color: "#ffd54f", mr: 1 }} />
+                              ) : (
+                                <ArticleIcon sx={{ color: "#2196f3", mr: 1 }} />
+                              )}
+                              <Box>
+                                <Typography>
+                                  {file?.name}{" "}
+                                  <span
+                                    style={{ color: "green", fontWeight: 700 }}
+                                  >
+                                    {file?.isShared && "(Shared)"}
+                                  </span>
+                                </Typography>
+                              </Box>
                             </Box>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2">
-                            {file?.lastModified}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={file?.status}
-                            sx={{
-                              bgcolor: getStatusColor(file?.status),
-                              color: getTextColor(file?.status ?? "black"),
-                            }}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {file?.lastModified}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={file?.status}
+                              sx={{
+                                bgcolor: getStatusColor(file?.status),
+                                color: getTextColor(file?.status ?? "black"),
+                              }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+
+                      {/* Render inaccessible folders with reduced opacity */}
+                      {inaccessibleFolders.map((file, index) => (
+                        <TableRow
+                          key={`inaccessible-${file._id || file.id || index}`}
+                          sx={{
+                            opacity: 0.4, // Reduced opacity for inaccessible folders
+                            cursor: "not-allowed",
+                            height: 80,
+                            "&:hover": { bgcolor: "rgba(224, 224, 224, 0.3)" },
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            // Show tooltip or do nothing for inaccessible folders
+                          }}
+                        >
+                          <TableCell>
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                              {file?.type === "folder" ? (
+                                <FolderIcon sx={{ color: "#ffd54f", mr: 1 }} />
+                              ) : (
+                                <ArticleIcon sx={{ color: "#2196f3", mr: 1 }} />
+                              )}
+                              <Box>
+                                <Typography>
+                                  {file?.name}{" "}
+                                  <span
+                                    style={{
+                                      color: "red",
+                                      fontWeight: 400,
+                                      fontSize: "0.8em",
+                                    }}
+                                  >
+                                    (ບໍ່ສາມາດເຂົ້າເຖິງໄດ້)
+                                  </span>
+                                  <span
+                                    style={{ color: "green", fontWeight: 700 }}
+                                  >
+                                    {file?.isShared && " (Shared)"}
+                                  </span>
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {file?.lastModified}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={file?.status}
+                              sx={{
+                                bgcolor: getStatusColor(file?.status),
+                                color: getTextColor(file?.status ?? "black"),
+                                opacity: 0.7,
+                              }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </>
                   )}
                 </TableBody>
                 <TableFooter sx={{ height: 50 }}></TableFooter>

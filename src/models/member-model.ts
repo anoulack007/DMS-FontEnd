@@ -1,9 +1,12 @@
 
+export type MemberPermission = 'VIEW' | 'EDIT' | 'ADMIN';
 export interface MemberModel {
   id: string;
   createdAt: string;
+  permissions: MemberPermission;
   userId: string;
   folderId: string;
+  members: Document[]
   file: {
     owner: {
       image: {
@@ -17,6 +20,7 @@ export interface MemberModel {
   fileId: string;
   updatedAt: string;
   user: {
+    id: string;
     image: {
       url: string;
       filename: string;

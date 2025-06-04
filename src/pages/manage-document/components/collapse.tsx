@@ -47,7 +47,9 @@ interface Document {
   itemType: string;
   documentNumber: string;
   status: STATUS_ENUMS;
-  owner: string;
+  owner: {
+    username: string;
+  };
   url: string;
   isFolder: boolean;
   parentId: string;
@@ -420,7 +422,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               >
                 ຜູ້ສ້າງ
               </Typography>
-              <Box>{ctrl.selectedDocument?.owner}</Box>
+              <Box>{ctrl.selectedDocument?.owner?.username ?? ctrl.selectedDocument?.owner}</Box>
             </Box>
             <Box>
               <Typography
