@@ -73,148 +73,176 @@ const UseMainController = () => {
     setVersionUploadOpen(true);
   };
 
-  const validateDocumentAccess = (document: any): Document => {
-    if (!currentUser) {
-      return {
-        ...document,
-        hasAccess: false,
-        canView: false,
-        canSelect: false,
-        canModify: false,
-        canNavigate: false, // New property for folder navigation
-        isOwner: false,
-        isMember: false,
-        isDisabled: true,
-        showLockIcon: true,
-        accessLevel: "no-access",
-      };
-    }
-
-    const currentUserId = currentUser.id;
-    let hasAccess = false;
-    let canView = false;
-    let canSelect = false;
-    let canModify = false;
-    let canNavigate = false; // New property for folder navigation
-    let isOwner = false;
-    let isMember = false;
-    let showLockIcon = false;
-    let accessLevel: "owner" | "member" | "public-readonly" | "no-access" =
-      "no-access";
-
-    // Check if user is owner - check multiple possible owner properties
-    isOwner =
-      document.owner?.id === currentUserId ||
-      document.ownerId === currentUserId ||
-      document.owner === currentUserId;
-
-    if (isOwner) {
-      hasAccess = true;
-      canView = true;
-      canSelect = true;
-      canModify = true;
-      canNavigate = true; // Owners can navigate into folders
-      showLockIcon = false;
-      accessLevel = "owner";
-    } else {
-      // Check membership based on item type
-      if (document.itemType === "file" || document.type !== "folder") {
-        // For files - check fileMember property (single object)
-        isMember =
-          document.fileMember?.user?.id === currentUserId ||
-          document.fileMember?.userId === currentUserId ||
-          // Check if fileMembers is an array
-          (Array.isArray(document.fileMembers) &&
-            document.fileMembers.some(
-              (member: any) =>
-                member.user?.id === currentUserId ||
-                member.userId === currentUserId
-            )) ||
-          // Check if fileMembers is a single object
-          (!Array.isArray(document.fileMembers) &&
-            document.fileMembers &&
-            (document.fileMembers.user?.id === currentUserId ||
-              document.fileMembers.userId === currentUserId));
-      } else if (document.itemType === "folder" || document.type === "folder") {
-        // For folders - check members properties
-        isMember =
-          // Check if members is an array
-          (Array.isArray(document.members) &&
-            document.members.some(
-              (member: any) =>
-                member.user?.id === currentUserId ||
-                member.userId === currentUserId ||
-                member.id === currentUserId
-            )) ||
-          // Check if members is a single object
-          (!Array.isArray(document.members) &&
-            document.members &&
-            (document.members.user?.id === currentUserId ||
-              document.members.userId === currentUserId ||
-              document.members.id === currentUserId)) ||
-          // Check folderMembers (single object)
-          document.folderMembers?.user?.id === currentUserId ||
-          document.folderMembers?.userId === currentUserId ||
-          document.folderMember?.user?.id === currentUserId ||
-          document.folderMember?.userId === currentUserId;
-      }
-
-      if (isMember) {
-        hasAccess = true;
-        canView = true;
-        canSelect = true;
-        canModify = true;
-        canNavigate = true; // Members can navigate into folders
-        showLockIcon = false;
-        accessLevel = "member";
-      } else {
-        // For PUBLIC documents/folders, non-owners/non-members can only view
-        if (document.status === "PUBLIC") {
-          hasAccess = true;
-          canView = true;
-          canSelect = false; // Cannot select public documents if not owner/member
-          canModify = false;
-          canNavigate = false; // Cannot navigate into public folders if not owner/member
-          showLockIcon = true;
-          accessLevel = "public-readonly";
-        }
-        // For PRIVATE documents/folders, non-owners/non-members have no access
-        else if (document.status === "PRIVATE") {
-          hasAccess = false;
-          canView = false;
-          canSelect = false;
-          canModify = false;
-          canNavigate = false; // Cannot navigate into private folders
-          showLockIcon = true;
-          accessLevel = "no-access";
-        }
-        // Default case - no access
-        else {
-          hasAccess = false;
-          canView = false;
-          canSelect = false;
-          canModify = false;
-          canNavigate = false;
-          showLockIcon = true;
-          accessLevel = "no-access";
-        }
-      }
-    }
-
+ const validateDocumentAccess = (document: any): Document => {
+  if (!currentUser) {
     return {
       ...document,
-      hasAccess,
-      canView,
-      canSelect,
-      canModify,
-      canNavigate, // New property
-      isOwner,
-      isMember,
-      isDisabled: !canSelect, // Disabled if cannot select
-      showLockIcon,
-      accessLevel,
+      hasAccess: false,
+      canView: false,
+      canSelect: false,
+      canModify: false,
+      canNavigate: false,
+      isOwner: false,
+      isMember: false,
+      isDisabled: true,
+      showLockIcon: true,
+      accessLevel: "no-access",
     };
+  }
+
+  const currentUserId = currentUser.id;
+  
+  // Check ownership
+  const isOwner =
+    document.owner?.id === currentUserId ||
+    document.ownerId === currentUserId ||
+    document.owner === currentUserId;
+
+  // Check membership based on item type
+  let isMember = false;
+  
+  if (document.itemType === "file" || document.type !== "folder") {
+    // File membership check - handle the actual data structure from console
+    isMember =
+      // Check fileMember as array (as shown in console log)
+      (Array.isArray(document.fileMember) &&
+        document.fileMember.some(
+          (member: any) =>
+            member.user?.id === currentUserId ||
+            member.userId === currentUserId ||
+            member.id === currentUserId
+        )) ||
+      // Check fileMember as single object (fallback)
+      (!Array.isArray(document.fileMember) && document.fileMember?.user?.id === currentUserId) ||
+      (!Array.isArray(document.fileMember) && document.fileMember?.userId === currentUserId) ||
+      // Check fileMembers as array
+      (Array.isArray(document.fileMembers) &&
+        document.fileMembers.some(
+          (member: any) =>
+            member.user?.id === currentUserId ||
+            member.userId === currentUserId ||
+            member.id === currentUserId
+        )) ||
+      // Check fileMembers as single object (fallback)
+      (!Array.isArray(document.fileMembers) && document.fileMembers?.user?.id === currentUserId) ||
+      (!Array.isArray(document.fileMembers) && document.fileMembers?.userId === currentUserId) ||
+      // Check if user is in general members array
+      (Array.isArray(document.members) &&
+        document.members.some(
+          (member: any) =>
+            member.user?.id === currentUserId ||
+            member.userId === currentUserId ||
+            member.id === currentUserId
+        )) ||
+      // Check direct membership properties
+      document.memberId === currentUserId ||
+      document.userId === currentUserId;
+      
+    // Debug log for troubleshooting
+    console.log('Document membership check:', {
+      documentId: document.id,
+      documentName: document.name,
+      currentUserId,
+      fileMember: document.fileMember,
+      fileMembers: document.fileMembers,
+      members: document.members,
+      isMember,
+      fileMemberIsArray: Array.isArray(document.fileMember),
+      fileMembersIsArray: Array.isArray(document.fileMembers)
+    });
+  } else if (document.itemType === "folder" || document.type === "folder") {
+    // Folder membership check
+    isMember =
+      (Array.isArray(document.members) &&
+        document.members.some(
+          (member: any) =>
+            member.user?.id === currentUserId ||
+            member.userId === currentUserId ||
+            member.id === currentUserId
+        )) ||
+      (!Array.isArray(document.members) &&
+        document.members &&
+        (document.members.user?.id === currentUserId ||
+          document.members.userId === currentUserId ||
+          document.members.id === currentUserId)) ||
+      document.folderMembers?.user?.id === currentUserId ||
+      document.folderMembers?.userId === currentUserId ||
+      document.folderMember?.user?.id === currentUserId ||
+      document.folderMember?.userId === currentUserId;
+  }
+
+  // Apply access logic
+  let hasAccess = false;
+  let canView = false;
+  let canSelect = false;
+  let canModify = false;
+  let canNavigate = false;
+  let showLockIcon = false;
+  let accessLevel: "owner" | "member" | "public-readonly" | "no-access" = "no-access";
+
+  if (isOwner) {
+    // Owner has full access
+    hasAccess = true;
+    canView = true;
+    canSelect = true;
+    canModify = true;
+    canNavigate = true;
+    showLockIcon = false;
+    accessLevel = "owner";
+  } else if (isMember) {
+    // Member has full access
+    hasAccess = true;
+    canView = true;
+    canSelect = true;
+    canModify = true;
+    canNavigate = true;
+    showLockIcon = false;
+    accessLevel = "member";
+  } else {
+    // Non-owner, non-member access based on status
+    if (document.status === "PUBLIC") {
+      hasAccess = true;
+      canView = true;
+      canSelect = false;
+      canModify = false;
+      canNavigate = false;
+      showLockIcon = true;
+      accessLevel = "public-readonly";
+    } else if (document.status === "PRIVATE") {
+      // PRIVATE: No access for non-members
+      hasAccess = false;
+      canView = false;
+      canSelect = false;
+      canModify = false;
+      canNavigate = false;
+      showLockIcon = true;
+      accessLevel = "no-access";
+    } else {
+      // Default: No access
+      hasAccess = false;
+      canView = false;
+      canSelect = false;
+      canModify = false;
+      canNavigate = false;
+      showLockIcon = true;
+      accessLevel = "no-access";
+    }
+  }
+
+  return {
+    ...document,
+    hasAccess,
+    canView,
+    canSelect,
+    canModify,
+    canNavigate,
+    isOwner,
+    isMember,
+    isDisabled: !canSelect,
+    showLockIcon,
+    accessLevel,
   };
+};
 
   const handleGetDocumentsByPath = async (path?: string) => {
     try {

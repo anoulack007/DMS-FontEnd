@@ -55,7 +55,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   canView: boolean; 
   canModify: boolean; 
   canSelect: boolean;
-  canNavigate: boolean; // New property
+  canNavigate: boolean;
   showLockIcon: boolean;
   isOwner: boolean;
   isMember: boolean;
@@ -67,7 +67,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
       canView: false, 
       canModify: false, 
       canSelect: false,
-      canNavigate: false, // New property
+      canNavigate: false,
       showLockIcon: true,
       isOwner: false,
       isMember: false,
@@ -76,40 +76,65 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   }
 
   const currentUserId = currentUser.id;
-  let canView = false;
-  let canModify = false;
-  let canSelect = false;
-  let canNavigate = false; // New property
-  let showLockIcon = false;
-  let accessLevel: 'owner' | 'member' | 'public-readonly' | 'no-access' = 'no-access';
-
+  
   // Check if user is the owner
   const isOwner = item.owner?.id === currentUserId || 
-                  item.ownerId === currentUserId;
+                  item.ownerId === currentUserId 
+                  // item.owner === currentUserId;
   
-  // Check if user is a member
+  // Check if user is a member based on item type
   let isMember = false;
   
   if (item.itemType === "file") {
-    // Check file membership - handle both array and single object cases
+    // Check file membership - handle the actual data structure from your console
     isMember = 
-      item.fileMember?.user?.id === currentUserId ||
-      item.fileMember?.userId === currentUserId ||
-      // Check if fileMembers is an array
+      // Check fileMember as array (as shown in your console log)
       (Array.isArray(item.fileMember) && 
         item.fileMember.some((member: any) => 
-          member.user?.id === currentUserId || member.userId === currentUserId
+          member.user?.id === currentUserId || 
+          member.userId === currentUserId ||
+          member.id === currentUserId
         )
       ) ||
-      // Check if fileMembers is a single object
-      (!Array.isArray(item.fileMember) && item.fileMember && (
-        item.fileMember.user?.id === currentUserId ||
-        item.fileMember.userId === currentUserId
-      ));
+      // Check fileMember as single object (fallback)
+      (!Array.isArray(item.fileMember) && item.fileMember?.user?.id === currentUserId) ||
+      (!Array.isArray(item.fileMember) && item.fileMember?.userId === currentUserId) ||
+      // Check fileMembers as array
+      (Array.isArray(item.fileMember) && 
+        item.fileMember.some((member: any) => 
+          member.user?.id === currentUserId || 
+          member.userId === currentUserId ||
+          member.id === currentUserId
+        )
+      ) ||
+      // Check fileMembers as single object (fallback)
+      (!Array.isArray(item.fileMember) && item.fileMember?.user?.id === currentUserId) ||
+      (!Array.isArray(item.fileMember) && item.fileMember?.userId === currentUserId) ||
+      // Check if user is in general members array
+      (Array.isArray(item.members) && 
+        item.members.some((member: any) => 
+          member.user?.id === currentUserId || 
+          member.userId === currentUserId ||
+          member.id === currentUserId
+        )
+      )
+      
+    // Debug log for troubleshooting
+    console.log('File membership check:', {
+      itemId: item.id,
+      itemName: item.name,
+      currentUserId,
+      fileMember: item.fileMember,
+      fileMembers: item.fileMember,
+      members: item.members,
+      isMember,
+      fileMemberIsArray: Array.isArray(item.fileMember),
+      fileMembersIsArray: Array.isArray(item.fileMember)
+    });
   } else if (item.itemType === "folder") {
-    // Check folder membership - handle both array and single object cases
+    // Check folder membership - handle various member structures
     isMember = 
-      // Check if members is an array
+      // Array of members
       (Array.isArray(item.members) && 
         item.members.some((member: any) => 
           member.user?.id === currentUserId || 
@@ -117,64 +142,84 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           member.id === currentUserId
         )
       ) ||
-      // Check if members is a single object
+      // Single members object
       (!Array.isArray(item.members) && item.members && (
         item.members.user?.id === currentUserId ||
         item.members.userId === currentUserId 
+        // item.members.id === currentUserId
       )) ||
-      // Check folderMembers (single object)
+      // Single folderMembers object
       item.folderMembers?.user?.id === currentUserId ||
-      item.folderMembers?.userId === currentUserId;
+      item.folderMembers?.userId === currentUserId 
+      // Alternative folderMember property
   }
 
-  // Owner can do everything
+  // Apply access rules based on ownership, membership, and status
+  let canView = false;
+  let canModify = false;
+  let canSelect = false;
+  let canNavigate = false;
+  let showLockIcon = false;
+  let accessLevel: 'owner' | 'member' | 'public-readonly' | 'no-access' = 'no-access';
+
   if (isOwner) {
+    // Owner has full access regardless of status
     canView = true;
     canModify = true;
     canSelect = true;
-    canNavigate = true; // Owners can navigate
+    canNavigate = true;
     showLockIcon = false;
     accessLevel = 'owner';
-  }
-  // Member can do everything like owner
-  else if (isMember) {
+  } else if (isMember) {
+    // Member has full access regardless of status
     canView = true;
     canModify = true;
     canSelect = true;
-    canNavigate = true; // Members can navigate
+    canNavigate = true;
     showLockIcon = false;
     accessLevel = 'member';
-  }
-  // For PUBLIC documents, non-members can only view
-  else if (item.status === "PUBLIC") {
-    canView = true;
-    canModify = false;
-    canSelect = false; // Cannot select public documents if not owner/member
-    canNavigate = false; // Cannot navigate into public folders if not owner/member
-    showLockIcon = true;
-    accessLevel = 'public-readonly';
-  }
-  // For PRIVATE documents, non-members have no access
-  else if (item.status === "PRIVATE") {
-    canView = false;
-    canModify = false;
-    canSelect = false;
-    canNavigate = false; // Cannot navigate into private folders
-    showLockIcon = true;
-    accessLevel = 'no-access';
-  }
-  // Default case - no access
-  else {
-    canView = false;
-    canModify = false;
-    canSelect = false;
-    canNavigate = false;
-    showLockIcon = true;
-    accessLevel = 'no-access';
+  } else {
+    // Non-owner, non-member access depends on status
+    if (item.status === "PUBLIC") {
+      // Public items: read-only access for non-members
+      canView = true;
+      canModify = false;
+      canSelect = false;
+      canNavigate = false; // Cannot navigate into public folders
+      showLockIcon = true;
+      accessLevel = 'public-readonly';
+    } else if (item.status === "PRIVATE") {
+      // Private items: no access for non-members
+      canView = false;
+      canModify = false;
+      canSelect = false;
+      canNavigate = false;
+      showLockIcon = true;
+      accessLevel = 'no-access';
+    } else {
+      // Default/unknown status: no access
+      canView = false;
+      canModify = false;
+      canSelect = false;
+      canNavigate = false;
+      showLockIcon = true;
+      accessLevel = 'no-access';
+    }
   }
 
-  return { canView, canModify, canSelect, canNavigate, showLockIcon, isOwner, isMember, accessLevel };
+  return { 
+    canView, 
+    canModify, 
+    canSelect, 
+    canNavigate, 
+    showLockIcon, 
+    isOwner, 
+    isMember, 
+    accessLevel 
+  };
 };
+
+
   // Enhanced handleSelectItem with validation
   const handleSelectItemWithValidation = (id: string) => {
     const item = ctrl.documents.find((doc: Document) => doc.id === id);
@@ -210,30 +255,31 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   };
 
   // Enhanced handleFolderDoubleClick function
- const handleFolderDoubleClickWithValidation = (item: Document) => {
-  const access = validateItemAccess(item);
-  
-  // Check if user can navigate into this folder
-  if (!access.canNavigate) {
-    let title = "ບໍ່ມີສິດເຂົ້າເຖິງ";
-    console.log(title)
-    let text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟນເດີນີ້.";
-    
-    if (access.accessLevel === 'public-readonly') {
-      title = "ການເຂົ້າເຖິງແບບຈຳກັດ";
-      text = "ໂຟນເດີສາທາລະນະນີ້ສາມາດເບິ່ງໄດ້ແຕ່ບໍ່ສາມາດເຂົ້າໄປໃນໂຟນເດີໄດ້. ພຽງແຕ່ເຈົ້າຂອງແລະສະມາຊິກເທົ່ານັ້ນທີ່ສາມາດເຂົ້າໄປໃນໂຟນເດີໄດ້.";
-    } else if (access.accessLevel === 'no-access') {
-      text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟນເດີນີ້.";
-    }
-    
-    console.warn(text);
-    
-    return;
-  }
+  const handleFolderDoubleClickWithValidation = (item: Document) => {
+    const access = validateItemAccess(item);
 
-  // If user can navigate, proceed with the original function
-  ctrl.handleFolderDoubleClick(item);
-};
+    // Check if user can navigate into this folder
+    if (!access.canNavigate) {
+      let title = "ບໍ່ມີສິດເຂົ້າເຖິງ";
+      console.log(title);
+      let text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟນເດີນີ້.";
+
+      if (access.accessLevel === "public-readonly") {
+        title = "ການເຂົ້າເຖິງແບບຈຳກັດ";
+        text =
+          "ໂຟນເດີສາທາລະນະນີ້ສາມາດເບິ່ງໄດ້ແຕ່ບໍ່ສາມາດເຂົ້າໄປໃນໂຟນເດີໄດ້. ພຽງແຕ່ເຈົ້າຂອງແລະສະມາຊິກເທົ່ານັ້ນທີ່ສາມາດເຂົ້າໄປໃນໂຟນເດີໄດ້.";
+      } else if (access.accessLevel === "no-access") {
+        text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟນເດີນີ້.";
+      }
+
+      console.warn(text);
+
+      return;
+    }
+
+    // If user can navigate, proceed with the original function
+    ctrl.handleFolderDoubleClick(item);
+  };
   // Get row styling based on access level
   const getRowStyling = (
     accessLevel: string,
@@ -245,7 +291,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
       transition: "background-color 0.2s ease",
     };
 
-    console.log(canView, canSelect)
+    console.log(canView, canSelect);
 
     switch (accessLevel) {
       case "owner":
@@ -266,7 +312,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
             backgroundColor: "rgba(255, 165, 0, 0.1)",
           },
           cursor: "default",
-          opacity: 0.30,
+          opacity: 0.3,
           // backgroundColor: "rgba(255, 165, 0, 0.05)",
         };
 
