@@ -71,7 +71,7 @@ const LoginPage = () => {
 
                 {showSubtitle && (
                   <TypewriterText
-                    text="ລະບົບຈັດການເອກະສານຂອງບໍລິສັດ iQURi Tech"
+                    text="ລະບົບຈັດເກັບເອກະສານຂອງບໍລິສັດ iQURi Tech"
                     speed={80}
                     delay={200}
                     mt={3}
