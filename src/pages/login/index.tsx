@@ -20,7 +20,7 @@ import { AnimatedBackground } from "./components/BackgroundAnimation";
 
 const LoginPage = () => {
   const ctrl = UseMainController();
-  const [showSubtitle, setShowSubtitle] = useState(false);
+  const [showSubtitle, setShowSubtitle] = useState<boolean>(false);
 
   return (
     <>
@@ -41,6 +41,7 @@ const LoginPage = () => {
             maxWidth: 1000,
             width: "100%",
             borderRadius: 10,
+            overflow: "hidden", // Important for the wave effect
           }}
         >
           <Grid2 container>
@@ -207,6 +208,35 @@ const LoginPage = () => {
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
+                  position: "relative",
+                  background: `
+                    linear-gradient(135deg, 
+                      #00D4FF 0%, 
+                      #00BFFF 20%, 
+                      #1E90FF 40%, 
+                      #4169E1 60%, 
+                      #9932CC 80%, 
+                      #FF1493 100%
+                    )
+                  `,
+                  backgroundSize: "400% 400%",
+                  animation: "smoothWaveGradient 12s ease-in-out infinite, fadeInRight 1s ease-out 0.5s both",
+                  borderRadius: "0 40px 40px 0",
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: `
+                      radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 70%),
+                      radial-gradient(circle at 80% 20%, rgba(255,255,255,0.2) 0%, transparent 50%),
+                      radial-gradient(circle at 40% 80%, rgba(255,255,255,0.1) 0%, transparent 60%)
+                    `,
+                    borderRadius: "0 40px 40px 0",
+                    animation: "smoothWaveOverlay 10s ease-in-out infinite",
+                  },
                 }}
               >
                 <img
@@ -216,32 +246,57 @@ const LoginPage = () => {
                   src={Login_BG}
                   alt="Login illustration"
                   style={{
-                    background: "linear-gradient(135deg, #e0f7ff, #f0faff)",
-                    maxWidth: "100%",
+                    maxWidth: "80%",
                     height: "auto",
-                    borderRadius: "0 40px 40px 0",
-                    animation: "fadeInRight 1s ease-out 0.5s both",
+                    borderRadius: "15px",
+                    zIndex: 1,
+                    position: "relative",
+                    filter: "drop-shadow(0 20px 20px rgba(0,0,0,0.1))",
                   }}
                 />
-                <style>
-                  {`
-                  @keyframes fadeInRight {
-                    from {
-                      opacity: 0;
-                      transform: translateX(30px);
-                    }
-                    to {
-                      opacity: 1;
-                      transform: translateX(0);
-                    }
-                  }
-                `}
-                </style>
               </Box>
             </Grid2>
           </Grid2>
         </AnimatedFadePaper>
       </Box>
+
+      <style>
+        {`
+          @keyframes fadeInRight {
+            from {
+              opacity: 0;
+              transform: translateX(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+
+          @keyframes smoothWaveGradient {
+            0% {
+              background-position: 100% 50%;
+            }
+            50% {
+              background-position: 0% 50%;
+            }
+            100% {
+              background-position: 100% 50%;
+            }
+          }
+
+          @keyframes smoothWaveOverlay {
+            0%, 100% {
+              opacity: 0.2;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.4;
+              transform: scale(1.01);
+            }
+          }
+        `}
+      </style>
     </>
   );
 };
