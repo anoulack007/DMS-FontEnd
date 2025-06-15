@@ -14,7 +14,7 @@ import { TypewriterText } from "./components/Typerwriting";
 import UseMainController from "./controller";
 import { AnimatedFormField } from "./components/FormFieldAnimated";
 import { AnimatedButton } from "./components/ButtonAnimated";
-import Login_BG from "../../assets/Image/login/icons.webp";
+import Login_BG from "../../assets/Document Management Icons.png";
 import { AnimatedFadePaper } from "./components/paperFade";
 import { AnimatedBackground } from "./components/BackgroundAnimation";
 
@@ -180,13 +180,12 @@ const LoginPage = () => {
                           borderRadius: 5,
                           height: "50px",
                           textTransform: "none",
-                          bgcolor: "#2C3E50",
+                          bgcolor: "#1E2B3A",
                           fontFamily: "Noto Sans Lao, sans-serif",
                           "&:hover": {
                             bgcolor: "#1A252F",
                           },
                         }}
-                        disabled={ctrl?.email && ctrl?.password ? false : true}
                       >
                         {ctrl.loading ? (
                           <CircularProgress size={20} color="inherit" />
@@ -217,6 +216,7 @@ const LoginPage = () => {
                   src={Login_BG}
                   alt="Login illustration"
                   style={{
+                    background: "linear-gradient(135deg, #e0f7ff, #f0faff)",
                     maxWidth: "100%",
                     height: "auto",
                     borderRadius: "0 40px 40px 0",
