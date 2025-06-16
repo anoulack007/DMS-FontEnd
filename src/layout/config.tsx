@@ -29,7 +29,7 @@ export interface MENU_ITEM_LISTS_PROPS {
 }
 
 export const DRAWER_WIDTH: number = 270;
-export const COLLAPSED_SPACE: number = 6;
+export const COLLAPSED_SPACE: number = 64; // Width when drawer is collapsed
 export const LIST_PADDING_X: number = 1;
 
 export const DRAWER_TITLE: string = "Test";

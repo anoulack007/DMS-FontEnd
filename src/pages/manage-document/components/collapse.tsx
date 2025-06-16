@@ -135,23 +135,19 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
       return;
     }
 
-    // Determine if the selected document is a folder or a file
     const isFolder = ctrl.selectedDocument.type === "folder";
     const endpoint = isFolder ? "folders/member/delete" : "files/member/delete";
 
-    // Create array of usernames and emails from the members
     const username = members
       .map((member) => member.user?.username)
       .filter(Boolean);
     const email = members.map((member) => member.user?.email).filter(Boolean);
 
-    // Ensure correct payload based on type
     const payload = isFolder
       ? { folderId: ctrl.selectedDocument.id, username }
       : { fileId: ctrl.selectedDocument.id, email };
 
     try {
-      // Show confirmation dialog
       const result = await Swal.fire({
         title: "ທ່ານແນ່ໃຈບໍ່?",
         text: `ທ່ານຕ້ອງການລຶບສະມາຊິກ ${members.length} ຄົນອອກຈາກ ${
@@ -166,7 +162,6 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
       if (result.isConfirmed) {
         await axiosInstance.delete(endpoint, { data: payload });
 
-        // Show success message
         Swal.fire({
           icon: "success",
           title: "ລຶບສະມາຊິກອອກສຳເລັດແລ້ວ",
@@ -187,18 +182,14 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
   };
 
   useEffect(() => {
-    // Subscribe to the MEMBER_UPDATED event
     const unsubscribe = eventBus.subscribe("MEMBER_UPDATED", (data) => {
-      // Check if the event relates to the current document
       if (ctrl.selectedDocument?.id === data.documentId) {
         getMemberData();
       }
     });
 
-    // Initial data fetch
     getMemberData();
 
-    // Clean up subscription on component unmount
     return () => {
       unsubscribe();
     };
@@ -408,7 +399,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
 
             <Divider />
 
-              <Box>
+            <Box>
               <Typography
                 sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
               >
@@ -416,13 +407,16 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               </Typography>
               <Box>{ctrl.selectedDocument?.documentId}</Box>
             </Box>
-              <Box>
+            <Box>
               <Typography
                 sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
               >
                 ຜູ້ສ້າງ
               </Typography>
-              <Box>{ctrl.selectedDocument?.owner?.username ?? ctrl.selectedDocument?.owner}</Box>
+              <Box>
+                {ctrl.selectedDocument?.owner?.username ??
+                  ctrl.selectedDocument?.owner}
+              </Box>
             </Box>
             <Box>
               <Typography

@@ -101,7 +101,6 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
         let endpoint;
         let payload;
 
-        // Create arrays with single user's credentials
         const username = selectedUser?.username ? [selectedUser.username] : [];
 
         if (selectedDocument?.itemType === "folder") {

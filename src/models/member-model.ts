@@ -27,6 +27,9 @@ export interface MemberModel {
       mimetype: string;
       path: string;
     };
+    role: {
+      name: string;
+    }
     email: string;
     name: string;
     username: string;

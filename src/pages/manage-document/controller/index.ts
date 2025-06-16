@@ -51,7 +51,6 @@ const UseMainController = () => {
   const [collapeOpen, setCollapseOpen] = useState<boolean>(false);
   const [fileHistory, setFileHistory] = useState<Version[]>([]);
 
-  // const [status, setStatus] = useState<STATUS_ENUMS>()
   const [newName, setNewName] = useState<string>(null!);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -92,19 +91,15 @@ const UseMainController = () => {
 
   const currentUserId = currentUser.id;
   
-  // Check ownership
   const isOwner =
     document.owner?.id === currentUserId ||
     document.ownerId === currentUserId ||
     document.owner === currentUserId;
 
-  // Check membership based on item type
   let isMember = false;
   
   if (document.itemType === "file" || document.type !== "folder") {
-    // File membership check - handle the actual data structure from console
     isMember =
-      // Check fileMember as array (as shown in console log)
       (Array.isArray(document.fileMember) &&
         document.fileMember.some(
           (member: any) =>
@@ -112,10 +107,8 @@ const UseMainController = () => {
             member.userId === currentUserId ||
             member.id === currentUserId
         )) ||
-      // Check fileMember as single object (fallback)
       (!Array.isArray(document.fileMember) && document.fileMember?.user?.id === currentUserId) ||
       (!Array.isArray(document.fileMember) && document.fileMember?.userId === currentUserId) ||
-      // Check fileMembers as array
       (Array.isArray(document.fileMembers) &&
         document.fileMembers.some(
           (member: any) =>
@@ -123,10 +116,8 @@ const UseMainController = () => {
             member.userId === currentUserId ||
             member.id === currentUserId
         )) ||
-      // Check fileMembers as single object (fallback)
       (!Array.isArray(document.fileMembers) && document.fileMembers?.user?.id === currentUserId) ||
       (!Array.isArray(document.fileMembers) && document.fileMembers?.userId === currentUserId) ||
-      // Check if user is in general members array
       (Array.isArray(document.members) &&
         document.members.some(
           (member: any) =>
@@ -134,24 +125,9 @@ const UseMainController = () => {
             member.userId === currentUserId ||
             member.id === currentUserId
         )) ||
-      // Check direct membership properties
       document.memberId === currentUserId ||
       document.userId === currentUserId;
-      
-    // Debug log for troubleshooting
-    console.log('Document membership check:', {
-      documentId: document.id,
-      documentName: document.name,
-      currentUserId,
-      fileMember: document.fileMember,
-      fileMembers: document.fileMembers,
-      members: document.members,
-      isMember,
-      fileMemberIsArray: Array.isArray(document.fileMember),
-      fileMembersIsArray: Array.isArray(document.fileMembers)
-    });
   } else if (document.itemType === "folder" || document.type === "folder") {
-    // Folder membership check
     isMember =
       (Array.isArray(document.members) &&
         document.members.some(
@@ -449,10 +425,8 @@ const UseMainController = () => {
       const res = await axiosInstance.patch(endpoint, payload);
       console.log(res?.data?.data);
 
-      // Update selected document
       setSelectedDocument({ ...selectedDocument, status: newStatus });
 
-      // Update documents list
       setDocuments((prevDocs) =>
         prevDocs.map((doc) =>
           doc.id === selectedDocument.id ? { ...doc, status: newStatus } : doc
@@ -515,7 +489,6 @@ const UseMainController = () => {
       const responseData = response?.data?.data;
       const processedData = [];
 
-      // Use documentId as the key to group different versions of the same document
       const filesMap = new Map();
       const documentVersionsMap = new Map();
 
@@ -558,7 +531,6 @@ const UseMainController = () => {
         });
       }
 
-      // Process fileMembers (shared files)
       if (responseData.fileMembers && Array.isArray(responseData.fileMembers)) {
         responseData.fileMembers.forEach((fileMember: fileMember) => {
           if (fileMember.file && fileMember.file.folderId) {
@@ -601,11 +573,8 @@ const UseMainController = () => {
         });
       }
 
-      // Process each group to find the latest version
       documentVersionsMap.forEach((versions, documentId) => {
-        // Sort versions - first by version number in filename, then by version field, then by date
         versions.sort((a: any, b: any) => {
-          // Extract version from filename (e.g., "_v1" -> 1)
           const versionAMatch = a.name.match(/_v(\d+)/);
           const versionBMatch = b.name.match(/_v(\d+)/);
 
@@ -616,7 +585,6 @@ const UseMainController = () => {
             return versionB - versionA; // Higher version wins
           }
 
-          // If filename versions are identical, use the version field
           const numVersionA = parseFloat(a.version || "0") || 0;
           const numVersionB = parseFloat(b.version || "0") || 0;
 
@@ -624,22 +592,18 @@ const UseMainController = () => {
             return numVersionB - numVersionA;
           }
 
-          // If all version info is the same, use latest updatedAt
           return (
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
           );
         });
 
-        // Add only the latest version to filesMap with validation
         const latestVersion = versions[0];
         const validatedFile = validateDocumentAccess(latestVersion);
         filesMap.set(documentId, validatedFile);
       });
 
-      // Add all latest files to the processed data
       processedData.push(...Array.from(filesMap.values()));
 
-      // Check for normal folders - try multiple possible properties
       const folderKeys = ["folders", "folder"];
       let normalFoldersFound = false;
 
