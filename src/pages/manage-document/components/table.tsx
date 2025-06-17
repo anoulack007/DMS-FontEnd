@@ -46,7 +46,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   getTextColor,
   handleUploadVersion,
 }) => {
-  // Get current user from Redux store
   const currentUser = useSelector(
     (state: { auth: UserInterface }) => state.auth.data
   );
@@ -61,7 +60,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   isMember: boolean;
   accessLevel: 'owner' | 'member' | 'public-readonly' | 'no-access';
 } => {
-  // If no current user, deny all access
   if (!currentUser?.id) {
     return { 
       canView: false, 
@@ -77,18 +75,13 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
 
   const currentUserId = currentUser.id;
   
-  // Check if user is the owner
   const isOwner = item.owner?.id === currentUserId || 
                   item.ownerId === currentUserId 
-                  // item.owner === currentUserId;
   
-  // Check if user is a member based on item type
   let isMember = false;
   
   if (item.itemType === "file") {
-    // Check file membership - handle the actual data structure from your console
     isMember = 
-      // Check fileMember as array (as shown in your console log)
       (Array.isArray(item.fileMember) && 
         item.fileMember.some((member: any) => 
           member.user?.id === currentUserId || 
@@ -107,10 +100,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           member.id === currentUserId
         )
       ) ||
-      // Check fileMembers as single object (fallback)
       (!Array.isArray(item.fileMember) && item.fileMember?.user?.id === currentUserId) ||
       (!Array.isArray(item.fileMember) && item.fileMember?.userId === currentUserId) ||
-      // Check if user is in general members array
       (Array.isArray(item.members) && 
         item.members.some((member: any) => 
           member.user?.id === currentUserId || 
@@ -118,23 +109,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           member.id === currentUserId
         )
       )
-      
-    // Debug log for troubleshooting
-    console.log('File membership check:', {
-      itemId: item.id,
-      itemName: item.name,
-      currentUserId,
-      fileMember: item.fileMember,
-      fileMembers: item.fileMember,
-      members: item.members,
-      isMember,
-      fileMemberIsArray: Array.isArray(item.fileMember),
-      fileMembersIsArray: Array.isArray(item.fileMember)
-    });
   } else if (item.itemType === "folder") {
-    // Check folder membership - handle various member structures
     isMember = 
-      // Array of members
       (Array.isArray(item.members) && 
         item.members.some((member: any) => 
           member.user?.id === currentUserId || 
@@ -142,19 +118,14 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           member.id === currentUserId
         )
       ) ||
-      // Single members object
       (!Array.isArray(item.members) && item.members && (
         item.members.user?.id === currentUserId ||
         item.members.userId === currentUserId 
-        // item.members.id === currentUserId
       )) ||
-      // Single folderMembers object
       item.folderMembers?.user?.id === currentUserId ||
       item.folderMembers?.userId === currentUserId 
-      // Alternative folderMember property
   }
 
-  // Apply access rules based on ownership, membership, and status
   let canView = false;
   let canModify = false;
   let canSelect = false;
@@ -163,7 +134,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   let accessLevel: 'owner' | 'member' | 'public-readonly' | 'no-access' = 'no-access';
 
   if (isOwner) {
-    // Owner has full access regardless of status
     canView = true;
     canModify = true;
     canSelect = true;
@@ -171,7 +141,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     showLockIcon = false;
     accessLevel = 'owner';
   } else if (isMember) {
-    // Member has full access regardless of status
     canView = true;
     canModify = true;
     canSelect = true;
@@ -179,17 +148,14 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     showLockIcon = false;
     accessLevel = 'member';
   } else {
-    // Non-owner, non-member access depends on status
     if (item.status === "PUBLIC") {
-      // Public items: read-only access for non-members
       canView = true;
       canModify = false;
       canSelect = false;
-      canNavigate = false; // Cannot navigate into public folders
+      canNavigate = false;
       showLockIcon = true;
       accessLevel = 'public-readonly';
     } else if (item.status === "PRIVATE") {
-      // Private items: no access for non-members
       canView = false;
       canModify = false;
       canSelect = false;
@@ -197,7 +163,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
       showLockIcon = true;
       accessLevel = 'no-access';
     } else {
-      // Default/unknown status: no access
       canView = false;
       canModify = false;
       canSelect = false;
@@ -218,9 +183,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     accessLevel 
   };
 };
-
-
-  // Enhanced handleSelectItem with validation
   const handleSelectItemWithValidation = (id: string) => {
     const item = ctrl.documents.find((doc: Document) => doc.id === id);
 
@@ -228,7 +190,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
 
     const access = validateItemAccess(item);
 
-    // Check if user can select this item
     if (!access.canSelect) {
       let message =
         "Access denied: You do not have permission to select this item";
@@ -240,9 +201,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         message = "You do not have permission to access this item.";
       }
 
-      console.warn(message);
-
-      // Show user-friendly message
       if (typeof ctrl.showAccessDeniedMessage === "function") {
         ctrl.showAccessDeniedMessage(access.accessLevel);
       }
@@ -250,7 +208,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
       return;
     }
 
-    // Call the original handleSelectItem
     ctrl.handleSelectItem(id);
   };
 
@@ -258,10 +215,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   const handleFolderDoubleClickWithValidation = (item: Document) => {
     const access = validateItemAccess(item);
 
-    // Check if user can navigate into this folder
     if (!access.canNavigate) {
       let title = "ບໍ່ມີສິດເຂົ້າເຖິງ";
-      console.log(title);
       let text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟນເດີນີ້.";
 
       if (access.accessLevel === "public-readonly") {
@@ -272,26 +227,21 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟນເດີນີ້.";
       }
 
-      console.warn(text);
-
       return;
     }
 
-    // If user can navigate, proceed with the original function
     ctrl.handleFolderDoubleClick(item);
   };
-  // Get row styling based on access level
   const getRowStyling = (
     accessLevel: string,
     canView: boolean,
     canSelect: boolean
   ) => {
+    console.log(canView, canSelect);
     const baseStyle = {
       "&:last-child td, &:last-child th": { border: 0 },
       transition: "background-color 0.2s ease",
     };
-
-    console.log(canView, canSelect);
 
     switch (accessLevel) {
       case "owner":
