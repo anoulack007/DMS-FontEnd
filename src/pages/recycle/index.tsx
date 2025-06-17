@@ -1,6 +1,5 @@
 import {
   Box,
-  Divider,
   IconButton,
   InputAdornment,
   TextField,
@@ -29,10 +28,10 @@ const RecyclePage = () => {
   const ctrl = UseMainController();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
     <Box>
+      {/* Search and Filter Row */}
       <Box
         sx={{
           display: "flex",
@@ -43,30 +42,7 @@ const RecyclePage = () => {
           gap: { xs: 2, md: 0 },
         }}
       >
-        <Box display="flex" alignItems="center" gap={2}>
-          <Typography
-            variant="h5"
-            fontWeight={700}
-            color="#4A4A4A"
-            mb={{ xs: 1, md: 0 }}
-          >
-            ຖັງຂີ້ເຫຍື້ອ
-          </Typography>
-          <Badge
-            badgeContent={ctrl?.documents.length || 0}
-            color="error"
-            sx={{
-              "& .MuiBadge-badge": {
-                fontSize: "0.8rem",
-                height: "22px",
-                minWidth: "22px",
-                borderRadius: "50%",
-                padding: "0 6px",
-              },
-            }}
-          />
-        </Box>
-
+        {/* Filter Section */}
         <Box
           sx={{
             display: "flex",
@@ -160,14 +136,10 @@ const RecyclePage = () => {
               </Button>
             </Stack>
           </LocalizationProvider>
+        </Box>
 
-          {!isSmall && (
-            <Divider
-              orientation={isMobile ? "horizontal" : "vertical"}
-              flexItem
-            />
-          )}
-
+        {/* Search Input */}
+        <Box sx={{ width: { xs: "100%", md: "auto" } }}>
           <TextField
             fullWidth={isMobile}
             sx={{
@@ -204,15 +176,43 @@ const RecyclePage = () => {
         </Box>
       </Box>
 
-      {ctrl?.selectedItems.length > 0 && (
-        <CustomMenu
-          selectedCount={ctrl.selectedItems.length}
-          onDetailsClick={ctrl.handleDetailsClick}
-          handleDelete={ctrl?.handleDelete}
-          handleRestore={ctrl?.handleRestore}
-        />
-      )}
+      {/* Header Title or Custom Menu */}
+      <Box sx={{ mb: 3 }}>
+        {ctrl?.selectedItems.length > 0 ? (
+          <CustomMenu
+            selectedCount={ctrl.selectedItems.length}
+            onDetailsClick={ctrl.handleDetailsClick}
+            handleDelete={ctrl?.handleDelete}
+            handleRestore={ctrl?.handleRestore}
+          />
+        ) : (
+          <Box
+            sx={{ minHeight: 60 }}
+            display="flex"
+            alignItems="center"
+            gap={2}
+          >
+            <Typography variant="h5" fontWeight={700} color="#4A4A4A">
+              ຖັງຂີ້ເຫຍື້ອ
+            </Typography>
+            <Badge
+              badgeContent={ctrl?.documents.length || 0}
+              color="error"
+              sx={{
+                "& .MuiBadge-badge": {
+                  fontSize: "0.8rem",
+                  height: "22px",
+                  minWidth: "22px",
+                  borderRadius: "50%",
+                  padding: "0 6px",
+                },
+              }}
+            />
+          </Box>
+        )}
+      </Box>
 
+      {/* Table and Details */}
       <Box
         sx={{
           display: "flex",
