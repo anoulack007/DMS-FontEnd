@@ -33,6 +33,7 @@ const LoginPage = () => {
           justifyContent: "center",
           alignItems: "center",
           minHeight: "100vh",
+          p: 2,
         }}
       >
         <AnimatedFadePaper
@@ -221,7 +222,7 @@ const LoginPage = () => {
                   `,
                   backgroundSize: "400% 400%",
                   animation: "smoothWaveGradient 12s ease-in-out infinite, fadeInRight 1s ease-out 0.5s both",
-                  borderRadius: "0 40px 40px 0",
+                  borderRadius: { xs: 0, md: "0 40px 40px 0" },
                   "&::before": {
                     content: '""',
                     position: "absolute",
