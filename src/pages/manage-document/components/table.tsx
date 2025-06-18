@@ -285,6 +285,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
       accessLevel,
     };
   };
+
   const handleSelectItemWithValidation = (id: string) => {
     const item = ctrl.documents.find((doc: Document) => doc.id === id);
 
@@ -293,8 +294,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     const access = validateItemAccess(item);
 
     if (!access.canSelect) {
-      let message =
-        "ຖືກປະຕິເສດການເຂົ້າເຖິງ: ທ່ານບໍ່ມີສິດໃນການເລືອກລາຍການນີ້";
+      let message = "ຖືກປະຕິເສດການເຂົ້າເຖິງ: ທ່ານບໍ່ມີສິດໃນການເລືອກລາຍການນີ້";
 
       if (access.accessLevel === "public-readonly") {
         message =
@@ -334,6 +334,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
 
     ctrl.handleFolderDoubleClick(item);
   };
+
   const getRowStyling = (
     accessLevel: string,
     canView: boolean,
@@ -400,34 +401,10 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              {isAnyItemSelected && (
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    icon={<PanoramaFishEyeIcon sx={{ color: "gray" }} />}
-                    checkedIcon={<CheckCircleIcon sx={{ color: "blue" }} />}
-                    indeterminate={
-                      ctrl?.selectedItems.length > 0 &&
-                      ctrl?.selectedItems.length <
-                        ctrl?.documents.filter((doc: Document) => {
-                          const access = validateItemAccess(doc);
-                          return access.canSelect;
-                        }).length
-                    }
-                    checked={
-                      ctrl?.documents.filter((doc: Document) => {
-                        const access = validateItemAccess(doc);
-                        return access.canSelect;
-                      }).length > 0 &&
-                      ctrl?.selectedItems.length ===
-                        ctrl?.documents.filter((doc: Document) => {
-                          const access = validateItemAccess(doc);
-                          return access.canSelect;
-                        }).length
-                    }
-                    onChange={ctrl?.handleSelectAll}
-                  />
-                </TableCell>
-              )}
+              {/* Always show checkbox column but empty */}
+              <TableCell padding="checkbox">
+                {/* No select all checkbox - removed completely */}
+              </TableCell>
               <TableCell>
                 <p style={{ fontWeight: "bold" }}>ຊື່ເອກະສານ</p>
               </TableCell>
@@ -491,11 +468,10 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                       access.canSelect
                     )}
                   >
-                    {(isAnyItemSelected || ctrl?.isSelected(item?.id)) && (
-                      <TableCell
-                        sx={{ borderBottom: "none" }}
-                        padding="checkbox"
-                      >
+                    {/* Always show checkbox column, but only show checkbox if any item is selected */}
+                    <TableCell sx={{ borderBottom: "none" }} padding="checkbox">
+                      {/* Show checkbox only for the selected row */}
+                      {ctrl?.isSelected(item?.id) && access.canSelect && (
                         <Checkbox
                           icon={
                             <PanoramaFishEyeIcon
@@ -525,8 +501,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                           }
                           disabled={!access.canSelect}
                         />
-                      </TableCell>
-                    )}
+                      )}
+                    </TableCell>
                     <TableCell sx={{ borderBottom: "none" }}>
                       <Box
                         sx={{
@@ -727,7 +703,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   count={ctrl.documents.length}
                   page={ctrl.page}
                   onPageChange={ctrl.handleChangePage}
-                  rowsPerPage={ctrl.rowsPerPage}
+                  rowsPerPage={ctrl.rowsPerPage}  
                   onRowsPerPageChange={ctrl.handleChangeRowsPerPage}
                   rowsPerPageOptions={[5, 10, 25, 50]}
                 />

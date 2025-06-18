@@ -968,60 +968,68 @@ const UseMainController = () => {
     }
   };
 
-  const handleSelectItem = (id: string) => {
-    const currentFolderPath =
-      searchParams.get("folderPath") ||
-      localStorage.getItem("currentFolderPath");
+ const handleSelectItem = (id: string) => {
+  const currentFolderPath =
+    searchParams.get("folderPath") ||
+    localStorage.getItem("currentFolderPath");
 
-    const doc = documents.find((document) => document.id === id);
+  const doc = documents.find((document) => document.id === id);
 
-    if (doc) {
-      // Apply validation to get access permissions
-      const validatedDoc = validateDocumentAccess(doc);
+  if (doc) {
+    // Apply validation to get access permissions
+    const validatedDoc = validateDocumentAccess(doc);
 
-      // Check if user can select this document
-      if (!validatedDoc.canSelect) {
-        let title = "ບໍ່ມີສິດເຂົ້າເຖິງ";
-        let text = "ທ່ານບໍ່ມີສິດເລືອກເອກະສານນີ້.";
+    // Check if user can select this document
+    if (!validatedDoc.canSelect) {
+      let title = "ບໍ່ມີສິດເຂົ້າເຖິງ";
+      let text = "ທ່ານບໍ່ມີສິດເລືອກເອກະສານນີ້.";
 
-        if (validatedDoc.accessLevel === "public-readonly") {
-          title = "ການເຂົ້າເຖິງແບບຈຳກັດ";
-          text =
-            "ເອກະສານສາທາລະນະນີ້ສາມາດເບິ່ງໄດ້ແຕ່ບໍ່ສາມາດເລືອກໄດ້. ພຽງແຕ່ເຈົ້າຂອງແລະສະມາຊິກເທົ່ານັ້ນທີ່ສາມາດເລືອກເອກະສານໄດ້.";
-        } else if (validatedDoc.accessLevel === "no-access") {
-          text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງເອກະສານນີ້.";
-        }
-
-        Swal.fire({
-          icon: "warning",
-          title: title,
-          text: text,
-          timer: 3000,
-          showConfirmButton: false,
-        });
-        return;
+      if (validatedDoc.accessLevel === "public-readonly") {
+        title = "ການເຂົ້າເຖິງແບບຈຳກັດ";
+        text =
+          "ເອກະສານສາທາລະນະນີ້ສາມາດເບິ່ງໄດ້ແຕ່ບໍ່ສາມາດເລືອກໄດ້. ພຽງແຕ່ເຈົ້າຂອງແລະສະມາຊິກເທົ່ານັ້ນທີ່ສາມາດເລືອກເອກະສານໄດ້.";
+      } else if (validatedDoc.accessLevel === "no-access") {
+        text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງເອກະສານນີ້.";
       }
 
-      // If user can select, proceed with selection
+      Swal.fire({
+        icon: "warning",
+        title: title,
+        text: text,
+        timer: 3000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    // Check if the item is already selected
+    const isCurrentlySelected = selectedItems.includes(id);
+    
+    if (isCurrentlySelected) {
+      // If clicking on already selected item, deselect it
+      setSelectedDocument(null);
+      setSelectedItems([]);
+      localStorage.removeItem("selectedDocumentId");
+      localStorage.removeItem("selectedDocumentNumber");
+      localStorage.removeItem("selectedDocumentType");
+    } else {
+      // If selecting a new item, replace the current selection (single selection)
       setSelectedDocument(validatedDoc);
+      setSelectedItems([id]); // Only store the current selected item
       localStorage.setItem("selectedDocumentId", id);
       localStorage.setItem("selectedDocumentNumber", validatedDoc?.documentId);
       localStorage.setItem("selectedDocumentType", validatedDoc.type);
-
-      // Update selected items - only if user can select
-      setSelectedItems((prev) =>
-        prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-      );
     }
+  }
 
-    setCollapseOpen(false);
-    setVersionDocument([]);
-    setFileHistory([]);
+  setCollapseOpen(false);
+  setVersionDocument([]);
+  setFileHistory([]);
 
-    if (currentFolderPath) {
-      setSearchParams({ folderPath: currentFolderPath });
-    }
-  };
+  if (currentFolderPath) {
+    setSearchParams({ folderPath: currentFolderPath });
+  }
+};
 
   // Filter out PRIVATE documents that user cannot access in the main data processing
   const filterAccessibleDocuments = (documents: Document[]): Document[] => {
