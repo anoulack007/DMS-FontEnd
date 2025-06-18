@@ -10,53 +10,88 @@ interface BreadcrumbItem {
   isLast: boolean;
 }
 
-const BreadcrumbCustom: React.FC<{ folders: Document[] }> = () => {
+const BreadcrumbCustom: React.FC<{ folders: Document[] }> = ({ folders }) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const breadcrumbData = useMemo<BreadcrumbItem[]>(() => {
-    // Default to "root" when no folder path param or folders are available
-    const defaultRootBreadcrumb: BreadcrumbItem[] = [
-      { label: "root", path: "root", isLast: true },
-    ];
-
     const folderPath = searchParams.get("folderPath");
 
-    // Early return with default if no folder path
-    if (!folderPath) {
-      return defaultRootBreadcrumb;
+    // If no folder path, return just the root breadcrumb
+    if (!folderPath || folderPath === "root" || folderPath === "/" || folderPath === "") {
+      return [{
+        label: "ໜ້າຫຼັກ",
+        path: "root",
+        isLast: true,
+      }];
     }
 
-    // Split the path into segments
-    const pathSegments = folderPath.split('/');
-    
-    // Generate breadcrumb items
-    const hierarchy: BreadcrumbItem[] = pathSegments.map((segment, index) => {
-      // Reconstruct the path up to this segment
-      const fullPath = pathSegments.slice(0, index + 1).join('/');
+    // Split the path into segments and filter out empty segments and "root"
+    const pathSegments = folderPath.split('/').filter(segment => 
+      segment.trim() !== '' && segment !== 'root'
+    );
+
+    // If no valid segments after filtering, return just root
+    if (pathSegments.length === 0) {
+      return [{
+        label: "ໜ້າຫຼັກ",
+        path: "root",
+        isLast: true,
+      }];
+    }
+
+    // Start with root breadcrumb (not last anymore)
+    const hierarchy: BreadcrumbItem[] = [{
+      label: "ໜ້າຫຼັກ",
+      path: "root",
+      isLast: false,
+    }];
+
+    // Helper function to find folder name by path segment
+    const findFolderName = (pathSegment: string, currentPath: string): string => {
+      // First try to find by the exact path
+      let folder = folders.find(f => f.path === currentPath);
       
-      return {
-        label: segment || 'root',
+      // If not found, try to find by name matching the path segment
+      if (!folder) {
+        folder = folders.find(f => f.name === pathSegment);
+      }
+      
+      // If still not found, try to find by ID
+      if (!folder) {
+        folder = folders.find(f => f.id === pathSegment);
+      }
+      
+      return folder ? folder.name : pathSegment;
+    };
+
+    // Generate breadcrumb items for each path segment
+    pathSegments.forEach((segment, index) => {
+      // Reconstruct the path up to this segment WITH root prefix
+      const fullPath = "root/" + pathSegments.slice(0, index + 1).join('/');
+      
+      // Get the actual folder name
+      const folderName = findFolderName(segment, fullPath);
+      
+      hierarchy.push({
+        label: folderName,
         path: fullPath,
         isLast: index === pathSegments.length - 1
-      };
+      });
     });
 
-    // Prepend "root" if not already present
-    if (hierarchy[0].label !== 'root') {
-      hierarchy.unshift({ label: 'root', path: 'root', isLast: false });
-    }
-
     return hierarchy;
-  }, [searchParams]);
+  }, [searchParams, folders]);
 
   const handleClick = (path: string) => {
     if (path && path !== 'root') {
       setSearchParams({ folderPath: path });
     } else {
-      // Clear localStorage when navigating to root
-      localStorage.removeItem("currentFolderPath");
-      localStorage.removeItem("currentFolderId");
       setSearchParams({}); // Go back to root
+      localStorage.removeItem("currentFolderPath");
+      localStorage.removeItem("selectedDocumentId");
+      localStorage.removeItem("selectedDocumentNumber");
+      localStorage.removeItem("selectedDocumentType");
+      localStorage.removeItem("currentFolderId");
     }
   };
 
@@ -70,7 +105,11 @@ const BreadcrumbCustom: React.FC<{ folders: Document[] }> = () => {
           <Typography
             key={index}
             color="primary"
-            sx={{ fontWeight: "bold", fontSize: 28 }}
+            sx={{
+              fontWeight: "bold",
+              fontSize: 28,
+              fontFamily: "NotoSansLao-Regular, sans-serif", // Add Lao font support
+            }}
           >
             {item.label}
           </Typography>
@@ -83,7 +122,10 @@ const BreadcrumbCustom: React.FC<{ folders: Document[] }> = () => {
               textDecoration: "none",
               fontWeight: "bold",
               fontSize: 25,
-              "&:hover": { textDecoration: "underline" },
+              fontFamily: "NotoSansLao-Regular, sans-serif", // Add Lao font support
+              "&:hover": {
+                textDecoration: "underline",
+              },
             }}
             onClick={() => handleClick(item.path)}
           >

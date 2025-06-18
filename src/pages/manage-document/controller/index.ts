@@ -72,153 +72,299 @@ const UseMainController = () => {
     setVersionUploadOpen(true);
   };
 
- const validateDocumentAccess = (document: any): Document => {
-  if (!currentUser) {
-    return {
-      ...document,
-      hasAccess: false,
-      canView: false,
-      canSelect: false,
-      canModify: false,
-      canNavigate: false,
-      isOwner: false,
-      isMember: false,
-      isDisabled: true,
-      showLockIcon: true,
-      accessLevel: "no-access",
-    };
-  }
+  const validateDocumentAccess = (document: any): Document => {
+    if (!currentUser) {
+      return {
+        ...document,
+        hasAccess: false,
+        canView: false,
+        canSelect: false,
+        canModify: false,
+        canNavigate: false,
+        isOwner: false,
+        isMember: false,
+        isDisabled: true,
+        showLockIcon: true,
+        accessLevel: "no-access",
+      };
+    }
 
-  const currentUserId = currentUser.id;
-  
-  const isOwner =
-    document.owner?.id === currentUserId ||
-    document.ownerId === currentUserId ||
-    document.owner === currentUserId;
+    const currentUserId = currentUser.id;
 
-  let isMember = false;
-  
-  if (document.itemType === "file" || document.type !== "folder") {
-    isMember =
-      (Array.isArray(document.fileMember) &&
-        document.fileMember.some(
-          (member: any) =>
-            member.user?.id === currentUserId ||
-            member.userId === currentUserId ||
-            member.id === currentUserId
-        )) ||
-      (!Array.isArray(document.fileMember) && document.fileMember?.user?.id === currentUserId) ||
-      (!Array.isArray(document.fileMember) && document.fileMember?.userId === currentUserId) ||
-      (Array.isArray(document.fileMembers) &&
-        document.fileMembers.some(
-          (member: any) =>
-            member.user?.id === currentUserId ||
-            member.userId === currentUserId ||
-            member.id === currentUserId
-        )) ||
-      (!Array.isArray(document.fileMembers) && document.fileMembers?.user?.id === currentUserId) ||
-      (!Array.isArray(document.fileMembers) && document.fileMembers?.userId === currentUserId) ||
-      (Array.isArray(document.members) &&
-        document.members.some(
-          (member: any) =>
-            member.user?.id === currentUserId ||
-            member.userId === currentUserId ||
-            member.id === currentUserId
-        )) ||
-      document.memberId === currentUserId ||
-      document.userId === currentUserId;
-  } else if (document.itemType === "folder" || document.type === "folder") {
-    isMember =
-      (Array.isArray(document.members) &&
-        document.members.some(
-          (member: any) =>
-            member.user?.id === currentUserId ||
-            member.userId === currentUserId ||
-            member.id === currentUserId
-        )) ||
-      (!Array.isArray(document.members) &&
-        document.members &&
-        (document.members.user?.id === currentUserId ||
-          document.members.userId === currentUserId ||
-          document.members.id === currentUserId)) ||
-      document.folderMembers?.user?.id === currentUserId ||
-      document.folderMembers?.userId === currentUserId ||
-      document.folderMember?.user?.id === currentUserId ||
-      document.folderMember?.userId === currentUserId;
-  }
+    // Check ownership - handle multiple possible owner field structures
+    const isOwner =
+      document.owner?.id === currentUserId ||
+      document.ownerId === currentUserId ||
+      document.owner === currentUserId ||
+      document.ownerid === currentUserId;
 
-  // Apply access logic
-  let hasAccess = false;
-  let canView = false;
-  let canSelect = false;
-  let canModify = false;
-  let canNavigate = false;
-  let showLockIcon = false;
-  let accessLevel: "owner" | "member" | "public-readonly" | "no-access" = "no-access";
+    let isMember = false;
 
-  if (isOwner) {
-    // Owner has full access
-    hasAccess = true;
-    canView = true;
-    canSelect = true;
-    canModify = true;
-    canNavigate = true;
-    showLockIcon = false;
-    accessLevel = "owner";
-  } else if (isMember) {
-    // Member has full access
-    hasAccess = true;
-    canView = true;
-    canSelect = true;
-    canModify = true;
-    canNavigate = true;
-    showLockIcon = false;
-    accessLevel = "member";
-  } else {
-    // Non-owner, non-member access based on status
-    if (document.status === "PUBLIC") {
+    // Enhanced member checking logic to handle both data structures
+    if (document.itemType === "file" || document.type !== "folder") {
+      // File member checking - handle multiple possible structures
+      isMember =
+        // Check fileMember array
+        (Array.isArray(document.fileMember) &&
+          document.fileMember.some(
+            (member: any) =>
+              member.user?.id === currentUserId ||
+              member.userId === currentUserId ||
+              member.id === currentUserId
+          )) ||
+        // Check single fileMember object
+        (!Array.isArray(document.fileMember) &&
+          document.fileMember &&
+          (document.fileMember.user?.id === currentUserId ||
+            document.fileMember.userId === currentUserId ||
+            document.fileMember.id === currentUserId)) ||
+        // Check fileMembers array (alternative naming)
+        (Array.isArray(document.fileMembers) &&
+          document.fileMembers.some(
+            (member: any) =>
+              member.user?.id === currentUserId ||
+              member.userId === currentUserId ||
+              member.id === currentUserId
+          )) ||
+        // Check single fileMembers object
+        (!Array.isArray(document.fileMembers) &&
+          document.fileMembers &&
+          (document.fileMembers.user?.id === currentUserId ||
+            document.fileMembers.userId === currentUserId ||
+            document.fileMembers.id === currentUserId)) ||
+        // Check general members array for files
+        (Array.isArray(document.members) &&
+          document.members.some(
+            (member: any) =>
+              member.user?.id === currentUserId ||
+              member.userId === currentUserId ||
+              member.id === currentUserId
+          )) ||
+        // Check direct member IDs
+        document.memberId === currentUserId ||
+        document.userId === currentUserId;
+    } else if (document.itemType === "folder" || document.type === "folder") {
+      // Folder member checking - handle multiple possible structures
+      isMember =
+        // Check members array
+        (Array.isArray(document.members) &&
+          document.members.some(
+            (member: any) =>
+              member.user?.id === currentUserId ||
+              member.userId === currentUserId ||
+              member.id === currentUserId ||
+              member === currentUserId // Direct ID in array
+          )) ||
+        // Check single members object
+        (!Array.isArray(document.members) &&
+          document.members &&
+          (document.members.user?.id === currentUserId ||
+            document.members.userId === currentUserId ||
+            document.members.id === currentUserId ||
+            document.members === currentUserId)) ||
+        // Check folderMembers (single object)
+        (document.folderMembers &&
+          (document.folderMembers.user?.id === currentUserId ||
+            document.folderMembers.userId === currentUserId ||
+            document.folderMembers.id === currentUserId)) ||
+        // Check folderMember (alternative naming)
+        (document.folderMember &&
+          (document.folderMember.user?.id === currentUserId ||
+            document.folderMember.userId === currentUserId ||
+            document.folderMember.id === currentUserId)) ||
+        // Check direct member IDs for folders
+        document.memberId === currentUserId ||
+        document.userId === currentUserId;
+    }
+
+    // FIXED: Check subfolder access - Check both 'subFolders' (camelCase) and 'subfolders' (lowercase)
+    let hasSubfolderAccess = false;
+
+    // Primary check: 'subFolders' (camelCase) as shown in your API response
+    if (document.subFolders) {
+      if (Array.isArray(document.subFolders)) {
+        hasSubfolderAccess = document.subFolders.some((subfolder: any) => {
+          // Check if user is owner of any subfolder
+          const isSubfolderOwner =
+            subfolder.ownerId === currentUserId ||
+            subfolder.owner?.id === currentUserId ||
+            subfolder.owner === currentUserId ||
+            subfolder.ownerid === currentUserId; // Added ownerid field
+
+          // Check if user is member of any subfolder
+          const isSubfolderMember =
+            // Check subfolder members array
+            (Array.isArray(subfolder.members) &&
+              subfolder.members.some(
+                (member: any) =>
+                  member.user?.id === currentUserId ||
+                  member.userId === currentUserId ||
+                  member.id === currentUserId ||
+                  member === currentUserId
+              )) ||
+            // Check single subfolder member object
+            (!Array.isArray(subfolder.members) &&
+              subfolder.members &&
+              (subfolder.members.user?.id === currentUserId ||
+                subfolder.members.userId === currentUserId ||
+                subfolder.members.id === currentUserId)) ||
+            // Check folderMembers in subfolder
+            (subfolder.folderMembers &&
+              (subfolder.folderMembers.user?.id === currentUserId ||
+                subfolder.folderMembers.userId === currentUserId ||
+                subfolder.folderMembers.id === currentUserId)) ||
+            // Check direct member IDs for subfolders
+            subfolder.memberId === currentUserId ||
+            subfolder.userId === currentUserId;
+
+          return isSubfolderOwner || isSubfolderMember;
+        });
+      } else {
+        // Single subFolders object
+        const subfolder = document.subFolders;
+        const isSubfolderOwner =
+          subfolder.ownerId === currentUserId ||
+          subfolder.owner?.id === currentUserId ||
+          subfolder.owner === currentUserId ||
+          subfolder.ownerid === currentUserId; // Added ownerid field
+
+        const isSubfolderMember =
+          (Array.isArray(subfolder.members) &&
+            subfolder.members.some(
+              (member: any) =>
+                member.user?.id === currentUserId ||
+                member.userId === currentUserId ||
+                member.id === currentUserId ||
+                member === currentUserId
+            )) ||
+          (!Array.isArray(subfolder.members) &&
+            subfolder.members &&
+            (subfolder.members.user?.id === currentUserId ||
+              subfolder.members.userId === currentUserId ||
+              subfolder.members.id === currentUserId)) ||
+          (subfolder.folderMembers &&
+            (subfolder.folderMembers.user?.id === currentUserId ||
+              subfolder.folderMembers.userId === currentUserId ||
+              subfolder.folderMembers.id === currentUserId)) ||
+          subfolder.memberId === currentUserId ||
+          subfolder.userId === currentUserId;
+
+        hasSubfolderAccess = isSubfolderOwner || isSubfolderMember;
+      }
+    }
+
+    // Fallback check: 'subfolders' (lowercase) - in case your API sometimes uses this
+    if (
+      !hasSubfolderAccess &&
+      document.subfolders &&
+      Array.isArray(document.subfolders)
+    ) {
+      hasSubfolderAccess = document.subfolders.some((subfolder: any) => {
+        const isSubfolderOwner =
+          subfolder.ownerId === currentUserId ||
+          subfolder.owner?.id === currentUserId ||
+          subfolder.owner === currentUserId ||
+          subfolder.ownerid === currentUserId;
+
+        const isSubfolderMember =
+          (Array.isArray(subfolder.members) &&
+            subfolder.members.some(
+              (member: any) =>
+                member.user?.id === currentUserId ||
+                member.userId === currentUserId ||
+                member.id === currentUserId ||
+                member === currentUserId
+            )) ||
+          (!Array.isArray(subfolder.members) &&
+            subfolder.members &&
+            (subfolder.members.user?.id === currentUserId ||
+              subfolder.members.userId === currentUserId ||
+              subfolder.members.id === currentUserId)) ||
+          (subfolder.folderMembers &&
+            (subfolder.folderMembers.user?.id === currentUserId ||
+              subfolder.folderMembers.userId === currentUserId ||
+              subfolder.folderMembers.id === currentUserId)) ||
+          subfolder.memberId === currentUserId ||
+          subfolder.userId === currentUserId;
+
+        return isSubfolderOwner || isSubfolderMember;
+      });
+    }
+
+    // Apply access logic - now including subfolder access
+    let hasAccess = false;
+    let canView = false;
+    let canSelect = false;
+    let canModify = false;
+    let canNavigate = false;
+    let showLockIcon = false;
+    let accessLevel: "owner" | "member" | "public-readonly" | "no-access" =
+      "no-access";
+
+    if (isOwner) {
+      // Owner has full access
       hasAccess = true;
       canView = true;
-      canSelect = false;
-      canModify = false;
-      canNavigate = false;
-      showLockIcon = true;
-      accessLevel = "public-readonly";
-    } else if (document.status === "PRIVATE") {
-      // PRIVATE: No access for non-members
-      hasAccess = false;
-      canView = false;
-      canSelect = false;
-      canModify = false;
-      canNavigate = false;
-      showLockIcon = true;
-      accessLevel = "no-access";
+      canSelect = true;
+      canModify = true;
+      canNavigate = true;
+      showLockIcon = false;
+      accessLevel = "owner";
+    } else if (isMember || hasSubfolderAccess) {
+      // Member or has subfolder access has full access
+      hasAccess = true;
+      canView = true;
+      canSelect = true;
+      canModify = true;
+      canNavigate = true;
+      showLockIcon = false;
+      accessLevel = "member";
     } else {
-      // Default: No access
-      hasAccess = false;
-      canView = false;
-      canSelect = false;
-      canModify = false;
-      canNavigate = false;
-      showLockIcon = true;
-      accessLevel = "no-access";
+      // Non-owner, non-member access based on status
+      if (document.status === "PUBLIC") {
+        hasAccess = true;
+        canView = true;
+        canSelect = false;
+        canModify = false;
+        canNavigate = false;
+        showLockIcon = true;
+        accessLevel = "public-readonly";
+      } else if (document.status === "PRIVATE") {
+        // PRIVATE: No access for non-members
+        hasAccess = false;
+        canView = false;
+        canSelect = false;
+        canModify = false;
+        canNavigate = false;
+        showLockIcon = true;
+        accessLevel = "no-access";
+      } else {
+        // Default: No access
+        hasAccess = false;
+        canView = false;
+        canSelect = false;
+        canModify = false;
+        canNavigate = false;
+        showLockIcon = true;
+        accessLevel = "no-access";
+      }
     }
-  }
 
-  return {
-    ...document,
-    hasAccess,
-    canView,
-    canSelect,
-    canModify,
-    canNavigate,
-    isOwner,
-    isMember,
-    isDisabled: !canSelect,
-    showLockIcon,
-    accessLevel,
+    return {
+      ...document,
+      hasAccess,
+      canView,
+      canSelect,
+      canModify,
+      canNavigate,
+      isOwner,
+      isMember: isMember || hasSubfolderAccess, // Include subfolder access in member check
+      isDisabled: !canSelect,
+      showLockIcon,
+      accessLevel,
+      hasSubfolderAccess, // Optional: add this field to track subfolder access specifically
+    };
   };
-};
 
   const handleGetDocumentsByPath = async (path?: string) => {
     try {
@@ -327,7 +473,7 @@ const UseMainController = () => {
               folderId: subfolder.folderId,
               documentId: subfolder.documentId,
               owner: subfolder.owner,
-              ownerId: subfolder.ownerid,
+              ownerId: subfolder.ownerId,
               path: subfolder.path,
               parentId: subfolder.parentId,
               members: subfolder.members,

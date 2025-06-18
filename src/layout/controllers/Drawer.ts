@@ -24,6 +24,9 @@ const UseDrawerController = () => {
 
     localStorage.removeItem("currentFolderPath");
     localStorage.removeItem("currentFolderId");
+    localStorage.removeItem("selectedDocumentId");
+    localStorage.removeItem("selectedDocumentNumber");
+    localStorage.removeItem("selectedDocumentType");
   };
 
   const handleClick = (event: any) => {

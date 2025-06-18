@@ -50,139 +50,241 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     (state: { auth: UserInterface }) => state.auth.data
   );
 
- const validateItemAccess = (item: Document): { 
-  canView: boolean; 
-  canModify: boolean; 
-  canSelect: boolean;
-  canNavigate: boolean;
-  showLockIcon: boolean;
-  isOwner: boolean;
-  isMember: boolean;
-  accessLevel: 'owner' | 'member' | 'public-readonly' | 'no-access';
-} => {
-  if (!currentUser?.id) {
-    return { 
-      canView: false, 
-      canModify: false, 
-      canSelect: false,
-      canNavigate: false,
-      showLockIcon: true,
-      isOwner: false,
-      isMember: false,
-      accessLevel: 'no-access'
-    };
-  }
-
-  const currentUserId = currentUser.id;
-  
-  const isOwner = item.owner?.id === currentUserId || 
-                  item.ownerId === currentUserId 
-  
-  let isMember = false;
-  
-  if (item.itemType === "file") {
-    isMember = 
-      (Array.isArray(item.fileMember) && 
-        item.fileMember.some((member: any) => 
-          member.user?.id === currentUserId || 
-          member.userId === currentUserId ||
-          member.id === currentUserId
-        )
-      ) ||
-      // Check fileMember as single object (fallback)
-      (!Array.isArray(item.fileMember) && item.fileMember?.user?.id === currentUserId) ||
-      (!Array.isArray(item.fileMember) && item.fileMember?.userId === currentUserId) ||
-      // Check fileMembers as array
-      (Array.isArray(item.fileMember) && 
-        item.fileMember.some((member: any) => 
-          member.user?.id === currentUserId || 
-          member.userId === currentUserId ||
-          member.id === currentUserId
-        )
-      ) ||
-      (!Array.isArray(item.fileMember) && item.fileMember?.user?.id === currentUserId) ||
-      (!Array.isArray(item.fileMember) && item.fileMember?.userId === currentUserId) ||
-      (Array.isArray(item.members) && 
-        item.members.some((member: any) => 
-          member.user?.id === currentUserId || 
-          member.userId === currentUserId ||
-          member.id === currentUserId
-        )
-      )
-  } else if (item.itemType === "folder") {
-    isMember = 
-      (Array.isArray(item.members) && 
-        item.members.some((member: any) => 
-          member.user?.id === currentUserId || 
-          member.userId === currentUserId ||
-          member.id === currentUserId
-        )
-      ) ||
-      (!Array.isArray(item.members) && item.members && (
-        item.members.user?.id === currentUserId ||
-        item.members.userId === currentUserId 
-      )) ||
-      item.folderMembers?.user?.id === currentUserId ||
-      item.folderMembers?.userId === currentUserId 
-  }
-
-  let canView = false;
-  let canModify = false;
-  let canSelect = false;
-  let canNavigate = false;
-  let showLockIcon = false;
-  let accessLevel: 'owner' | 'member' | 'public-readonly' | 'no-access' = 'no-access';
-
-  if (isOwner) {
-    canView = true;
-    canModify = true;
-    canSelect = true;
-    canNavigate = true;
-    showLockIcon = false;
-    accessLevel = 'owner';
-  } else if (isMember) {
-    canView = true;
-    canModify = true;
-    canSelect = true;
-    canNavigate = true;
-    showLockIcon = false;
-    accessLevel = 'member';
-  } else {
-    if (item.status === "PUBLIC") {
-      canView = true;
-      canModify = false;
-      canSelect = false;
-      canNavigate = false;
-      showLockIcon = true;
-      accessLevel = 'public-readonly';
-    } else if (item.status === "PRIVATE") {
-      canView = false;
-      canModify = false;
-      canSelect = false;
-      canNavigate = false;
-      showLockIcon = true;
-      accessLevel = 'no-access';
-    } else {
-      canView = false;
-      canModify = false;
-      canSelect = false;
-      canNavigate = false;
-      showLockIcon = true;
-      accessLevel = 'no-access';
+  const validateItemAccess = (
+    item: Document
+  ): {
+    canView: boolean;
+    canModify: boolean;
+    canSelect: boolean;
+    canNavigate: boolean;
+    showLockIcon: boolean;
+    isOwner: boolean;
+    isMember: boolean;
+    accessLevel: "owner" | "member" | "public-readonly" | "no-access";
+  } => {
+    if (!currentUser?.id) {
+      return {
+        canView: false,
+        canModify: false,
+        canSelect: false,
+        canNavigate: false,
+        showLockIcon: true,
+        isOwner: false,
+        isMember: false,
+        accessLevel: "no-access",
+      };
     }
-  }
 
-  return { 
-    canView, 
-    canModify, 
-    canSelect, 
-    canNavigate, 
-    showLockIcon, 
-    isOwner, 
-    isMember, 
-    accessLevel 
+    const currentUserId = currentUser.id;
+
+    // Check ownership - handle multiple possible owner field structures
+    const isOwner =
+      item.owner?.id === currentUserId || item.ownerId === currentUserId;
+
+    let isMember = false;
+
+    if (item.itemType === "file") {
+      isMember =
+        (Array.isArray(item.fileMember) &&
+          item.fileMember.some(
+            (member: any) =>
+              member.user?.id === currentUserId ||
+              member.userId === currentUserId ||
+              member.id === currentUserId
+          )) ||
+        // Check fileMember as single object (fallback)
+        (!Array.isArray(item.fileMember) &&
+          item.fileMember?.user?.id === currentUserId) ||
+        (!Array.isArray(item.fileMember) &&
+          item.fileMember?.userId === currentUserId) ||
+        (Array.isArray(item.members) &&
+          item.members.some(
+            (member: any) =>
+              member.user?.id === currentUserId ||
+              member.userId === currentUserId ||
+              member.id === currentUserId
+          ));
+    } else if (item.itemType === "folder") {
+      isMember =
+        (Array.isArray(item.members) &&
+          item.members.some(
+            (member: any) =>
+              member.user?.id === currentUserId ||
+              member.userId === currentUserId ||
+              member.id === currentUserId ||
+              member === currentUserId // Direct ID in array
+          )) ||
+        (!Array.isArray(item.members) &&
+          item.members &&
+          (item.members.user?.id === currentUserId ||
+            item.members.userId === currentUserId ||
+            item.folderMembers?.user?.id === currentUserId ||
+            item.folderMembers?.userId === currentUserId));
+    }
+
+    // FIXED: Check subfolder access - Check both 'subFolders' (camelCase) and 'subfolders' (lowercase)
+    let hasSubfolderAccess = false;
+
+    // Primary check: 'subFolders' (camelCase) as shown in your API response
+    if (item.subFolders) {
+      if (Array.isArray(item.subFolders)) {
+        hasSubfolderAccess = item.subFolders.some((subfolder: any) => {
+          // Check if user is owner of any subfolder
+          const isSubfolderOwner =
+            subfolder.ownerId === currentUserId ||
+            subfolder.owner?.id === currentUserId ||
+            subfolder.owner === currentUserId ||
+            subfolder.ownerid === currentUserId; // Added ownerid field
+
+          // Check if user is member of any subfolder
+          const isSubfolderMember =
+            // Check subfolder members array
+            (Array.isArray(subfolder.members) &&
+              subfolder.members.some(
+                (member: any) =>
+                  member.user?.id === currentUserId ||
+                  member.userId === currentUserId ||
+                  member.id === currentUserId ||
+                  member === currentUserId
+              )) ||
+            // Check single subfolder member object
+            (!Array.isArray(subfolder.members) &&
+              subfolder.members &&
+              (subfolder.members.user?.id === currentUserId ||
+                subfolder.members.userId === currentUserId ||
+                subfolder.members.id === currentUserId)) ||
+            // Check folderMembers in subfolder
+            (subfolder.folderMembers &&
+              (subfolder.folderMembers.user?.id === currentUserId ||
+                subfolder.folderMembers.userId === currentUserId ||
+                subfolder.folderMembers.id === currentUserId)) ||
+            // Check direct member IDs for subfolders
+            subfolder.memberId === currentUserId ||
+            subfolder.userId === currentUserId;
+
+          return isSubfolderOwner || isSubfolderMember;
+        });
+      } else {
+        // Single subFolders object
+        const subfolder = item.subFolders;
+        const isSubfolderOwner =
+          subfolder.ownerId === currentUserId ||
+          subfolder.owner?.id === currentUserId;
+
+        const isSubfolderMember =
+          (Array.isArray(subfolder.members) &&
+            subfolder.members.some(
+              (member: any) =>
+                member.user?.id === currentUserId ||
+                member.userId === currentUserId ||
+                member.id === currentUserId ||
+                member === currentUserId
+            )) ||
+          (!Array.isArray(subfolder.members) &&
+            subfolder.members &&
+            subfolder.members.user?.id === currentUserId) ||
+          subfolder.userId === currentUserId;
+
+        hasSubfolderAccess = isSubfolderOwner || isSubfolderMember;
+      }
+    }
+
+    // Fallback check: 'subfolders' (lowercase) - in case your API sometimes uses this
+    if (
+      !hasSubfolderAccess &&
+      item.subFolders &&
+      Array.isArray(item.subFolders)
+    ) {
+      hasSubfolderAccess = item.subFolders.some((subfolder: any) => {
+        const isSubfolderOwner =
+          subfolder.ownerId === currentUserId ||
+          subfolder.owner?.id === currentUserId ||
+          subfolder.owner === currentUserId ||
+          subfolder.ownerid === currentUserId;
+
+        const isSubfolderMember =
+          (Array.isArray(subfolder.members) &&
+            subfolder.members.some(
+              (member: any) =>
+                member.user?.id === currentUserId ||
+                member.userId === currentUserId ||
+                member.id === currentUserId ||
+                member === currentUserId
+            )) ||
+          (!Array.isArray(subfolder.members) &&
+            subfolder.members &&
+            (subfolder.members.user?.id === currentUserId ||
+              subfolder.members.userId === currentUserId ||
+              subfolder.members.id === currentUserId)) ||
+          (subfolder.folderMembers &&
+            (subfolder.folderMembers.user?.id === currentUserId ||
+              subfolder.folderMembers.userId === currentUserId ||
+              subfolder.folderMembers.id === currentUserId)) ||
+          subfolder.memberId === currentUserId ||
+          subfolder.userId === currentUserId;
+
+        return isSubfolderOwner || isSubfolderMember;
+      });
+    }
+
+    let canView = false;
+    let canModify = false;
+    let canSelect = false;
+    let canNavigate = false;
+    let showLockIcon = false;
+    let accessLevel: "owner" | "member" | "public-readonly" | "no-access" =
+      "no-access";
+
+    if (isOwner) {
+      canView = true;
+      canModify = true;
+      canSelect = true;
+      canNavigate = true;
+      showLockIcon = false;
+      accessLevel = "owner";
+    } else if (isMember || hasSubfolderAccess) {
+      canView = true;
+      canModify = true;
+      canSelect = true;
+      canNavigate = true;
+      showLockIcon = false;
+      accessLevel = "member";
+    } else {
+      if (item.status === "PUBLIC") {
+        canView = true;
+        canModify = false;
+        canSelect = false;
+        canNavigate = false;
+        showLockIcon = true;
+        accessLevel = "public-readonly";
+      } else if (item.status === "PRIVATE") {
+        canView = false;
+        canModify = false;
+        canSelect = false;
+        canNavigate = false;
+        showLockIcon = true;
+        accessLevel = "no-access";
+      } else {
+        canView = false;
+        canModify = false;
+        canSelect = false;
+        canNavigate = false;
+        showLockIcon = true;
+        accessLevel = "no-access";
+      }
+    }
+
+    return {
+      canView,
+      canModify,
+      canSelect,
+      canNavigate,
+      showLockIcon,
+      isOwner,
+      isMember: isMember || hasSubfolderAccess, // Include subfolder access in member check
+      accessLevel,
+    };
   };
-};
   const handleSelectItemWithValidation = (id: string) => {
     const item = ctrl.documents.find((doc: Document) => doc.id === id);
 

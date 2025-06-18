@@ -10,6 +10,7 @@ export interface Document {
   files: FileModel;
   folders: folderModel;
   folderMembers: folderMember;
+  subFolders: folderModel;
   folderId: string;
   path: string;
   documentId: string;
@@ -174,7 +175,7 @@ export interface Subfolder {
   name: string;
   itemType: string;
   type: string;
-  ownerid: string;
+  ownerId: string;
   parentId: string;
   path: string;
   size: number;
