@@ -294,13 +294,13 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
 
     if (!access.canSelect) {
       let message =
-        "Access denied: You do not have permission to select this item";
+        "ຖືກປະຕິເສດການເຂົ້າເຖິງ: ທ່ານບໍ່ມີສິດໃນການເລືອກລາຍການນີ້";
 
       if (access.accessLevel === "public-readonly") {
         message =
-          "You can only view this public document but cannot select it. Only owners and members can select documents.";
+          "ທ່ານສາມາດເບິ່ງເອກະສານສາທາລະນະນີ້ໄດ້ເທົ່ານັ້ນ ແຕ່ບໍ່ສາມາດເລືອກໄດ້. ມີແຕ່ເຈົ້າຂອງ ແລະ ສະມາຊິກເທົ່ານັ້ນທີ່ສາມາດເລືອກເອກະສານໄດ້.";
       } else if (access.accessLevel === "no-access") {
-        message = "You do not have permission to access this item.";
+        message = "ທ່ານບໍ່ມີສິດໃນການເຂົ້າເຖິງລາຍການນີ້.";
       }
 
       if (typeof ctrl.showAccessDeniedMessage === "function") {
