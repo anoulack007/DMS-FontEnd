@@ -141,11 +141,14 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
     const username = members
       .map((member) => member.user?.username)
       .filter(Boolean);
-    const email = members.map((member) => member.user?.email).filter(Boolean);
+    const emailList = members
+      .map((member) => member.user?.email)
+      .filter(Boolean);
+    const email = emailList.length > 0 ? { email: emailList[0] } : {};
 
     const payload = isFolder
       ? { folderId: ctrl.selectedDocument.id, username }
-      : { fileId: ctrl.selectedDocument.id, email };
+      : { fileId: ctrl.selectedDocument.id, ...email };
 
     try {
       const result = await Swal.fire({
