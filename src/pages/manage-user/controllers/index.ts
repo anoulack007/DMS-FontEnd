@@ -105,28 +105,19 @@ const UseMainController = () => {
   };
 
   const handleSelectUser = (userId: string) => {
-    const user = users.find((user) => user.userId === userId);
+  const user = users.find((user) => user.userId === userId);
 
-    setSelectedItems((prev) => {
-      const newSelection = prev.includes(userId)
-        ? prev.filter((item) => item !== userId)
-        : [...prev, userId];
-
-      // Update selected document based on selection
-      if (user) {
-        if (!prev.includes(userId)) {
-          setSelectedUser(user);
-        } else if (newSelection.length > 0) {
-          const nextUser = users.find((u) => u.userId === newSelection[0]);
-          setSelectedUser(nextUser || null);
-        } else {
-          setSelectedUser(null);
-        }
-      }
-
-      return newSelection;
-    });
-  };
+  // Single selection logic - replace multiple selection
+  if (selectedItems.includes(userId)) {
+    // If already selected, deselect it
+    setSelectedItems([]);
+    setSelectedUser(null);
+  } else {
+    // Select only this user (replace any previous selection)
+    setSelectedItems([userId]);
+    setSelectedUser(user || null);
+  }
+};
 
   const isSelected = (id: string) => selectedItems.includes(id);
 
@@ -146,62 +137,65 @@ const UseMainController = () => {
     setCollapseOpen(action === "collapse");
   }, [searchParams]);
 
-  const handleDelete = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
+ const handleDelete = async (e: React.FormEvent): Promise<void> => {
+  e.preventDefault();
 
-    const result = await Swal.fire({
-      title: "ທ່ານແນ່ໃຈບໍ່?",
-      text:
-        selectedItems.length > 1
-          ? `ຄຳສັ່ງນີ້ຈະລົບຜູ້ໃຊ້ນີ້ອອກຖາວອນ ${selectedItems.length}`
-          : "ຄຳສັ່ງນີ້ຈະລົບຜູ້ໃຊ້ນີ້ອອກຖາວອນ.",
+  if (selectedItems.length === 0 || !selectedUser) {
+    Swal.fire({
+      title: "ບໍ່ໄດ້ເລືອກຜູ້ໃຊ້",
+      text: "ກະລຸເລືອກຼູ້ໃຊ້ເພື່ອລົບ.",
       icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "ລົບ",
-      cancelButtonText: "ຍົກເລີກ",
     });
+    return;
+  }
 
-    if (result.isConfirmed) {
-      try {
-        // Show loading state
-        Swal.fire({
-          title: "ກຳລັງລົບ...",
-          text: "ກະລຸນາລໍຖ້າໃນຂະນະທີ່ຜູ້ໃຊ້ກຳລັງຖືກລົບ.",
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
+  const result = await Swal.fire({
+    title: "ທ່ານແນ່ໃຈບໍ່?",
+    text: "ຄຳສັ່ງນີ້ຈະລົບຜູ້ໃຊ້ນີ້ອອກຖາວອນ.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "ລົບ",
+    cancelButtonText: "ຍົກເລີກ",
+  });
 
-        await axiosInstance.delete(`/user/delete/${selectedUser?.id}`);
+  if (result.isConfirmed) {
+    try {
+      // Show loading state
+      Swal.fire({
+        title: "ກຳລັງລົບ...",
+        text: "ກະລຸນາລໍຖ້າໃນຂະນະທີ່ຜູ້ໃຊ້ກຳລັງຖືກລົບ.",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
 
-        setSelectedItems([]);
-        setSelectedUser(null);
+      await axiosInstance.delete(`/user/delete/${selectedUser?.id}`);
 
-        Swal.fire({
-          title: "ລົບສຳເລັດ!",
-          text:
-            selectedItems.length > 1
-              ? "ຜູ້​ໃຊ້​ໄດ້​ຖືກ​ລົບສຳເລັດ​."
-              : "ຜູ້ໃຊ້ໄດ້ຖືກລຶບຖິ້ມແລ້ວ.",
-          icon: "success",
-          showConfirmButton: false,
-          timer: 1500,
-        });
+      setSelectedItems([]);
+      setSelectedUser(null);
 
-        await handleGetData();
-      } catch (error: any) {
-        console.error("Error deleting users:", error);
-        Swal.fire({
-          title: "Error!",
-          text: `ເກີດຂໍ້ຜິດຜາດໃນການລົບຜູ້ໃຊ້: ${
-            error.response?.data?.message || error.message
-          }`,
-          icon: "error",
-        });
-      }
+      Swal.fire({
+        title: "ລົບສຳເລັດ!",
+        text: "ຜູ້ໃຊ້ໄດ້ຖືກລຶບຖິ້ມແລ້ວ.",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+
+      await handleGetData();
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      Swal.fire({
+        title: "Error!",
+        text: `ເກີດຂໍ້ຜິດຜາດໃນການລົບຜູ້ໃຊ້: ${
+          error.response?.data?.message || error.message
+        }`,
+        icon: "error",
+      });
     }
-  };
+  }
+};
 
   const handleEditUser = () => {
     // Check if a user is selected
