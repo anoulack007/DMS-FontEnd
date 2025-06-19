@@ -55,12 +55,12 @@ const UserDetailPage = () => {
           >
             <ArrowBackIosNewIcon />
           </IconButton>
-          <Typography variant="h5">ລາຍລະອຽດຜູ້ໃຊ້</Typography>
+          <Typography variant="h5" fontWeight={'bold'}>ລາຍລະອຽດຜູ້ໃຊ້</Typography>
         </Box>
       </Box>
 
       <form onSubmit={ctrl?.handleSubmit}>
-        <Grid container spacing={3}>
+        <Grid container spacing={1}>
           {/* Profile picture section */}
           <Grid size={{ xs: 12, md: 4, lg: 3 }}>
             <Card
@@ -89,7 +89,7 @@ const UserDetailPage = () => {
           {/* Form section */}
           <Grid size={{ xs: 12, md: 8, lg: 9 }}>
             <Item>
-              <Grid container spacing={2}>
+              <Grid container spacing={1}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Typography
                     textAlign="left"
@@ -152,6 +152,7 @@ const UserDetailPage = () => {
                     inputRef={ctrl?.emailRef}
                     defaultValue={ctrl?.data?.email || ""}
                     required
+                    disabled
                   />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -168,6 +169,7 @@ const UserDetailPage = () => {
                     inputRef={ctrl?.usernameRef}
                     defaultValue={ctrl?.data?.username || ""}
                     required
+                    disabled
                   />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -237,7 +239,7 @@ const UserDetailPage = () => {
                   />
                 </Grid>
                 <Grid sx={{ display: "flex", justifyContent: "center" }} size={{ xs: 12, md: 6 }}>
-                  <Button onClick={() => ctrl?.handleSwitchPageClick(`${RESET_PASSWORD_PATH}/${ctrl?.data?.id}`)} sx={{ width: '100%' }} >ປ່ຽນລະຫັດຜ່ານ</Button>
+                  <Button onClick={() => ctrl?.handleSwitchPageClick(`${RESET_PASSWORD_PATH}/${ctrl?.data?.id}`)} sx={{ width: '100%', fontWeight: 'bold', fontSize: '18px' }} >ປ່ຽນລະຫັດຜ່ານ</Button>
                 </Grid>
               </Grid>
 
