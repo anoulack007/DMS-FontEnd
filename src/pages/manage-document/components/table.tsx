@@ -39,7 +39,6 @@ interface DocumentTableProps {
 
 const DocumentTable: React.FC<DocumentTableProps> = ({
   ctrl,
-  isAnyItemSelected,
   getIconByType,
   formatFileSize,
   getStatusColor,
@@ -295,6 +294,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
 
     if (!access.canSelect) {
       let message = "ຖືກປະຕິເສດການເຂົ້າເຖິງ: ທ່ານບໍ່ມີສິດໃນການເລືອກລາຍການນີ້";
+      console.log(message)
 
       if (access.accessLevel === "public-readonly") {
         message =
@@ -319,7 +319,9 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
 
     if (!access.canNavigate) {
       let title = "ບໍ່ມີສິດເຂົ້າເຖິງ";
+      console.log(title)
       let text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟນເດີນີ້.";
+      console.log(text)
 
       if (access.accessLevel === "public-readonly") {
         title = "ການເຂົ້າເຖິງແບບຈຳກັດ";
