@@ -13,18 +13,19 @@ import {
   Checkbox,
   CircularProgress,
   TableFooter,
-  // Tab,
 } from "@mui/material";
 import {
   PanoramaFishEye as PanoramaFishEyeIcon,
   CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
 import NO_DATA_IC from "../../../assets/logo/NotData.svg";
+
 import { FollowDocumentModel } from "../../../models/follow-document";
 import { IconType } from "../../../enums/icon-enums";
 import { STATUS_ENUMS } from "../../../enums/status-enum";
 import { getEventChipColor } from "../../../utils/constant/eventChipColor";
 import { getIconByType } from "../../../utils/functions/inconUtils";
+import FoldeImage from "../../../assets/Image/image 11.png";
 
 interface Document {
   id: string;
@@ -79,6 +80,14 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   totalCount,
 }) => {
   const isSelected = (id: string) => selectedItems.includes(id);
+
+  // Function to get the appropriate icon based on event type
+  const getEventIcon = (item: Document) => {
+    if (item.event === "Create") {
+      return <img src={FoldeImage} style={{ width: "40px", height: "40px" }} />;
+    }
+    return getIconByType(item.type);
+  };
 
   return (
     <>
@@ -162,7 +171,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                         gap: 1,
                       }}
                     >
-                      {getIconByType(item.type)}
+                      {getEventIcon(item)}
                       <Box
                         sx={{
                           whiteSpace: "nowrap",

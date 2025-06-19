@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { DOCUMENT_DETAIL_PATH } from "../../../routes/paths";
 import axiosInstance from "../../../configs/axios";
 import Swal from "sweetalert2";
 import { STATUS_ENUMS } from "../../../enums/status-enum";
 import { IconType } from "../../../enums/icon-enums";
-import {
-  DELETE_FILE_END_POINT,
-  DELETE_FOLDER_END_POINT,
-} from "../../../configs/endPoint/files-endpoint";
 import { FollowDocumentModel } from "../../../models/follow-document";
 import { GET_ALL_FOLLOW_DOCUMENT_END_POINT } from "../../../configs/endPoint/follow-documnet-endpoint";
+import { DELETE_FOLLOW_DOC } from "../../../configs/endPoint/files-endpoint";
 
 type SortField = "name" | "modified" | "size" | "status";
 type SortOrder = "asc" | "desc";
@@ -38,10 +36,22 @@ interface Document {
   ownerName: string;
   company: string;
 }
+interface RootState {
+  auth: {
+    data: {
+      name?: string;
+    } | null;
+    loggedIn: boolean;
+  };
+}
 
 const UseMainController = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Get user data from Redux
+  const userData = useSelector((state: RootState) => state.auth.data);
+  const currentUserName = userData?.name;
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>("name");
@@ -62,7 +72,6 @@ const UseMainController = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
 
-  // const [status, setStatus] = useState<STATUS_ENUMS>()
   const [newName, setNewName] = useState<string>(null!);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -71,37 +80,64 @@ const UseMainController = () => {
   const [email, setEmail] = useState<string>(null!);
   const [eventFilter, setEventFilter] = useState<string>("");
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState<string>("all");
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+    setActiveTab(newValue);
+    setPage(0);
+    setSelectedItems([]); 
+    setCollapseOpen(false); 
+    setSearchParams({}); 
+  };
+
   const handleEventFilterChange = (value: string) => {
     setEventFilter(value);
     setPage(0);
+
+    // Get the base documents based on active tab
+    const baseDocuments = getFilteredDocumentsByTab();
     
-    // Filter documents based on the event type
-    const filtered = value 
-      ? allDocuments.filter(doc => doc.event === value)
-      : allDocuments;
-    
+    const filtered = value
+      ? baseDocuments.filter((doc) => doc.event === value)
+      : baseDocuments;
+
     setTotalCount(filtered.length);
-    
-    // Update displayed documents with the first page of filtered results
+
     const paginatedDocs = filtered.slice(0, rowsPerPage);
     setDocuments(paginatedDocs);
+  };
+
+  const getFilteredDocumentsByTab = () => {
+    if (activeTab === "my" && currentUserName) {
+      return allDocuments.filter((doc) => doc.ownerName === currentUserName);
+    }
+    return allDocuments;
   };
 
   const handleGetData = async () => {
     try {
       setLoading(true);
 
-      const response = await axiosInstance.get(
-        GET_ALL_FOLLOW_DOCUMENT_END_POINT
-      );
+      let endpoint = GET_ALL_FOLLOW_DOCUMENT_END_POINT;
+      
+      if (activeTab === "my" && currentUserName) {
+        endpoint = `/Follow-docs/${encodeURIComponent(currentUserName)}`;
+      }
+
+      const response = await axiosInstance.get(endpoint);
 
       if (response?.data) {
         const allDocs = response.data.data || [];
-        setAllDocuments(allDocs);
-        setTotalCount(allDocs.length);
         
-        // Apply pagination to the fetched data
-        const paginatedDocs = allDocs.slice(
+        if (activeTab === "all") {
+          setAllDocuments(allDocs);
+        }
+        
+        const filteredDocs = getFilteredDocumentsByTab();
+        setTotalCount(filteredDocs.length);
+
+        const paginatedDocs = filteredDocs.slice(
           page * rowsPerPage,
           page * rowsPerPage + rowsPerPage
         );
@@ -116,19 +152,23 @@ const UseMainController = () => {
   };
 
   // Handle page change
-  const handleChangePage = (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+  const handleChangePage = (
+    _event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
     setPage(newPage);
   };
 
-  // Handle rows per page change
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to first page when changing rows per page
+    setPage(0); 
   };
 
   const handleDetailsClick = () => {
     if (selectedItems) {
-      setCollapseOpen(true); // Open the collapse
+      setCollapseOpen(true);
       setSearchParams({ docId: selectedItems[0], action: "collapse" });
     } else {
       console.log("No document selected.");
@@ -137,7 +177,6 @@ const UseMainController = () => {
 
   const handleFolderClick = (e: React.MouseEvent, doc: Document) => {
     e.preventDefault();
-    // Navigate to new page with document ID
     navigate(`${DOCUMENT_DETAIL_PATH}/${doc.id}`);
   };
 
@@ -159,9 +198,8 @@ const UseMainController = () => {
     setSelectedItems((prev) => {
       const newSelection = prev.includes(id)
         ? prev.filter((item) => item !== id)
-        : [id]; // Change to single selection 
+        : [id];
 
-      // Update selected document based on selection
       if (doc) {
         setSelectedDocument(newSelection.length > 0 ? doc : null);
       }
@@ -180,16 +218,14 @@ const UseMainController = () => {
       setSortOrder("asc");
     }
 
-    // Sort the entire dataset
-    const sortedDocuments = [...allDocuments].sort((a, b) => {
+    const baseDocuments = getFilteredDocumentsByTab();
+    
+    const sortedDocuments = [...baseDocuments].sort((a, b) => {
       if (a[field] < b[field]) return sortOrder === "asc" ? -1 : 1;
       if (a[field] > b[field]) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
-    
-    setAllDocuments(sortedDocuments);
-    
-    // Update the current page's data
+
     const paginatedDocs = sortedDocuments.slice(
       page * rowsPerPage,
       page * rowsPerPage + rowsPerPage
@@ -209,33 +245,25 @@ const UseMainController = () => {
   };
 
   const handleFilter = (field: SortField, value: string) => {
-    let filteredDocuments = [...allDocuments];
+    let filteredDocuments = getFilteredDocumentsByTab();
 
     switch (field) {
       case "modified":
-        // Implement date filtering logic
         break;
       case "size":
-        // Implement file size filtering logic
         break;
       case "status":
-        filteredDocuments = allDocuments.filter((doc) => doc.status === value);
+        filteredDocuments = filteredDocuments.filter((doc) => doc.status === value);
         break;
     }
 
-    setAllDocuments(filteredDocuments);
     setTotalCount(filteredDocuments.length);
-    
-    // Reset to first page when applying a filter
+
     setPage(0);
-    
-    // Update the displayed documents based on the new filter
-    const paginatedDocs = filteredDocuments.slice(
-      0,
-      rowsPerPage
-    );
+
+    const paginatedDocs = filteredDocuments.slice(0, rowsPerPage);
     setDocuments(paginatedDocs);
-    
+
     handleFilterClose(field);
   };
 
@@ -253,36 +281,23 @@ const UseMainController = () => {
 
     if (result.isConfirmed) {
       try {
-        const isFolder = selectedDocument?.type === "folder";
-
-        let endPoint;
-        let payload;
-
-        if (isFolder) {
-          endPoint = DELETE_FOLDER_END_POINT;
-          payload = { folderId: selectedDocument?.id };
-        } else {
-          endPoint = DELETE_FILE_END_POINT;
-          payload = { fileId: selectedDocument?.id };
-        }
-
-        // Send POST request with payload
-        const res = await axiosInstance.post(endPoint, payload);
-        console.log(res?.data?.data);
+        await axiosInstance.delete(
+          `${DELETE_FOLLOW_DOC}/${selectedDocument?.id}`
+        );
 
         await Swal.fire({
           icon: "success",
-          title: "Deleted!",
-          text: `The ${
-            isFolder ? "folder" : "file"
-          } has been deleted successfully.`,
+          title: "ລົບສຳເລັດ!",
+          text: `ເອກະສານຖືກລົບສຳເລັດ.`,
         });
+
+        handleGetData();
       } catch (error) {
         console.error("Delete error:", error);
         await Swal.fire({
           icon: "error",
           title: "Oops...",
-          text: "Failed to delete item. Please try again.",
+          text: "ລົບເອກະສານບໍ່ສຳເລັດ, ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
         });
       }
     }
@@ -293,33 +308,41 @@ const UseMainController = () => {
   };
 
   useEffect(() => {
-    handleGetData();
-  }, []);
+    if (currentUserName || activeTab === "all") {
+      handleGetData();
+    }
+  }, [activeTab, currentUserName]);
 
   useEffect(() => {
     const action = searchParams.get("action");
     setCollapseOpen(action === "collapse");
-  }, [searchParams]);
+
+    if (selectedItems.length === 0) {
+      setCollapseOpen(false);
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("action");
+      newParams.delete("docId");
+      setSearchParams(newParams);
+    }
+  }, [searchParams, selectedItems]);
 
   useEffect(() => {
     if (allDocuments.length > 0) {
-      // Apply event filter if it exists
-      const filtered = eventFilter 
-        ? allDocuments.filter(doc => doc.event === eventFilter)
-        : allDocuments;
+      let baseDocuments = getFilteredDocumentsByTab();
       
+      const filtered = eventFilter
+        ? baseDocuments.filter((doc) => doc.event === eventFilter)
+        : baseDocuments;
+
       setTotalCount(filtered.length);
-      
-      // Then apply pagination to the filtered documents
+
       const paginatedDocs = filtered.slice(
         page * rowsPerPage,
         page * rowsPerPage + rowsPerPage
       );
       setDocuments(paginatedDocs);
     }
-  }, [page, rowsPerPage, allDocuments, eventFilter]);
-
-  // Remove the problematic useEffect that was using yourApiCall
+  }, [page, rowsPerPage, allDocuments, eventFilter, activeTab]);
 
   return {
     page,
@@ -363,6 +386,9 @@ const UseMainController = () => {
     handleDeleteFolder,
     eventFilter,
     handleEventFilterChange,
+    // New tab-related exports
+    activeTab,
+    handleTabChange,
   };
 };
 

@@ -29,3 +29,5 @@ export const GET_ONE_FILE_HISTORT_END_POINT: string = '/files-history/get-file-h
 
 export const GET_VERSION_FILE_END_POINT: string = '/files/get-version'
 
+export const DELETE_FOLLOW_DOC: string = '/follow-docs'
+

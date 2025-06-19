@@ -6,6 +6,8 @@ import {
   Collapse,
   Divider,
   Chip,
+  Tabs,
+  Tab,
 } from "@mui/material";
 
 //icons
@@ -44,6 +46,19 @@ const FollowDocumentPage = () => {
           handleEventFilterChange={ctrl.handleEventFilterChange}
         />
       </Box>
+
+      {/* Tabs Section */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+        <Tabs 
+          value={ctrl.activeTab} 
+          onChange={ctrl.handleTabChange}
+          aria-label="document tabs"
+        >
+          <Tab label="ທັງໝົດ" value="all" />
+          <Tab label="ເອກະສານຂອງຂ້ອຍ" value="my" />
+        </Tabs>
+      </Box>
+
       {ctrl?.selectedItems.length > 0 && (
         <CustomMenu
           selectedCount={ctrl.selectedItems.length}
