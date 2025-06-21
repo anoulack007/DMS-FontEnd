@@ -74,28 +74,44 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
   const [_currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [pathHistory, setPathHistory] = useState<
     Array<{ path: string; id: string; name: string }>
-  >([{ path: "root", id: "", name: "Root" }]);
+  >([{ path: "root", id: "", name: "ໜ້າຫຼັກ" }]); // Changed from "Root" to "ໜ້າຫຼັກ"
   const [movingFiles, setMovingFiles] = useState<boolean>(false);
 
-    const currentUserId = useSelector((state: RootState) => state.auth.data?.id);
+  const currentUserId = useSelector((state: RootState) => state.auth.data);
 
+  const validateFolderAccess = (folder: any): FileItem | null => {
+    const userId = currentUserId?.id;
+    let isAccessible = false;
+    let shouldShowFolder = true;
 
-  const validateFolderAccess = (folder: any): FileItem => {
-    const userId = currentUserId;
-    let isAccessible = false; // Default to false - always require permission
+    if (!userId || !folder) {
+      return null;
+    }
 
-    // Check if user is the owner
     const isOwner =
-      folder.ownerId === userId || folder.owner?.id === userId;
+      folder.ownerId === userId ||
+      folder.owner?.id === userId ||
+      folder.owner?._id === userId ||
+      folder.owner === userId ||
+      (folder.createdBy &&
+        (folder.createdBy === userId ||
+          folder.createdBy.id === userId ||
+          folder.createdBy._id === userId));
 
-    if (isOwner) {
-      isAccessible = true; // Owners can always select their folders
+    const isMember = checkMembership(folder, userId);
+
+    if (isOwner || isMember) {
+      isAccessible = true;
+      shouldShowFolder = true;
+    } else if (folder.status === "PUBLIC" || folder.visibility === "PUBLIC") {
+      isAccessible = false;
+      shouldShowFolder = true;
     } else {
-      // Check if user is a member (required for both PUBLIC and PRIVATE folders)
-      const isMember = checkMembership(folder, userId);
-      if (isMember) {
-        isAccessible = true; // Members can select folders they belong to
-      }
+      shouldShowFolder = false;
+    }
+
+    if (!shouldShowFolder) {
+      return null;
     }
 
     return {
@@ -119,37 +135,76 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
     };
   };
 
-  // Helper function to check membership
   const checkMembership = (folder: any, userId: any): boolean => {
-    // Check direct members array
+    if (!userId || !folder) return false;
+
+    const isUserMatch = (user: any): boolean => {
+      if (!user) return false;
+
+      if (user === userId) return true;
+
+      if (user.id === userId) return true;
+
+      if (user.userId === userId) return true;
+
+      if (user._id === userId) return true;
+
+      return false;
+    };
+
+    // Check direct members array (based on your API structure)
     if (folder.members && Array.isArray(folder.members)) {
-      const isMember = folder.members.some(
-        (member: any) =>
-          member.id === userId || member.userId === userId || member === userId
-      );
+      const isMember = folder.members.some((member: any) => {
+        if (member.user) {
+          const userMatch = isUserMatch(member.user);
+          return userMatch;
+        }
+
+        return isUserMatch(member);
+      });
+
+      console.log("Members check result:", isMember);
       if (isMember) return true;
     }
 
-    // Check folderMembers structure (for shared folders)
     if (folder.folderMembers) {
-      const folderMember = folder.folderMembers;
-      if (folderMember.userId === userId || folderMember.user?.id === userId) {
-        return true;
+      if (folder.folderMembers.user) {
+        if (isUserMatch(folder.folderMembers.user)) return true;
+      }
+
+      if (isUserMatch(folder.folderMembers)) return true;
+
+      if (Array.isArray(folder.folderMembers)) {
+        const isMember = folder.folderMembers.some((member: any) => {
+          if (member.user && isUserMatch(member.user)) return true;
+          return isUserMatch(member);
+        });
+        if (isMember) return true;
       }
     }
 
-    // Check if folder has a folderMembers array
-    if (folder.folderMembers && Array.isArray(folder.folderMembers)) {
-      const isMember = folder.folderMembers.some(
-        (member: any) => member.userId === userId || member.user?.id === userId
-      );
-      if (isMember) return true;
+    if (folder.files && Array.isArray(folder.files)) {
+      const hasFileAccess = folder.files.some((file: any) => {
+        if (file.owner && isUserMatch(file.owner)) return true;
+
+        if (file.members && Array.isArray(file.members)) {
+          return file.members.some((member: any) => {
+            if (member.user) {
+              return isUserMatch(member.user);
+            }
+            return isUserMatch(member);
+          });
+        }
+
+        return false;
+      });
+      if (hasFileAccess) return true;
     }
+
+    if (folder.owner && isUserMatch(folder.owner)) return true;
 
     return false;
   };
-
-  // Function to fetch folders by path
   const fetchFoldersByPath = useCallback(async (path: string) => {
     try {
       setLoading(true);
@@ -163,14 +218,15 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
 
       const processedData: FileItem[] = [];
 
-      // Process subfolders with validation
       if (responseData.subFolders && Array.isArray(responseData.subFolders)) {
         responseData.subFolders.forEach((subfolder: any) => {
           const validatedFolder = validateFolderAccess({
             ...subfolder,
             type: "folder",
           });
-          processedData.push(validatedFolder);
+          if (validatedFolder !== null) {
+            processedData.push(validatedFolder);
+          }
         });
       }
 
@@ -197,7 +253,6 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
 
       const processedData: FileItem[] = [];
 
-      // Process normal folders - filter only root folders (no parentId)
       if (responseData.folders && Array.isArray(responseData.folders)) {
         responseData.folders
           .filter((folder: any) => !folder.parentId) // Filter only root folders
@@ -206,11 +261,11 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
               ...folder,
               type: "folder",
             });
-            processedData.push(validatedFolder);
+            if (validatedFolder !== null) {
+              processedData.push(validatedFolder);
+            }
           });
-      }
-      // Fallback if folders are under 'folder' key instead
-      else if (responseData.folder && Array.isArray(responseData.folder)) {
+      } else if (responseData.folder && Array.isArray(responseData.folder)) {
         responseData.folder
           .filter((folder: any) => !folder.parentId) // Filter only root folders
           .forEach((folder: any) => {
@@ -218,23 +273,23 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
               ...folder,
               type: "folder",
             });
-            processedData.push(validatedFolder);
+            if (validatedFolder !== null) {
+              processedData.push(validatedFolder);
+            }
           });
-      }
-      // Handle single folder object case
-      else if (responseData.folder && !Array.isArray(responseData.folder)) {
+      } else if (responseData.folder && !Array.isArray(responseData.folder)) {
         const folder = responseData.folder;
-        // Only add if it's a root folder
         if (!folder.parentId) {
           const validatedFolder = validateFolderAccess({
             ...folder,
             type: "folder",
           });
-          processedData.push(validatedFolder);
+          if (validatedFolder !== null) {
+            processedData.push(validatedFolder);
+          }
         }
       }
 
-      // Process folderMembers (shared folders) - filter only root folders
       if (
         responseData.folderMembers &&
         Array.isArray(responseData.folderMembers)
@@ -252,7 +307,9 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
                 isShared: true,
                 folderMembers: folderMember,
               });
-              processedData.push(validatedFolder);
+              if (validatedFolder !== null) {
+                processedData.push(validatedFolder);
+              }
             }
           });
       }
@@ -267,10 +324,8 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
       setLoading(false);
     }
   }, []);
-
   const handleFolderDoubleClick = useCallback(
     (folder: FileItem) => {
-      // Don't allow navigation into inaccessible folders
       if (!folder.isAccessible) {
         Swal.fire({
           title: "ບໍ່ສາມາດເຂົ້າເຖິງໄດ້",
@@ -287,7 +342,6 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
         const newFolderId = folder._id || folder.id || "";
         const folderName = folder.name;
 
-        // Add to path history
         setPathHistory((prev) => [
           ...prev,
           {
@@ -297,26 +351,21 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
           },
         ]);
 
-        // Update current path and ID
         setCurrentFolderId(newFolderId);
         setSelectedFolderId(null); // Reset selection
 
-        // Store current folder and parent ID in localStorage
         localStorage.setItem("destinationFolderId", newFolderId);
 
-        // Get parent ID from the current folder data if available
         if (folder.parentId) {
           localStorage.setItem("currentParentId", folder.parentId);
         }
 
-        // Fetch folders at new path
         fetchFoldersByPath(newPath);
       }
     },
     [fetchFoldersByPath]
   );
 
-  // Navigate to a specific breadcrumb
   const handleBreadcrumbClick = useCallback(
     (index: number) => {
       if (index >= 0 && index < pathHistory.length) {
@@ -337,7 +386,6 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
     [pathHistory, fetchRootFolders, fetchFoldersByPath]
   );
 
-  // Navigate back
   const handleGoBack = useCallback(() => {
     if (pathHistory.length > 1) {
       const newHistory = pathHistory.slice(0, -1);
@@ -435,7 +483,7 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
       });
 
       let res;
-      console.log(res)
+      console.log(res);
 
       if (docType === "folder") {
         res = await axiosInstance.patch(
@@ -513,7 +561,7 @@ const MoveDialog: React.FC<MoveDialogProps> = ({
       // Reset path and fetch root folders
       setCurrentFolderId(null);
       setSelectedFolderId(null);
-      setPathHistory([{ path: "root", id: "", name: "Root" }]);
+      setPathHistory([{ path: "root", id: "", name: "ໜ້າຫຼັກ" }]); // Changed from "Root" to "ໜ້າຫຼັກ"
       fetchRootFolders();
     }
   }, [open, fetchRootFolders]);
