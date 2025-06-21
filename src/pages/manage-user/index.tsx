@@ -111,7 +111,7 @@ const ManageUserPage = () => {
                 <TableRow>
                   <TableCell padding="checkbox">{""}</TableCell>
                   <TableCell>ຊື່ຜູ້ໃຊ້</TableCell>
-                  <TableCell>ລະຫັດຜູ້ໃຊ້</TableCell>
+                  <TableCell>ຊື່ບັນຊີຜູ້ໃຊ້</TableCell>
                   <TableCell>ເບີໂທລະສັບ</TableCell>
                   <TableCell>ອີເມວ</TableCell>
                   <TableCell>ຕຳແໜ່ງ</TableCell>
@@ -196,7 +196,7 @@ const ManageUserPage = () => {
                         </Box>
                       </TableCell>
                       <TableCell sx={{ borderBottom: "none" }}>
-                        {user?.userId}
+                        {user?.username}
                       </TableCell>
                       <TableCell sx={{ borderBottom: "none" }}>
                         {user?.phoneNumber}
