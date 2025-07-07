@@ -3,15 +3,9 @@ import {
   Box,
   Typography,
   Paper,
-  FormControl,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
-  InputAdornment,
   CircularProgress,
 } from "@mui/material";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { AccessTime, KeyboardArrowDown } from "@mui/icons-material";
 
 export interface ChartData {
   id: number;
@@ -31,13 +25,8 @@ interface ExpensesChartProps {
 
 const ExpensesChart: React.FC<ExpensesChartProps> = ({
   data,
-  sortBy,
-  onSortByChange,
   loading = false, // Default to false
 }) => {
-  const handleSortByChange = (event: SelectChangeEvent) => {
-    onSortByChange(event.target.value);
-  };
 
   return (
     <Paper sx={{ p: 2, height: "100%", borderRadius: "12px" }}>
@@ -52,23 +41,6 @@ const ExpensesChart: React.FC<ExpensesChartProps> = ({
         <Typography variant="h5">
           Chart ຍອດລວມເອກະສານ (Event Updates)
         </Typography>
-        <FormControl variant="outlined" size="small" sx={{ width: 120 }}>
-          <Select
-            value={sortBy}
-            onChange={handleSortByChange}
-            startAdornment={
-              <InputAdornment position="start">
-                <AccessTime fontSize="small" />
-              </InputAdornment>
-            }
-            IconComponent={KeyboardArrowDown}
-            disabled={loading} // Disable during loading
-          >
-            <MenuItem value="ລາຍປີ">ລາຍປີ</MenuItem>
-            <MenuItem value="ລາຍເດືອນ">ລາຍເດືອນ</MenuItem>
-            <MenuItem value="ລາຍວັນ">ລາຍວັນ</MenuItem>
-          </Select>
-        </FormControl>
       </Box>
 
       <Box sx={{ height: 300, width: "100%" }}>

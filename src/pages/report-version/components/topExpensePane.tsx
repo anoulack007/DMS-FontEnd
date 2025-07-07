@@ -20,14 +20,19 @@ interface TopExpensesData {
 interface TopExpensesPanelProps {
   data: TopExpensesData[];
   loading?: boolean;
+  totalDocuments?: number; // Add this prop to ensure correct total
 }
 
 const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
   data,
   loading = false,
+  totalDocuments, // Use this instead of calculating from data
 }) => {
-  // Calculate total number of documents
-  const totalDocuments = data.reduce((sum, item) => sum + item.title, 0);
+  // Use the passed totalDocuments or calculate from data as fallback
+  const actualTotal = totalDocuments || data.reduce((sum, item) => sum + item.title, 0);
+  
+  // Show only top 5 types but calculate percentages based on actual total
+  const displayData = data.slice(0, 5);
 
   return (
     <Paper sx={{ p: 2, height: "100%", borderRadius: "12px" }}>
@@ -42,7 +47,7 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            height: "calc(100% - 40px)", // Account for the heading
+            height: "calc(100% - 40px)",
             flexDirection: "column",
             gap: 2,
           }}
@@ -50,14 +55,14 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
           <CircularProgress size={40} />
           <Typography color="text.secondary">ກຳລັງໂຫຼດຂໍ້ມູນ...</Typography>
         </Box>
-      ) : data.length === 0 ? (
+      ) : actualTotal === 0 ? (
         // Empty state
         <Box
           sx={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            height: "calc(100% - 40px)", // Account for the heading
+            height: "calc(100% - 40px)",
           }}
         >
           <Typography color="text.secondary">ບໍ່ມີຂໍ້ມູນ</Typography>
@@ -78,18 +83,18 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
                 ເອກະສານທັງໝົດ
               </Typography>
               <Typography variant="body1" fontWeight="bold">
-                {totalDocuments}
+                {actualTotal}
               </Typography>
             </Box>
             <LinearProgress
               variant="determinate"
-              value={100} // Always 100% as it represents the total
+              value={100}
               sx={{
                 height: 10,
                 borderRadius: 1,
                 backgroundColor: "#f5f5f5",
                 "& .MuiLinearProgress-bar": {
-                  backgroundColor: "#1976d2", // Use a different color for the total
+                  backgroundColor: "#1976d2",
                 },
               }}
             />
@@ -103,7 +108,7 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
           </Typography>
 
           <List sx={{ width: "100%" }}>
-            {data.map((item) => (
+            {displayData.map((item) => (
               <ListItem key={item.id} disablePadding sx={{ mb: 2 }}>
                 <Box sx={{ width: "100%" }}>
                   <Box
@@ -122,7 +127,7 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
                   </Box>
                   <LinearProgress
                     variant="determinate"
-                    value={(item.title / totalDocuments) * 100} // Calculate percentage of total
+                    value={(item.title / actualTotal) * 100}
                     sx={{
                       height: 8,
                       borderRadius: 1,
@@ -136,6 +141,15 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
               </ListItem>
             ))}
           </List>
+
+          {/* Show remaining count if there are more than 5 types */}
+          {data.length > 5 && (
+            <Box sx={{ mt: 2, p: 1, bgcolor: "#f5f5f5", borderRadius: 1 }}>
+              <Typography variant="body2" color="text.secondary" align="center">
+                ແລະອີກ {data.length - 5} ປະເພດ ({actualTotal - displayData.reduce((sum, item) => sum + item.title, 0)} ເອກະສານ)
+              </Typography>
+            </Box>
+          )}
         </>
       )}
     </Paper>

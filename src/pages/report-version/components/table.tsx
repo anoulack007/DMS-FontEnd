@@ -19,6 +19,7 @@ import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import SearchIcon from "@mui/icons-material/Search";
 import { IconType } from "../../../enums/icon-enums";
 import { getIconByType } from "../../../utils/functions/inconUtils";
+
 export interface FileWithVersionInfo {
   id: string;
   name: string;
@@ -39,6 +40,7 @@ interface DocumentTableProps {
   loading: boolean;
   onSearch: (query: string) => void;
   onExport: () => void;
+  totalCount?: number; // Optional prop for explicit total count
 }
 
 const DocumentTable: React.FC<DocumentTableProps> = ({
@@ -46,6 +48,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   loading,
   onSearch,
   onExport,
+  totalCount, // Add totalCount prop
 }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -58,6 +61,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     onSearch(event.target.value);
+    // Reset to first page when searching
+    setPage(0);
   };
 
   const handleChangeRowsPerPage = (
@@ -73,13 +78,28 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     page * rowsPerPage + rowsPerPage
   );
 
+  // Use totalCount if provided, otherwise use documents.length
+  const actualTotal = totalCount ?? documents.length;
+
+  // Debug info (remove in production)
+  console.log("DocumentTable Debug:", {
+    totalDocuments: documents.length,
+    providedTotalCount: totalCount,
+    actualTotal,
+    currentPage: page,
+    rowsPerPage,
+    displayedCount: displayedDocuments.length,
+    startIndex: page * rowsPerPage,
+    endIndex: page * rowsPerPage + rowsPerPage,
+  });
+
   return (
     <Paper sx={{ p: 2, borderRadius: "12px" }}>
       <Box
         sx={{ display: "flex", justifyContent: "space-between", mb: 2, p: 2 }}
       >
         <Typography variant="h6" color="#838383" fontWeight={600}>
-          ລາຍການເອກະສານ
+          ລາຍການເອກະສານ ({actualTotal} ລາຍການ)
         </Typography>
         <Box sx={{ display: "flex", gap: 1 }}>
           <TextField
@@ -100,7 +120,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
               },
             }}
           />
-          ;
           <Button
             variant="contained"
             sx={{ textTransform: "none" }}
@@ -125,14 +144,27 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
           <TableBody sx={{ borderBottom: "1px solid #E0E0E0" }}>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  <CircularProgress size={24} />
+                <TableCell colSpan={3} align="center">
+                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", p: 4 }}>
+                    <CircularProgress size={24} />
+                    <Typography sx={{ ml: 2 }}>ກຳລັງໂຫຼດ...</Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ) : documents.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} align="center">
+                  <Typography color="text.secondary" sx={{ p: 4 }}>
+                    ບໍ່ມີຂໍ້ມູນ
+                  </Typography>
                 </TableCell>
               </TableRow>
             ) : displayedDocuments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  <Typography color="text.secondary">ບໍ່ມີຂໍ້ມູນ</Typography>
+                <TableCell colSpan={3} align="center">
+                  <Typography color="text.secondary" sx={{ p: 4 }}>
+                    ບໍ່ມີຂໍ້ມູນໃນໜ້ານີ້
+                  </Typography>
                 </TableCell>
               </TableRow>
             ) : (
@@ -161,11 +193,11 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         </Table>
       </TableContainer>
 
-      {!loading && documents.length > 0 && (
+      {!loading && actualTotal > 0 && (
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={documents.length}
+          count={actualTotal}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

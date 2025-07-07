@@ -78,7 +78,6 @@ const LoginPage = () => {
                     delay={200}
                     mt={3}
                     textAlign="center"
-                    variant="subtitle1"
                     fontWeight={700}
                     color="#838383"
                     sx={{

@@ -20,14 +20,20 @@ interface TopExpensesData {
 interface TopExpensesPanelProps {
   data: TopExpensesData[];
   loading?: boolean;
+  totalDocuments: number; // Required prop for total upload count
 }
 
 const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
   data,
   loading = false,
+  totalDocuments,
 }) => {
-  // Calculate total number of documents
-  const totalDocuments = data.reduce((sum, item) => sum + item.title, 0);
+  // Calculate total from data breakdown for percentage calculations
+  const calculatedTotal = data.reduce((sum, item) => sum + item.title, 0);
+  
+  console.log("Total upload documents:", totalDocuments);
+  console.log("Data breakdown:", data);
+  console.log("Calculated total from breakdown:", calculatedTotal);
 
   return (
     <Paper sx={{ p: 2, height: "100%", borderRadius: "12px" }}>
@@ -122,7 +128,7 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
                   </Box>
                   <LinearProgress
                     variant="determinate"
-                    value={(item.title / totalDocuments) * 100} // Calculate percentage of total
+                    value={totalDocuments > 0 ? (item.title / totalDocuments) * 100 : 0} // Calculate percentage based on total uploads
                     sx={{
                       height: 8,
                       borderRadius: 1,

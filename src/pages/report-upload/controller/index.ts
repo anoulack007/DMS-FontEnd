@@ -12,7 +12,11 @@ interface DateFilterType {
   endDate: Dayjs | null;
 }
 
-const UseMainController = () => {
+interface UseMainControllerProps {
+  event?: string; // Optional event parameter
+}
+
+const UseMainController = (props?: UseMainControllerProps) => {
   const [uploadDocument, setUploadDocument] = useState<FollowDocumentModel[]>([]);
   const [filteredDocuments, setFilteredDocuments] = useState<FollowDocumentModel[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -22,19 +26,29 @@ const UseMainController = () => {
   });
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const handleGetReportUploadDocument = async () => {
+  const handleGetReportUploadDocument = async (eventType?: string) => {
     try {
       setLoading(true);
-      const res = await axiosInstance.get<{ data: FollowDocumentModel[] }>(
-        GET_ALL_FOLLOW_DOCUMENT_END_POINT
-      );
+      
+      // Build URL with event parameter - specifically for Upload events
+      let url = GET_ALL_FOLLOW_DOCUMENT_END_POINT;
+      if (eventType) {
+        url += `?event=${eventType}`;
+      }
 
-      // Filter only uploaded files/folders
-      const uploadedDocs = res?.data?.data?.filter((doc) => doc.event === "Upload");
-      setUploadDocument(uploadedDocs);
+      const res = await axiosInstance.get<{ data: FollowDocumentModel[] }>(url);
+
+      // Always filter for Upload events (double-check server response)
+      let documents = res?.data?.data || [];
+      const uploadDocuments = documents.filter((doc) => doc.event === "Upload");
+      
+      console.log("Total documents from API:", documents.length);
+      console.log("Upload documents only:", uploadDocuments.length);
+
+      setUploadDocument(uploadDocuments);
       
       // Apply initial date filter
-      applyFilters(uploadedDocs, searchQuery, dateFilter);
+      applyFilters(uploadDocuments, searchQuery, dateFilter);
     } catch (error) {
       console.error("Error fetching documents:", error);
     } finally {
@@ -133,12 +147,14 @@ const UseMainController = () => {
   };
 
   useEffect(() => {
-    handleGetReportUploadDocument();
-  }, []);
+    handleGetReportUploadDocument(props?.event);
+  }, [props?.event]);
 
   return {
     loading,
-    uploadDocument: filteredDocuments,
+    uploadDocument: filteredDocuments, // Filtered documents for display (still Upload events)
+    allUploadDocument: uploadDocument, // All Upload events (before date/search filtering)
+    totalUploadCount: uploadDocument.length, // Total count of Upload events
     handleSearch,
     handleExportToExcel,
     dateFilter,

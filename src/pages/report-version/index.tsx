@@ -7,22 +7,6 @@ import DocumentTable from "./components/table";
 import UseMainController from "./controller";
 import ExpensesChart from "./components/chart";
 
-// Interface for processed file information from controller
-// interface FileWithVersionInfo {
-//   id: string;
-//   name: string;
-//   nameVersion: string;
-//   type: string;
-//   size: number;
-//   status: string;
-//   ownerId: string;
-//   ownerName?: string;
-//   versionNum: string;
-//   event: string;
-//   createdAt: string;
-//   updatedAt: string;
-// }
-
 export interface ChartData {
   id: number;
   title: string;
@@ -47,6 +31,9 @@ const ReportVersionPage = () => {
   const ctrl = UseMainController();
   const [sortBy, setSortBy] = useState("ລາຍປີ");
 
+  // Get the current filtered documents count for verification
+  const currentDocumentsCount = ctrl?.documents?.length || 0;
+
   // Transform data for top expenses panel
   const topExpensesData = useMemo(() => {
     if (!ctrl?.documents || ctrl?.documents.length === 0) {
@@ -57,7 +44,7 @@ const ReportVersionPage = () => {
     const typeGroups: Record<string, number> = {};
 
     ctrl?.documents.forEach((doc) => {
-      const type = doc.type || "Unknown"; // Default if missing
+      const type = doc.type || "Unknown";
       typeGroups[type] = (typeGroups[type] || 0) + 1;
     });
 
@@ -66,11 +53,11 @@ const ReportVersionPage = () => {
       .map(([type, count], index) => ({
         id: index + 1,
         type,
-        title: count, // Count of documents for that type
-        color: COLORS[index % COLORS.length], // Assign colors
+        title: count,
+        color: COLORS[index % COLORS.length],
       }))
-      .sort((a, b) => b.title - a.title) // Sort from big to small
-      .slice(0, 5); // Show only top 5 types
+      .sort((a, b) => b.title - a.title)
+      .slice(0, 5);
   }, [ctrl?.documents]);
 
   const chartData = useMemo(() => {
@@ -78,14 +65,11 @@ const ReportVersionPage = () => {
       return [];
     }
 
-    // Group by document type instead of categories
+    // Group by document type
     const typeGroups: Record<string, number> = {};
     ctrl?.documents.forEach((doc) => {
-      const type = doc.type || "Unknown"; // Default if missing
-      if (!typeGroups[type]) {
-        typeGroups[type] = 0;
-      }
-      typeGroups[type] += 1;
+      const type = doc.type || "Unknown";
+      typeGroups[type] = (typeGroups[type] || 0) + 1;
     });
 
     // Calculate percentages
@@ -97,8 +81,8 @@ const ReportVersionPage = () => {
       title: type,
       type: count,
       color: COLORS[index % COLORS.length],
-      amount: Math.round((count / total) * 100), // Percentage
-      category: type, // Adding for tooltip display
+      amount: Math.round((count / total) * 100),
+      category: type,
     }));
   }, [ctrl?.documents]);
 
@@ -116,7 +100,11 @@ const ReportVersionPage = () => {
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <TopExpensesPanel data={topExpensesData} loading={ctrl?.loading} />
+          <TopExpensesPanel
+            data={topExpensesData}
+            loading={ctrl?.loading}
+            totalDocuments={currentDocumentsCount}
+          />
         </Grid>
 
         <Grid size={{ xs: 12, md: 8 }}>
@@ -130,10 +118,12 @@ const ReportVersionPage = () => {
       </Grid>
 
       <DocumentTable
-        documents={ctrl?.documents} // Changed from uploadDocument to documents
+        documents={ctrl?.documents}
         loading={ctrl?.loading}
         onSearch={ctrl?.handleSearch}
         onExport={ctrl?.handleExportToExcel}
+        // Pass the total count to ensure pagination shows correct numbers
+        totalCount={currentDocumentsCount}
       />
     </Box>
   );

@@ -3,15 +3,9 @@ import {
   Box,
   Typography,
   Paper,
-  FormControl,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
-  InputAdornment,
   CircularProgress,
 } from "@mui/material";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { AccessTime, KeyboardArrowDown } from "@mui/icons-material";
 
 export interface ChartData {
   id: number;
@@ -26,19 +20,13 @@ interface ExpensesChartProps {
   data: ChartData[];
   sortBy: string;
   onSortByChange: (value: string) => void;
-  loading?: boolean; // Add loading prop
+  loading?: boolean;
 }
 
 const ExpensesChart: React.FC<ExpensesChartProps> = ({
   data,
-  sortBy,
-  onSortByChange,
-  loading = false, // Default to false
+  loading = false,
 }) => {
-  const handleSortByChange = (event: SelectChangeEvent) => {
-    onSortByChange(event.target.value);
-  };
-
   return (
     <Paper sx={{ p: 2, height: "100%", borderRadius: "12px" }}>
       <Box
@@ -50,25 +38,8 @@ const ExpensesChart: React.FC<ExpensesChartProps> = ({
         }}
       >
         <Typography variant="h5">
-          Chart ຍອດລວມເອກະສານ (Event Deletes)
+          Chart ຍອດລວມເອກະສານ (Event Upload)
         </Typography>
-        <FormControl variant="outlined" size="small" sx={{ width: 120 }}>
-          <Select
-            value={sortBy}
-            onChange={handleSortByChange}
-            startAdornment={
-              <InputAdornment position="start">
-                <AccessTime fontSize="small" />
-              </InputAdornment>
-            }
-            IconComponent={KeyboardArrowDown}
-            disabled={loading} // Disable during loading
-          >
-            <MenuItem value="ລາຍປີ">ລາຍປີ</MenuItem>
-            <MenuItem value="ລາຍເດືອນ">ລາຍເດືອນ</MenuItem>
-            <MenuItem value="ລາຍວັນ">ລາຍວັນ</MenuItem>
-          </Select>
-        </FormControl>
       </Box>
 
       <Box sx={{ height: 300, width: "100%" }}>
@@ -108,15 +79,20 @@ const ExpensesChart: React.FC<ExpensesChartProps> = ({
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                dataKey="amount"
+                dataKey="type" // Changed from "amount" to "type" to show actual counts
                 nameKey="title"
-                label={({ title, amount }) => `${title}: ${amount}%`}
+                label={({ title, type, amount }) => `${title}: ${type} (${amount}%)`}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+              <Tooltip 
+                formatter={(_value, name, props) => [
+                  `${props.payload.type} documents (${props.payload.amount}%)`, 
+                  name
+                ]} 
+              />
             </PieChart>
           </ResponsiveContainer>
         )}
