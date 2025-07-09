@@ -86,7 +86,7 @@ const FormCreateUserPage = () => {
                   <Typography
                     textAlign="left"
                     fontWeight={700}
-                    variant="subtitle1"
+                    variant="body1"
                   >
                     ຊື່
                   </Typography>
@@ -102,7 +102,7 @@ const FormCreateUserPage = () => {
                   <Typography
                     textAlign="left"
                     fontWeight={700}
-                    variant="subtitle1"
+                    variant="body1"
                   >
                     ນາມສະກຸນ
                   </Typography>
@@ -118,7 +118,7 @@ const FormCreateUserPage = () => {
                   <Typography
                     textAlign="left"
                     fontWeight={700}
-                    variant="subtitle1"
+                    variant="body1"
                   >
                     ເບີໂທລະສັບ
                   </Typography>
@@ -134,7 +134,7 @@ const FormCreateUserPage = () => {
                   <Typography
                     textAlign="left"
                     fontWeight={700}
-                    variant="subtitle1"
+                    variant="body1"
                   >
                     ອີເມວ
                   </Typography>
@@ -150,7 +150,7 @@ const FormCreateUserPage = () => {
                   <Typography
                     textAlign="left"
                     fontWeight={700}
-                    variant="subtitle1"
+                    variant="body1"
                   >
                     ຊື່ຜູ້ໃຊ້
                   </Typography>
@@ -165,7 +165,7 @@ const FormCreateUserPage = () => {
                   <Typography
                     textAlign="left"    
                     fontWeight={700}
-                    variant="subtitle1"
+                    variant="body1"
                   >
                     ລະຫັດຜ່ານ
                   </Typography>
@@ -195,7 +195,7 @@ const FormCreateUserPage = () => {
                   <Typography
                     textAlign="left"
                     fontWeight={700}
-                    variant="subtitle1"
+                    variant="body1"
                   >
                     ບໍລິສັດ
                   </Typography>
@@ -211,7 +211,7 @@ const FormCreateUserPage = () => {
                   <Typography
                     textAlign="left"
                     fontWeight={700}
-                    variant="subtitle1"
+                    variant="body1"
                   >
                     ຕຳແໜ່ງ
                   </Typography>
