@@ -122,8 +122,12 @@ const ReportVersionPage = () => {
         loading={ctrl?.loading}
         onSearch={ctrl?.handleSearch}
         onExport={ctrl?.handleExportToExcel}
-        // Pass the total count to ensure pagination shows correct numbers
         totalCount={currentDocumentsCount}
+        // Add these new props
+        page={ctrl?.page}
+        rowsPerPage={ctrl?.rowsPerPage}
+        onPageChange={ctrl?.handlePageChange}
+        onRowsPerPageChange={ctrl?.handleRowsPerPageChange}
       />
     </Box>
   );

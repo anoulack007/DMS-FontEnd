@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import axiosInstance from "../../../configs/axios";
 import { GET_ALL_FOLLOW_DOCUMENT_END_POINT } from "../../../configs/endPoint/follow-documnet-endpoint";
 import { FollowDocumentModel } from "..";
@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
 import { debounce } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
+import { DocumentTableRef } from "../components/table";
 
 interface DateFilterType {
   startDate: Dayjs | null;
@@ -17,23 +18,30 @@ const UseMainController = () => {
   const [filteredDocuments, setFilteredDocuments] = useState<FollowDocumentModel[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [dateFilter, setDateFilter] = useState<DateFilterType>({
-    startDate: dayjs().subtract(30, "day"),
-    endDate: dayjs(),
+    startDate: null,
+    endDate: null,
   });
   const [searchQuery, setSearchQuery] = useState<string>("");
+  
+  // Create ref for table component
+  const tableRef = useRef<DocumentTableRef>(null);
 
   const handleGetReportUploadDocument = async () => {
     try {
       setLoading(true);
       const res = await axiosInstance.get<{ data: FollowDocumentModel[] }>(
-        GET_ALL_FOLLOW_DOCUMENT_END_POINT
+        GET_ALL_FOLLOW_DOCUMENT_END_POINT,
+        {
+          params: {
+            event: "Delete"
+          }
+        }
       );
 
-      // Filter only uploaded files/folders
-      const uploadedDocs = res?.data?.data?.filter((doc) => doc.event === "Delete");
+      const uploadedDocs = res?.data?.data || [];
       setUploadDocument(uploadedDocs);
       
-      // Apply initial date filter
+      // Apply initial filters
       applyFilters(uploadedDocs, searchQuery, dateFilter);
     } catch (error) {
       console.error("Error fetching documents:", error);
@@ -42,7 +50,6 @@ const UseMainController = () => {
     }
   };
 
-  // Combined filter function that applies both search and date filters
   const applyFilters = useCallback(
     (docs: FollowDocumentModel[], query: string, dates: DateFilterType) => {
       let filtered = [...docs];
@@ -52,14 +59,14 @@ const UseMainController = () => {
         filtered = filtered.filter((doc) => {
           const docDate = dayjs(doc.createdAt);
           return (
-            docDate.isAfter(dates.startDate, "day") || docDate.isSame(dates.startDate, "day")) &&
-            (docDate.isBefore(dates.endDate, "day") || docDate.isSame(dates.endDate, "day")
+            (docDate.isAfter(dates.startDate, "day") || docDate.isSame(dates.startDate, "day")) &&
+            (docDate.isBefore(dates.endDate, "day") || docDate.isSame(dates.endDate, "day"))
           );
         });
       }
 
       // Apply search filter
-      if (query) {
+      if (query.trim()) {
         filtered = filtered.filter(
           (doc) =>
             doc.docName.toLowerCase().includes(query.toLowerCase()) ||
@@ -72,7 +79,6 @@ const UseMainController = () => {
     []
   );
 
-  // Debounced search function
   const debouncedSearch = useCallback(
     debounce((query: string) => {
       setSearchQuery(query);
@@ -85,24 +91,34 @@ const UseMainController = () => {
     debouncedSearch(query);
   };
 
-  // Date filter function
+  // Updated date filter function that resets pagination
   const handleDateFilterChange = useCallback(
     (newDateFilter: DateFilterType) => {
       setDateFilter(newDateFilter);
       applyFilters(uploadDocument, searchQuery, newDateFilter);
+      
+      // Reset table pagination when date filter changes
+      if (tableRef.current) {
+        tableRef.current.resetPage();
+      }
     },
     [uploadDocument, searchQuery, applyFilters]
   );
 
-  // Reset filters function
+  // Updated reset filters function
   const resetFilters = useCallback(() => {
     const defaultDateFilter = {
-      startDate: dayjs().subtract(30, "day"),
-      endDate: dayjs(),
+      startDate: null,
+      endDate: null,
     };
     setDateFilter(defaultDateFilter);
     setSearchQuery("");
     applyFilters(uploadDocument, "", defaultDateFilter);
+    
+    // Reset table pagination when filters are reset
+    if (tableRef.current) {
+      tableRef.current.resetPage();
+    }
   }, [uploadDocument, applyFilters]);
 
   const handleExportToExcel = () => {
@@ -144,6 +160,7 @@ const UseMainController = () => {
     dateFilter,
     handleDateFilterChange,
     resetFilters,
+    tableRef, // Return the ref so it can be passed to the table
   };
 };
 

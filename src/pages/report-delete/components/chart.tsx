@@ -38,7 +38,7 @@ const ExpensesChart: React.FC<ExpensesChartProps> = ({
         }}
       >
         <Typography variant="h5">
-          Chart ຍອດລວມເອກະສານ (Event Upload)
+          Chart ຍອດລວມເອກະສານ (Event Deletes)
         </Typography>
       </Box>
 
@@ -79,19 +79,25 @@ const ExpensesChart: React.FC<ExpensesChartProps> = ({
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                dataKey="type" // Changed from "amount" to "type" to show actual counts
+                dataKey="type"
                 nameKey="title"
-                label={({ title, type, amount }) => `${title}: ${type} (${amount}%)`}
+                label={({ title, type, amount }) => {
+                  const displayTitle = title === "Unknown" ? "Folder" : title;
+                  return `${displayTitle}: ${type} (${amount}%)`;
+                }}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(_value, name, props) => [
-                  `${props.payload.type} documents (${props.payload.amount}%)`, 
-                  name
-                ]} 
+                formatter={(_value, name, props) => {
+                  const displayTitle = props.payload.title === "Unknown" ? "Folder" : props.payload.title;
+                  return [
+                    `${props.payload.type} documents (${props.payload.amount}%)`, 
+                    displayTitle
+                  ];
+                }} 
               />
             </PieChart>
           </ResponsiveContainer>

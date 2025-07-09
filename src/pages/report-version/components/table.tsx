@@ -29,8 +29,7 @@ export interface FileWithVersionInfo {
   status: string;
   ownerId: string;
   ownerName?: string;
-  versionNum: string;
-  event: string;
+  version: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -40,36 +39,39 @@ interface DocumentTableProps {
   loading: boolean;
   onSearch: (query: string) => void;
   onExport: () => void;
-  totalCount?: number; // Optional prop for explicit total count
+  totalCount?: number;
+  // Add these new props
+  page?: number;
+  rowsPerPage?: number;
+  onPageChange?: (newPage: number) => void;
+  onRowsPerPageChange?: (newRowsPerPage: number) => void;
 }
-
 const DocumentTable: React.FC<DocumentTableProps> = ({
   documents,
   loading,
   onSearch,
   onExport,
-  totalCount, // Add totalCount prop
+  totalCount,
+  page = 0,
+  rowsPerPage = 5,
+  onPageChange,
+  onRowsPerPageChange,
 }) => {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
+   const handleChangePage = (_event: unknown, newPage: number) => {
+    onPageChange?.(newPage);
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     onSearch(event.target.value);
-    // Reset to first page when searching
-    setPage(0);
   };
 
-  const handleChangeRowsPerPage = (
+ const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    onRowsPerPageChange?.(parseInt(event.target.value, 10));
   };
 
   // Calculate displayed rows based on pagination
@@ -78,20 +80,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     page * rowsPerPage + rowsPerPage
   );
 
-  // Use totalCount if provided, otherwise use documents.length
   const actualTotal = totalCount ?? documents.length;
-
-  // Debug info (remove in production)
-  console.log("DocumentTable Debug:", {
-    totalDocuments: documents.length,
-    providedTotalCount: totalCount,
-    actualTotal,
-    currentPage: page,
-    rowsPerPage,
-    displayedCount: displayedDocuments.length,
-    startIndex: page * rowsPerPage,
-    endIndex: page * rowsPerPage + rowsPerPage,
-  });
 
   return (
     <Paper sx={{ p: 2, borderRadius: "12px" }}>
@@ -99,7 +88,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
         sx={{ display: "flex", justifyContent: "space-between", mb: 2, p: 2 }}
       >
         <Typography variant="h6" color="#838383" fontWeight={600}>
-          ລາຍການເອກະສານ ({actualTotal} ລາຍການ)
+          ລາຍການເອກະສານ
         </Typography>
         <Box sx={{ display: "flex", gap: 1 }}>
           <TextField
@@ -183,8 +172,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {document.createdAt
-                      ? new Date(document.createdAt).toLocaleDateString()
-                      : "3/13/2025, 9:28:06 PM"}
+                      ? new Date(document.createdAt).toLocaleDateString('en-GB')
+                      : "N/A"}
                   </TableCell>
                 </TableRow>
               ))

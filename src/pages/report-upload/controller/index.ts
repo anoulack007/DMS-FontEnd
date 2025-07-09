@@ -17,8 +17,12 @@ interface UseMainControllerProps {
 }
 
 const UseMainController = (props?: UseMainControllerProps) => {
-  const [uploadDocument, setUploadDocument] = useState<FollowDocumentModel[]>([]);
-  const [filteredDocuments, setFilteredDocuments] = useState<FollowDocumentModel[]>([]);
+  const [uploadDocument, setUploadDocument] = useState<FollowDocumentModel[]>(
+    []
+  );
+  const [filteredDocuments, setFilteredDocuments] = useState<
+    FollowDocumentModel[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [dateFilter, setDateFilter] = useState<DateFilterType>({
     startDate: dayjs().subtract(30, "day"),
@@ -29,8 +33,7 @@ const UseMainController = (props?: UseMainControllerProps) => {
   const handleGetReportUploadDocument = async (eventType?: string) => {
     try {
       setLoading(true);
-      
-      // Build URL with event parameter - specifically for Upload events
+
       let url = GET_ALL_FOLLOW_DOCUMENT_END_POINT;
       if (eventType) {
         url += `?event=${eventType}`;
@@ -38,16 +41,11 @@ const UseMainController = (props?: UseMainControllerProps) => {
 
       const res = await axiosInstance.get<{ data: FollowDocumentModel[] }>(url);
 
-      // Always filter for Upload events (double-check server response)
       let documents = res?.data?.data || [];
       const uploadDocuments = documents.filter((doc) => doc.event === "Upload");
-      
-      console.log("Total documents from API:", documents.length);
-      console.log("Upload documents only:", uploadDocuments.length);
 
       setUploadDocument(uploadDocuments);
-      
-      // Apply initial date filter
+
       applyFilters(uploadDocuments, searchQuery, dateFilter);
     } catch (error) {
       console.error("Error fetching documents:", error);
@@ -56,18 +54,18 @@ const UseMainController = (props?: UseMainControllerProps) => {
     }
   };
 
-  // Combined filter function that applies both search and date filters
   const applyFilters = useCallback(
     (docs: FollowDocumentModel[], query: string, dates: DateFilterType) => {
       let filtered = [...docs];
 
-      // Apply date filter
       if (dates.startDate && dates.endDate) {
         filtered = filtered.filter((doc) => {
           const docDate = dayjs(doc.createdAt);
           return (
-            docDate.isAfter(dates.startDate, "day") || docDate.isSame(dates.startDate, "day")) &&
-            (docDate.isBefore(dates.endDate, "day") || docDate.isSame(dates.endDate, "day")
+            (docDate.isAfter(dates.startDate, "day") ||
+              docDate.isSame(dates.startDate, "day")) &&
+            (docDate.isBefore(dates.endDate, "day") ||
+              docDate.isSame(dates.endDate, "day"))
           );
         });
       }
@@ -86,7 +84,6 @@ const UseMainController = (props?: UseMainControllerProps) => {
     []
   );
 
-  // Debounced search function
   const debouncedSearch = useCallback(
     debounce((query: string) => {
       setSearchQuery(query);
@@ -99,7 +96,6 @@ const UseMainController = (props?: UseMainControllerProps) => {
     debouncedSearch(query);
   };
 
-  // Date filter function
   const handleDateFilterChange = useCallback(
     (newDateFilter: DateFilterType) => {
       setDateFilter(newDateFilter);
@@ -108,7 +104,6 @@ const UseMainController = (props?: UseMainControllerProps) => {
     [uploadDocument, searchQuery, applyFilters]
   );
 
-  // Reset filters function
   const resetFilters = useCallback(() => {
     const defaultDateFilter = {
       startDate: dayjs().subtract(30, "day"),

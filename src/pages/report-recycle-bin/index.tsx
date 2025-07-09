@@ -129,6 +129,10 @@ const ReportRecycleBinPage = () => {
         loading={ctrl?.loading}
         onSearch={ctrl?.handleSearch}
         onExport={ctrl?.handleExportToExcel}
+        page={ctrl.page}
+        rowsPerPage={ctrl.rowsPerPage}
+        onPageChange={ctrl.handleChangePage}
+        onRowsPerPageChange={ctrl.handleChangeRowsPerPage}
       />
     </Box>
   );

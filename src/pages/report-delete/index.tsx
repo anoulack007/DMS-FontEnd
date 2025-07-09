@@ -27,7 +27,6 @@ export interface ChartData {
   amount: number;
 }
 
-// Array of colors for chart
 const COLORS = [
   "#0088FE",
   "#00C49F",
@@ -42,30 +41,27 @@ const ReportDeletePage = () => {
   const ctrl = UseMainController();
   const [sortBy, setSortBy] = useState("ລາຍປີ");
 
-  // Transform data for top expenses panel
   const topExpensesData = useMemo(() => {
     if (!ctrl?.uploadDocument || ctrl?.uploadDocument.length === 0) {
       return [];
     }
 
-    // Group data by document type
     const typeGroups: Record<string, number> = {};
 
     ctrl?.uploadDocument.forEach((doc) => {
-      const type = doc.type || "Unknown"; // Default if missing
+      const type = doc.type || "Unknown";
       typeGroups[type] = (typeGroups[type] || 0) + 1;
     });
 
-    // Convert to array and sort from highest to lowest count
     return Object.entries(typeGroups)
       .map(([type, count], index) => ({
         id: index + 1,
         type,
-        title: count, // Count of documents for that type
-        color: COLORS[index % COLORS.length], // Assign colors
+        title: count,
+        color: COLORS[index % COLORS.length],
       }))
-      .sort((a, b) => b.title - a.title) // Sort from big to small
-      .slice(0, 5); // Show only top 5 types
+      .sort((a, b) => b.title - a.title)
+      .slice(0, 5);
   }, [ctrl?.uploadDocument]);
 
   const chartData = useMemo(() => {
@@ -73,27 +69,24 @@ const ReportDeletePage = () => {
       return [];
     }
 
-    // Group by document type instead of categories
     const typeGroups: Record<string, number> = {};
     ctrl?.uploadDocument.forEach((doc) => {
-      const type = doc.type || "Unknown"; // Default if missing
+      const type = doc.type || "Unknown";
       if (!typeGroups[type]) {
         typeGroups[type] = 0;
       }
       typeGroups[type] += 1;
     });
 
-    // Calculate percentages
     const total = ctrl?.uploadDocument.length;
 
-    // Convert to array format for chart
     return Object.entries(typeGroups).map(([type, count], index) => ({
       id: index + 1,
       title: type,
       type: count,
       color: COLORS[index % COLORS.length],
-      amount: Math.round((count / total) * 100), // Percentage
-      category: type, // Adding for tooltip display
+      amount: Math.round((count / total) * 100),
+      category: type,
     }));
   }, [ctrl?.uploadDocument]);
 
@@ -125,6 +118,7 @@ const ReportDeletePage = () => {
       </Grid>
 
       <DocumentTable
+        ref={ctrl.tableRef} // Pass the ref to the table
         documents={ctrl?.uploadDocument}
         loading={ctrl?.loading}
         onSearch={ctrl?.handleSearch}

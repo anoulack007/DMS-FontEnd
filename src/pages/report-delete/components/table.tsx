@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useImperativeHandle, forwardRef } from "react";
 import {
   Table,
   TableBody,
@@ -29,15 +29,27 @@ interface DocumentTableProps {
   onExport: () => void;
 }
 
-const DocumentTable: React.FC<DocumentTableProps> = ({
+// Add ref type for exposing resetPage function
+export interface DocumentTableRef {
+  resetPage: () => void;
+}
+
+const DocumentTable = forwardRef<DocumentTableRef, DocumentTableProps>(({
   documents,
   loading,
   onSearch,
   onExport,
-}) => {
+}, ref) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState<string>("");
+
+  // Expose resetPage function to parent component
+  useImperativeHandle(ref, () => ({
+    resetPage: () => {
+      setPage(0);
+    },
+  }));
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -46,6 +58,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     onSearch(event.target.value);
+    setPage(0); // Reset page when searching
   };
 
   const handleChangeRowsPerPage = (
@@ -88,7 +101,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
               },
             }}
           />
-          ;
           <Button
             variant="contained"
             sx={{ textTransform: "none" }}
@@ -139,8 +151,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {document.createdAt
-                      ? new Date(document.createdAt).toLocaleDateString()
-                      : "3/13/2025, 9:28:06 PM"}
+                      ? new Date(document.createdAt).toLocaleDateString('en-GB')
+                      : "N/A"}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {document.ownerName}
@@ -151,7 +163,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   <TableCell sx={{ borderBottom: "none" }}>
                     {document.type || "Folder"}
                   </TableCell>
-
                   <TableCell sx={{ borderBottom: "none" }}>
                     <Chip label={document?.event} color="error" size="medium" />
                   </TableCell>
@@ -179,6 +190,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
       )}
     </Paper>
   );
-};
+});
+
+DocumentTable.displayName = "DocumentTable";
 
 export default DocumentTable;

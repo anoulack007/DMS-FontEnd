@@ -56,9 +56,6 @@ const ReportUploadPage = () => {
       typeGroups[type] = (typeGroups[type] || 0) + 1;
     });
 
-    console.log("Filtered Upload events grouped by type:", typeGroups);
-
-    // Convert to array and sort from highest to lowest count
     return Object.entries(typeGroups)
       .map(([type, count], index) => ({
         id: index + 1,

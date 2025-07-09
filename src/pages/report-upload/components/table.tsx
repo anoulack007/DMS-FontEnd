@@ -45,6 +45,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     onSearch(event.target.value);
+    setPage(0);
   };
 
   const handleChangeRowsPerPage = (
@@ -136,8 +137,8 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {document.createdAt
-                      ? new Date(document.createdAt).toLocaleDateString()
-                      : "3/13/2025, 9:28:06 PM"}
+                      ? new Date(document.createdAt).toLocaleDateString('en-GB')
+                      : "N/A"}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     {document.ownerName}

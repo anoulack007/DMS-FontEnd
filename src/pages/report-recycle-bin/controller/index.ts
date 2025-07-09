@@ -21,6 +21,10 @@ const UseMainController = () => {
     endDate: dayjs(),
   });
   const [searchQuery, setSearchQuery] = useState<string>("");
+  
+  // Add pagination state to controller
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const handleGetReportUploadDocument = async () => {
     try {
@@ -68,6 +72,8 @@ const UseMainController = () => {
       }
 
       setFilteredDocuments(filtered);
+      // Reset page to 0 when filters are applied
+      setPage(0);
     },
     []
   );
@@ -104,6 +110,16 @@ const UseMainController = () => {
     setSearchQuery("");
     applyFilters(uploadDocument, "", defaultDateFilter);
   }, [uploadDocument, applyFilters]);
+
+  // Pagination handlers
+  const handleChangePage = (_event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const handleExportToExcel = () => {
     Swal.fire({
@@ -144,6 +160,11 @@ const UseMainController = () => {
     dateFilter,
     handleDateFilterChange,
     resetFilters,
+    // Pagination state and handlers
+    page,
+    rowsPerPage,
+    handleChangePage,
+    handleChangeRowsPerPage,
   };
 };
 

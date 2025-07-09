@@ -6,15 +6,20 @@ import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
 import { debounce } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
+import { DocumentTableRef } from "../components/table";
 
 interface DateFilterType {
   startDate: Dayjs | null;
   endDate: Dayjs | null;
 }
 
-const UseMainController = () => {
-  const [uploadDocument, setUploadDocument] = useState<FollowDocumentModel[]>([]);
-  const [filteredDocuments, setFilteredDocuments] = useState<FollowDocumentModel[]>([]);
+const UseMainController = (tableRef?: React.RefObject<DocumentTableRef>) => {
+  const [uploadDocument, setUploadDocument] = useState<FollowDocumentModel[]>(
+    []
+  );
+  const [filteredDocuments, setFilteredDocuments] = useState<
+    FollowDocumentModel[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [dateFilter, setDateFilter] = useState<DateFilterType>({
     startDate: dayjs().subtract(30, "day"),
@@ -30,9 +35,11 @@ const UseMainController = () => {
       );
 
       // Filter only uploaded files/folders
-      const uploadedDocs = res?.data?.data?.filter((doc) => doc.event === "Update");
+      const uploadedDocs = res?.data?.data?.filter(
+        (doc) => doc.event === "Update"
+      );
       setUploadDocument(uploadedDocs);
-      
+
       // Apply initial date filter
       applyFilters(uploadedDocs, searchQuery, dateFilter);
     } catch (error) {
@@ -52,8 +59,10 @@ const UseMainController = () => {
         filtered = filtered.filter((doc) => {
           const docDate = dayjs(doc.createdAt);
           return (
-            docDate.isAfter(dates.startDate, "day") || docDate.isSame(dates.startDate, "day")) &&
-            (docDate.isBefore(dates.endDate, "day") || docDate.isSame(dates.endDate, "day")
+            (docDate.isAfter(dates.startDate, "day") ||
+              docDate.isSame(dates.startDate, "day")) &&
+            (docDate.isBefore(dates.endDate, "day") ||
+              docDate.isSame(dates.endDate, "day"))
           );
         });
       }
@@ -63,8 +72,10 @@ const UseMainController = () => {
         filtered = filtered.filter(
           (doc) =>
             (doc.docName?.toLowerCase() || "").includes(query.toLowerCase()) ||
-            (doc.ownerName?.toLowerCase() || "").includes(query.toLowerCase()) ||
-            (doc.type?.toLowerCase() || "").includes(query.toLowerCase()) 
+            (doc.ownerName?.toLowerCase() || "").includes(
+              query.toLowerCase()
+            ) ||
+            (doc.type?.toLowerCase() || "").includes(query.toLowerCase())
         );
       }
 
@@ -78,8 +89,10 @@ const UseMainController = () => {
     debounce((query: string) => {
       setSearchQuery(query);
       applyFilters(uploadDocument, query, dateFilter);
+      // Reset page when searching
+      tableRef?.current?.resetPage();
     }, 500),
-    [uploadDocument, dateFilter, applyFilters]
+    [uploadDocument, dateFilter, applyFilters, tableRef]
   );
 
   const handleSearch = (query: string) => {
@@ -91,8 +104,10 @@ const UseMainController = () => {
     (newDateFilter: DateFilterType) => {
       setDateFilter(newDateFilter);
       applyFilters(uploadDocument, searchQuery, newDateFilter);
+      // Reset page when date filter changes
+      tableRef?.current?.resetPage();
     },
-    [uploadDocument, searchQuery, applyFilters]
+    [uploadDocument, searchQuery, applyFilters, tableRef]
   );
 
   // Reset filters function
@@ -104,7 +119,9 @@ const UseMainController = () => {
     setDateFilter(defaultDateFilter);
     setSearchQuery("");
     applyFilters(uploadDocument, "", defaultDateFilter);
-  }, [uploadDocument, applyFilters]);
+    // Reset page when filters are reset
+    tableRef?.current?.resetPage();
+  }, [uploadDocument, applyFilters, tableRef]);
 
   const handleExportToExcel = () => {
     Swal.fire({

@@ -48,7 +48,9 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
           }}
         >
           <CircularProgress size={40} />
-          <Typography color="text.secondary">ກຳລັງໂຫຼດຂໍ້ມູນ...</Typography>
+          <Typography color="text.secondary">
+            <CircularProgress />
+          </Typography>
         </Box>
       ) : data.length === 0 ? (
         // Empty state
@@ -97,7 +99,6 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
 
           <Divider sx={{ mb: 2 }} />
 
-          {/* Document types breakdown */}
           <Typography variant="body2" fontWeight="medium" mb={1}>
             ແຍກຕາມປະເພດ
           </Typography>
@@ -114,7 +115,7 @@ const TopExpensesPanel: React.FC<TopExpensesPanelProps> = ({
                     }}
                   >
                     <Typography variant="body2" color="text.secondary">
-                      {item.type}
+                      {item.type === "Unknown" ? "Folder" : item.type}
                     </Typography>
                     <Typography variant="body2" fontWeight="bold">
                       {item.title}

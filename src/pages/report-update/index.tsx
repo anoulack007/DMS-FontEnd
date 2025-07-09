@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Box, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import DateRangeHeader from "./components/header";
 import TopExpensesPanel from "./components/topExpensePane";
-import DocumentTable from "./components/table";
+import DocumentTable, { DocumentTableRef } from "./components/table";
 import UseMainController from "./controller";
 import ExpensesChart from "./components/chart";
 
@@ -39,7 +39,8 @@ const COLORS = [
 ];
 
 const ReportUpdatePage = () => {
-  const ctrl = UseMainController();
+  const documentTableRef = useRef<DocumentTableRef>(null);
+  const ctrl = UseMainController(documentTableRef);
   const [sortBy, setSortBy] = useState("ລາຍປີ");
 
   // Transform data for top expenses panel
@@ -125,6 +126,7 @@ const ReportUpdatePage = () => {
       </Grid>
 
       <DocumentTable
+        ref={documentTableRef}
         documents={ctrl?.uploadDocument}
         loading={ctrl?.loading}
         onSearch={ctrl?.handleSearch}

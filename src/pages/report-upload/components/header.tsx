@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, Stack } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import {
   FilterAlt as FilterAltIcon,
   Clear as ClearIcon,
@@ -90,6 +90,10 @@ const DateRangeHeader: React.FC<DateRangeHeaderProps> = ({
           >
             ລ້າງຕົວກອງ
           </Button>
+
+          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+            (ເດືອນ/ວັນ/ປີ)
+          </Typography>
         </Stack>
       </LocalizationProvider>
     </DateRangeContainer>

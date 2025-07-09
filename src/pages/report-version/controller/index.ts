@@ -34,7 +34,7 @@ export interface FileWithVersionInfo {
   status: string;
   ownerId: string;
   ownerName?: string;
-  versionNum: string;
+  version: string;
   event: string;
   createdAt: string;
   updatedAt: string;
@@ -42,29 +42,44 @@ export interface FileWithVersionInfo {
 
 const UseMainController = () => {
   const [documents, setDocuments] = useState<FileWithVersionInfo[]>([]);
-  const [filteredDocuments, setFilteredDocuments] = useState<FileWithVersionInfo[]>([]);
+  const [filteredDocuments, setFilteredDocuments] = useState<
+    FileWithVersionInfo[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [dateFilter, setDateFilter] = useState<DateFilterType>({
     startDate: dayjs().subtract(30, "day"),
     endDate: dayjs(),
   });
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const handleGetDocuments = async () => {
     try {
       setLoading(true);
-      const res = await axiosInstance.get<DocumentApiResponse>(GET_OWNER_DOC_END_POINT);
+      const res = await axiosInstance.get<DocumentApiResponse>(
+        GET_OWNER_DOC_END_POINT
+      );
 
       // Process files to extract version information
       const processedFiles: FileWithVersionInfo[] = [];
-      
+
       // Only process files (not folders)
       const files = res?.data?.data?.files || [];
-      
-      files.forEach(file => {
+
+      files.forEach((file) => {
         // Extract version number from the version field
         const versionNum = file.version || "v0";
-        
+
+        // Helper function to extract numeric version
+        const getVersionNumber = (version: string): number => {
+          const match = version.match(/v(\d+)/);
+          return match ? parseInt(match[1]) : 0;
+        };
+
+        const numericVersion = getVersionNumber(versionNum);
+
+        // Include ALL files regardless of version - show all versions of each file
         processedFiles.push({
           id: file.id,
           name: file.name,
@@ -73,24 +88,25 @@ const UseMainController = () => {
           size: file.size,
           status: file.status,
           ownerId: file.ownerId,
-          ownerName: file.ownerName || "Unknown", // You might need to fetch owner info if not included
-          versionNum: versionNum,
-          event: "Update", // Since we're focusing on files with versions
+          ownerName: file.ownerName || "Unknown",
+          version: versionNum,
+          event: numericVersion >= 1 ? "Update" : "Create",
           createdAt: file.createdAt,
-          updatedAt: file.updatedAt
+          updatedAt: file.updatedAt,
         });
       });
 
+      // Sort by createdAt (latest first)
       const sortedData = processedFiles.sort((a, b) => {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
-        return dateB - dateA;
+        return dateB - dateA; // Latest first (descending order)
       });
-      
+
       setDocuments(sortedData);
-      
+
       // Apply initial date filter
-      applyFilters(processedFiles, searchQuery, dateFilter);
+      applyFilters(sortedData, searchQuery, dateFilter);
     } catch (error) {
       console.error("Error fetching documents:", error);
     } finally {
@@ -108,8 +124,10 @@ const UseMainController = () => {
         filtered = filtered.filter((doc) => {
           const docDate = dayjs(doc.updatedAt); // Using updatedAt for filtering
           return (
-            docDate.isAfter(dates.startDate, "day") || docDate.isSame(dates.startDate, "day")) &&
-            (docDate.isBefore(dates.endDate, "day") || docDate.isSame(dates.endDate, "day")
+            (docDate.isAfter(dates.startDate, "day") ||
+              docDate.isSame(dates.startDate, "day")) &&
+            (docDate.isBefore(dates.endDate, "day") ||
+              docDate.isSame(dates.endDate, "day"))
           );
         });
       }
@@ -132,6 +150,7 @@ const UseMainController = () => {
   const debouncedSearch = useCallback(
     debounce((query: string) => {
       setSearchQuery(query);
+      setPage(0); // Reset page when search changes
       applyFilters(documents, query, dateFilter);
     }, 500),
     [documents, dateFilter, applyFilters]
@@ -139,12 +158,14 @@ const UseMainController = () => {
 
   const handleSearch = (query: string) => {
     debouncedSearch(query);
+    setPage(0);
   };
 
   // Date filter function
   const handleDateFilterChange = useCallback(
     (newDateFilter: DateFilterType) => {
       setDateFilter(newDateFilter);
+      setPage(0); // Reset page when date filter changes
       applyFilters(documents, searchQuery, newDateFilter);
     },
     [documents, searchQuery, applyFilters]
@@ -158,6 +179,7 @@ const UseMainController = () => {
     };
     setDateFilter(defaultDateFilter);
     setSearchQuery("");
+    setPage(0); // Reset page when filters are reset
     applyFilters(documents, "", defaultDateFilter);
   }, [documents, applyFilters]);
 
@@ -174,13 +196,13 @@ const UseMainController = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         // Format data for Excel export
-        const exportData = filteredDocuments.map(doc => ({
-          "ຊື່ເອກະສານ": doc.name,
-          "ເວີຊັ່ນ": doc.versionNum,
-          "ປະເພດ": doc.type,
-          "ຂະໜາດ": `${(doc.size / 1024).toFixed(2)} KB`,
-          "ວັນທີປັບປຸງ": dayjs(doc.updatedAt).format("DD/MM/YYYY HH:mm"),
-          "ສະຖານະ": doc.status
+        const exportData = filteredDocuments.map((doc) => ({
+          ຊື່ເອກະສານ: doc.name,
+          ເວີຊັ່ນ: doc.version,
+          ປະເພດ: doc.type,
+          ຂະໜາດ: `${(doc.size / 1024).toFixed(2)} KB`,
+          ວັນທີປັບປຸງ: dayjs(doc.updatedAt).format("DD/MM/YYYY HH:mm"),
+          ສະຖານະ: doc.status,
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -192,7 +214,7 @@ const UseMainController = () => {
         Swal.fire(
           "ສົ່ງອອກແລ້ວ!",
           "ລາຍການເອກະສານຂອງທ່ານໄດ້ຖືກສົ່ງອອກແລ້ວ.",
-          "success",
+          "success"
         );
       }
     });
@@ -200,6 +222,15 @@ const UseMainController = () => {
 
   useEffect(() => {
     handleGetDocuments();
+  }, []);
+
+  const handlePageChange = useCallback((newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
+    setRowsPerPage(newRowsPerPage);
+    setPage(0);
   }, []);
 
   return {
@@ -210,6 +241,10 @@ const UseMainController = () => {
     dateFilter,
     handleDateFilterChange,
     resetFilters,
+    page,
+    rowsPerPage,
+    handlePageChange,
+    handleRowsPerPageChange,
   };
 };
 
