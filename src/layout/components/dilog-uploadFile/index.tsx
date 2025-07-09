@@ -46,7 +46,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
   open,
   onClose,
   folderId,
-  status = "PRIVATE",
+  status = "PUBLIC",
 }) => {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

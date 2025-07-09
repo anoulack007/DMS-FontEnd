@@ -431,7 +431,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
                 {ctrl?.selectedDocument?.createdAt
                   ? new Date(
                       ctrl?.selectedDocument?.createdAt
-                    ).toLocaleDateString()
+                    ).toLocaleDateString("en-GB")
                   : "-"}
               </Box>
             </Box>

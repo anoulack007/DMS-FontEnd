@@ -87,7 +87,7 @@ const Drawer = styled(MuiDrawer, {
 const MiniDrawer = () => {
   const ctrl = UseDrawerController();
   const location = useLocation();
-  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState<boolean>(true);
 
   const authData = useSelector((state: RootState) => state?.auth?.data);
 

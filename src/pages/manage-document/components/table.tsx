@@ -623,7 +623,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                       }}
                     >
                       {item.updatedAt
-                        ? new Date(item.updatedAt).toLocaleDateString()
+                        ? new Date(item.updatedAt).toLocaleDateString('en-GB')
                         : ""}
                     </TableCell>
                     <TableCell

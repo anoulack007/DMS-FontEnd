@@ -112,8 +112,42 @@ const CreateFolderDialog: React.FC<CreateFolderDialogProps> = ({
     handleCancel();
   };
 
+  // Handle form submission
+  const handleSubmit = () => {
+    if (folderName && !loading) {
+      onCreateFolder();
+    }
+  };
+
+  // Handle key down events for the entire dialog
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      // Prevent default form submission
+      event.preventDefault();
+      
+      // Only submit if folder name is provided and not loading
+      if (folderName && !loading) {
+        handleSubmit();
+      }
+    }
+  };
+
+  // Handle key down specifically for the folder name input
+  const handleFolderNameKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
-    <Dialog maxWidth="sm" fullWidth open={open} onClose={handleCloseX}>
+    <Dialog 
+      maxWidth="sm" 
+      fullWidth 
+      open={open} 
+      onClose={handleCloseX}
+      onKeyDown={handleKeyDown}
+    >
       <DialogTitle sx={{ display: "flex", justifyContent: "space-between" }}>
         ສ້າງໂຟເດີ
         <IconButton
@@ -136,6 +170,7 @@ const CreateFolderDialog: React.FC<CreateFolderDialogProps> = ({
           variant="outlined"
           value={folderName}
           onChange={(e) => onChangeFolderName(e.target.value)}
+          onKeyDown={handleFolderNameKeyDown}
           sx={{ mb: 2 }}
         />
 
@@ -230,7 +265,7 @@ const CreateFolderDialog: React.FC<CreateFolderDialogProps> = ({
         <Button
           sx={{ textTransform: "none" }}
           type="submit"
-          onClick={onCreateFolder}
+          onClick={handleSubmit}
           color="primary"
           variant="contained"
           disabled={!folderName || loading}

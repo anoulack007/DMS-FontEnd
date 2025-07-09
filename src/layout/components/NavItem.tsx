@@ -24,6 +24,21 @@ interface NavItemProps {
   collapsed?: boolean;
 }
 
+// Function to clear specific localStorage keys
+const clearDocumentStorageKeys = () => {
+  const keysToRemove = [
+    'selectedDocumentId',
+    'selectedDocumentNumber',
+    'selectedDocumentType',
+    'currentFolderId',
+    'currentFolderPath'
+  ];
+  
+  keysToRemove.forEach(key => {
+    localStorage.removeItem(key);
+  });
+};
+
 const NavItem: React.FC<NavItemProps> = ({ 
   item, 
   active = false, 
@@ -58,8 +73,16 @@ const NavItem: React.FC<NavItemProps> = ({
     if (hasChildren && !collapsed) {
       setDropdownOpen(!dropdownOpen);
     } else if (item.path !== "#") {
+      // Clear localStorage keys before navigation
+      clearDocumentStorageKeys();
       navigate(item.path);
     }
+  };
+
+  const handleChildClick = (childPath: string) => {
+    // Clear localStorage keys before navigation
+    clearDocumentStorageKeys();
+    navigate(childPath);
   };
 
   const listItemContent = (
@@ -129,7 +152,7 @@ const NavItem: React.FC<NavItemProps> = ({
               return (
                 <ListItemButton
                   key={child.path}
-                  onClick={() => navigate(child.path)}
+                  onClick={() => handleChildClick(child.path)}
                   sx={{
                     pl: 4,
                     borderRadius: "8px",
