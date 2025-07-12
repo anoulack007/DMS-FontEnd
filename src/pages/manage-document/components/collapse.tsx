@@ -25,44 +25,20 @@ import { STATUS_ENUMS } from "../../../enums/status-enum";
 import { formatFileSize } from "../../../utils/functions/formarFile";
 import { VersionListComponent } from "./versionDocList";
 import { FileHistory } from "./historyFile";
-import { IconType } from "../../../enums/icon-enums";
 import axiosInstance from "../../../configs/axios";
-import { GET_MEMBER_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
 import Swal from "sweetalert2";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import { GET_FOLDER_MEMBER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
 import eventBus from "../../../utils/functions/eventBus";
 import { getIconByType } from "../../../utils/functions/inconUtils";
-
-interface Document {
-  id: string;
-  name: string;
-  path: string;
-  documentId: string;
-  modified: string;
-  size: string;
-  type: IconType;
-  version: string;
-  itemType: string;
-  documentNumber: string;
-  status: STATUS_ENUMS;
-  owner: {
-    username: string;
-  };
-  url: string;
-  isFolder: boolean;
-  parentId: string;
-  isPinned: boolean;
-  isDelete: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import {
+  Document,
+} from "../../../models/Document";
 
 interface DocumentDetailsPanelProps {
   ctrl: {
     collapeOpen: boolean;
-    selectedDocument: Document | null; // Replace 'any' with your document type
+    selectedDocument: Document | null;
     setCollapseOpen: (open: boolean) => void;
     setSearchParams: (params: any) => void;
     handleChangeStatus: (event: any) => void;
@@ -75,53 +51,78 @@ interface DocumentDetailsPanelProps {
 export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
   ctrl,
 }) => {
-  const [showAllMembers, setShowAllMembers] = useState(false);
+  const [showAllMembers, setShowAllMembers] = useState<boolean>(false);
+  const [members, setMembers] = useState<MemberModel[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const toggleMemberDisplay = () => {
     setShowAllMembers(!showAllMembers);
   };
-  const [members, setMembers] = useState<MemberModel[]>([]);
 
-  const getMemberData = async () => {
+  const getMemberData = () => {
     const selectedDocument = ctrl.selectedDocument;
-    if (!selectedDocument) return;
+    if (!selectedDocument) {
+      console.log("No document selected");
+      setMembers([]);
+      return;
+    }
+
+    // Extract members from the selectedDocument object
+    let documentMembers: MemberModel[] = [];
+
+    // Check if it's a folder or file and get members accordingly
+    const isFolder =
+      selectedDocument.itemType === "folder" ||
+      selectedDocument.type === "folder" ||
+      selectedDocument.isFolder;
+
+    if (isFolder) {
+      // For folders, use 'members' property
+      if (selectedDocument.members && Array.isArray(selectedDocument.members)) {
+        documentMembers = selectedDocument.members;
+      }
+    } else {
+      // For files, use 'fileMember' property
+      if (
+        selectedDocument.fileMember &&
+        Array.isArray(selectedDocument.fileMember)
+      ) {
+        documentMembers = selectedDocument.fileMember;
+      }
+    }
+
+    console.log("Setting members data:", documentMembers);
+    setMembers(documentMembers);
+  };
+
+  // Function to refresh member data from API (optional, if you have these endpoints)
+  const refreshMemberDataFromAPI = async () => {
+    if (!ctrl.selectedDocument?.id) return;
 
     try {
-      let response;
+      setLoading(true);
+      const isFolder =
+        ctrl.selectedDocument.itemType === "folder" ||
+        ctrl.selectedDocument.type === "folder" ||
+        ctrl.selectedDocument.isFolder;
 
-      if (selectedDocument.itemType === "folder") {
-        response = await axiosInstance.get(GET_FOLDER_MEMBER_END_POINT);
-      } else {
-        response = await axiosInstance.get(GET_MEMBER_FILE_END_POINT);
-      }
+      // Adjust these endpoints to match your actual API
+      const endpoint = isFolder 
+        ? `/folders/${ctrl.selectedDocument.id}/members` 
+        : `/files/${ctrl.selectedDocument.id}/members`;
 
-      const memberData = response?.data?.data;
-
-      if (!Array.isArray(memberData)) {
-        console.error("Invalid member data format received");
-        setMembers([]);
-        return;
-      }
-
-      // Now TypeScript knows selectedDocument can't be null here
-      const filteredMembers = memberData.filter((member: MemberModel) => {
-        if (selectedDocument.itemType === "folder") {
-          return member.folderId === selectedDocument.id;
-        }
-        return member.fileId === selectedDocument.id;
-      });
-
-      setMembers(filteredMembers);
+      const response = await axiosInstance.get(endpoint);
+      
+      // Update the members state directly
+      setMembers(response.data);
+      
+      console.log("Members refreshed from API:", response.data);
     } catch (error) {
-      console.error("Error fetching members:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: `Failed to fetch ${selectedDocument.itemType} members`,
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      setMembers([]);
+      console.error("Error refreshing member data from API:", error);
+      // Fallback to getting data from selectedDocument
+      getMemberData();
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -135,7 +136,11 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
       return;
     }
 
-    const isFolder = ctrl.selectedDocument.type === "folder";
+    const isFolder =
+      ctrl.selectedDocument.itemType === "folder" ||
+      ctrl.selectedDocument.type === "folder" ||
+      ctrl.selectedDocument.isFolder;
+
     const endpoint = isFolder ? "folders/member/delete" : "files/member/delete";
 
     const username = members
@@ -172,7 +177,13 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
           timer: 1500,
         });
 
-        getMemberData();
+        // Publish event to trigger refresh in main controller
+        eventBus.publish("MEMBER_UPDATED", {
+          action: "remove",
+          documentId: ctrl.selectedDocument.id,
+          documentType: ctrl.selectedDocument.itemType,
+          removedMembers: members,
+        });
       }
     } catch (error) {
       console.error("Error deleting member:", error);
@@ -184,21 +195,69 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
     }
   };
 
+  // Subscribe to MEMBER_UPDATED event
   useEffect(() => {
-    const unsubscribe = eventBus.subscribe("MEMBER_UPDATED", (data) => {
-      if (ctrl.selectedDocument?.id === data.documentId) {
-        getMemberData();
+    const handleMemberUpdate = (eventData: any) => {
+      console.log("MEMBER_UPDATED event received in DocumentDetailsPanel:", eventData);
+      
+      // Check if the event is for the currently selected document
+      if (ctrl.selectedDocument?.id === eventData.documentId) {
+        console.log("Event matches current document, refreshing members");
+        
+        // Try to refresh from API first, then fallback to document data
+        // Add a small delay to ensure the main controller has updated the document list
+        setTimeout(() => {
+          // Since the main controller will refresh the document list,
+          // we can just call getMemberData to get the updated data from the refreshed document
+          getMemberData();
+          
+          // Uncomment the line below if you have dedicated member API endpoints
+          // refreshMemberDataFromAPI();
+        }, 1000); // Increased delay to ensure main controller refresh is complete
       }
-    });
+    };
 
-    getMemberData();
+    const unsubscribe = eventBus.subscribe("MEMBER_UPDATED", handleMemberUpdate);
 
     return () => {
       unsubscribe();
     };
+  }, [ctrl.selectedDocument?.id]); // Only re-subscribe when document ID changes
+
+  // Load initial member data when document changes
+  useEffect(() => {
+    if (ctrl.selectedDocument) {
+      console.log("Selected document changed, loading member data");
+      getMemberData();
+    } else {
+      setMembers([]);
+    }
   }, [ctrl.selectedDocument]);
 
+  // Rest of your component remains the same...
   const renderMembers = () => {
+    console.log("Rendering members:", members);
+
+    if (loading) {
+      return (
+        <Box sx={{ p: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Loading members...
+          </Typography>
+        </Box>
+      );
+    }
+
+    if (members.length === 0) {
+      return (
+        <Box sx={{ p: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            No members found
+          </Typography>
+        </Box>
+      );
+    }
+
     const displayMembers = showAllMembers ? members : members.slice(0, 4);
     const remainingCount = members.length - 4;
 
@@ -212,7 +271,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
           alignItems: "center",
         }}
       >
-        {displayMembers.map((member) => (
+        {displayMembers.map((member: MemberModel) => (
           <Box
             key={member.id}
             sx={{
@@ -225,10 +284,16 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
           >
             <Avatar
               src={member?.user?.image?.url}
-              alt={member?.user?.name}
+              alt={member?.user?.name || member?.user?.username}
               sx={{ width: 32, height: 32 }}
-            />
-            <Tooltip title="Remove member">
+            >
+              {!member?.user?.image?.url &&
+                (member?.user?.name ||
+                  member?.user?.username)?.[0]?.toUpperCase()}
+            </Avatar>
+            <Tooltip
+              title={`Remove ${member?.user?.name || member?.user?.username}`}
+            >
               <IconButton
                 className="delete-button"
                 size="small"
@@ -285,7 +350,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
           </Badge>
         )}
 
-        {showAllMembers && members.length > 3 && (
+        {showAllMembers && members.length > 4 && (
           <Button
             onClick={toggleMemberDisplay}
             size="small"
@@ -306,6 +371,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
       </Box>
     );
   };
+
   return (
     <Collapse
       in={ctrl.collapeOpen}

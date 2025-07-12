@@ -39,8 +39,14 @@ export interface Document {
     userId: string;
     user: {
       id: string;
+      image: {
+        url: string;
+        filename: string;
+        mimetype: string;
+        path: string;
+      };
     };
-  }
+  };
   // Permission flags
   hasAccess: boolean;
   canView: boolean;
@@ -48,7 +54,7 @@ export interface Document {
   isDisabled: boolean;
   isMember: boolean;
   canSelect: boolean;
-  accessLevel: 'owner' | 'member' | 'public-readonly' | 'no-access';
+  accessLevel: "owner" | "member" | "public-readonly" | "no-access";
   canNavigate: boolean;
 }
 
@@ -56,9 +62,15 @@ export interface folderModel {
   id: string;
   folderId: string;
   members: {
-    user:{
+    user: {
       id: string;
-    }
+      image: {
+        url: string;
+        filename: string;
+        mimetype: string;
+        path: string;
+      };
+    };
   };
   name: string;
   ownerId: string;
@@ -86,9 +98,9 @@ export interface FileModel {
   folderId: string;
   nameVersion: string;
   fileMember: {
-    user:{
+    user: {
       id: string;
-    }
+    };
   };
   owner: {
     id: string;
@@ -124,7 +136,13 @@ export interface folderMember {
   id: string;
   user: {
     id: string;
-  }
+    image: {
+      url: string;
+      filename: string;
+      mimetype: string;
+      path: string;
+    };
+  };
   owner: {
     id: string;
     username: string;
@@ -141,10 +159,16 @@ export interface fileMember {
   fileId: string;
   file: FileModel;
   id: string;
-  user:{
+  user: {
     id: string;
     username: string;
-  }
+    image: {
+      url: string;
+      filename: string;
+      mimetype: string;
+      path: string;
+    };
+  };
   owner: {
     id: string;
     username: string;
@@ -159,11 +183,17 @@ export interface Subfolder {
   documentId: string;
   createdAt: string;
   updatedAt: string;
-  members : {
+  members: {
     user: {
       id: string;
-    }
-  }
+      image: {
+        url: string;
+        filename: string;
+        mimetype: string;
+        path: string;
+      };
+    };
+  };
   owner: {
     id: string;
     username: string;
@@ -181,4 +211,3 @@ export interface Subfolder {
   size: number;
   status: string;
 }
-

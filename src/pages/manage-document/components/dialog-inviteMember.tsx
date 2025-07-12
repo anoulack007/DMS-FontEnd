@@ -71,6 +71,8 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
     }
   };
 
+  // In your DialogInviteMember component, improve the event publishing
+
   const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault();
     onClose();
@@ -107,17 +109,18 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
           endpoint = INVITE_MEMBER_FOLDER_END_POINT;
           payload = {
             folderId: selectedDocument?.id,
-            username, // Send as array
+            username,
           };
         } else {
           endpoint = INVITE_MEMBER_FILE_END_POINT;
           payload = {
             fileId: selectedDocument?.id,
-            email: selectedUser?.email
+            email: selectedUser?.email,
           };
         }
 
-        await axiosInstance.post(endpoint, payload);
+        // Make the API call
+        const response = await axiosInstance.post(endpoint, payload);
 
         Swal.fire({
           title: "ສຳເລັດ!",
@@ -127,10 +130,21 @@ const DialogInviteMember: React.FC<DialogInviteMemberProps> = ({
           timer: 1500,
         });
 
+        // Publish event with more detailed information
         eventBus.publish("MEMBER_UPDATED", {
           action: "invite",
           documentId: selectedDocument?.id,
           documentType: selectedDocument?.itemType,
+          invitedUser: selectedUser,
+          timestamp: new Date().toISOString(),
+          // Include any response data if needed
+          responseData: response.data,
+        });
+
+        // Also publish a more general refresh event if needed
+        eventBus.publish("DATA_REFRESH_NEEDED", {
+          type: "member_invitation",
+          documentId: selectedDocument?.id,
         });
 
         handleClear();

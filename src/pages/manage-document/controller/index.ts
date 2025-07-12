@@ -1420,10 +1420,32 @@ const UseMainController = () => {
       }
     });
 
+    // Add this subscription for member updates
+    const unsubscribeMembers = eventBus.subscribe(
+      "MEMBER_UPDATED",
+      (eventData) => {
+        console.log(
+          "MEMBER_UPDATED event received in main controller:",
+          eventData
+        );
+
+        // Refresh the document list to get updated member data
+        if (folderPath) {
+          handleGetDocumentsByPath(folderPath);
+        } else {
+          handleGetData();
+        }
+        setCollapseOpen(false);
+        setSelectedDocument(null);
+        setSelectedItems([]);
+      }
+    );
+
     return () => {
       unsubscribeFiles();
       unsubscribeFolders();
       moveDocuments();
+      unsubscribeMembers(); // Don't forget to unsubscribe
     };
   }, [searchParams]);
   return {

@@ -20,54 +20,54 @@ export const VersionList = ({ version }: VersionListProps) => {
 
   const formatDate = (date?: string) => {
     if (!date) return "N/A";
-    return new Date(date).toLocaleDateString();
+    return new Date(date).toLocaleDateString("en-GB");
   };
 
   const handleFileOpen = async (event: React.MouseEvent, url?: string) => {
     // Prevent event bubbling
     event.preventDefault();
     event.stopPropagation();
-    
+
     if (!url) return;
-    
+
     // Show loading state
     setIsLoading(true);
-    
+
     try {
       // Ensure the URL has a protocol
       let fullUrl = url;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
         fullUrl = `https://${url}`;
       }
-      
+
       // Show SweetAlert2 confirmation dialog
       const result = await Swal.fire({
-        title: 'ເປີດເອກະສານ',
-        text: 'ທ່ານຕ້ອງການດາວໂຫລດເອກະສານນີ້ບໍ່?',
-        icon: 'question',
+        title: "ເປີດເອກະສານ",
+        text: "ທ່ານຕ້ອງການດາວໂຫລດເອກະສານນີ້ບໍ່?",
+        icon: "question",
         showCancelButton: true,
-        confirmButtonText: 'ດາວໂຫລດ',
-        cancelButtonText: 'ຍົກເລີກ',
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#808080',
-        reverseButtons: true
+        confirmButtonText: "ດາວໂຫລດ",
+        cancelButtonText: "ຍົກເລີກ",
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#808080",
+        reverseButtons: true,
       });
-      
+
       // If user canceled, do nothing
       if (result.dismiss === Swal.DismissReason.cancel || !result.isConfirmed) {
         setIsLoading(false);
         return;
       }
-      
+
       // User confirmed download - open in new tab AND download
       if (result.isConfirmed) {
         // First open in a new tab
-        window.open(fullUrl, '_blank', 'noopener,noreferrer');
-        
+        window.open(fullUrl, "_blank", "noopener,noreferrer");
+
         // Then trigger download
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = fullUrl;
-        link.download = version.version || 'document'; // Use version number as filename or default to 'document'
+        link.download = version.version || "document"; // Use version number as filename or default to 'document'
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -75,10 +75,10 @@ export const VersionList = ({ version }: VersionListProps) => {
     } catch (error) {
       console.error("Error handling file:", error);
       Swal.fire({
-        icon: 'error',
-        title: 'ຂໍອະໄພ',
-        text: 'ເກີດຂໍ້ຜິດພາດໃນການເປີດເອກະສານ',
-        confirmButtonText: 'ຕົກລົງ'
+        icon: "error",
+        title: "ຂໍອະໄພ",
+        text: "ເກີດຂໍ້ຜິດພາດໃນການເປີດເອກະສານ",
+        confirmButtonText: "ຕົກລົງ",
       });
     } finally {
       // Hide loading state after a short delay to show the indicator
@@ -99,7 +99,8 @@ export const VersionList = ({ version }: VersionListProps) => {
         padding: 1,
         cursor: version.url && !isLoading ? "pointer" : "default",
         "&:hover": {
-          backgroundColor: version.url && !isLoading ? "action.hover" : "transparent",
+          backgroundColor:
+            version.url && !isLoading ? "action.hover" : "transparent",
           borderRadius: 1,
         },
         transition: "background-color 0.2s",
@@ -116,17 +117,16 @@ export const VersionList = ({ version }: VersionListProps) => {
         <Typography color="text.secondary">
           {formatDate(version?.createdAt)}
         </Typography>
-        {version.url && (
-          isLoading ? (
+        {version.url &&
+          (isLoading ? (
             <CircularProgress size={18} thickness={4} />
           ) : (
-            <OpenInNew 
-              fontSize="small" 
-              sx={{ color: "text.secondary" }} 
+            <OpenInNew
+              fontSize="small"
+              sx={{ color: "text.secondary" }}
               onClick={(e) => handleFileOpen(e, version.url)}
             />
-          )
-        )}
+          ))}
       </Box>
     </Box>
   );
@@ -169,7 +169,7 @@ export const VersionListComponent = ({
           ))}
 
           {hasMore && (
-            <Box 
+            <Box
               sx={{ display: "flex", justifyContent: "center" }}
               onClick={(e) => e.stopPropagation()} // Prevent click from triggering parent handler
             >
