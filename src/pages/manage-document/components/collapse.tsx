@@ -67,8 +67,8 @@ interface DocumentDetailsPanelProps {
     setSearchParams: (params: any) => void;
     handleChangeStatus: (event: any) => void;
     setInviteDialogOpen: (open: boolean) => void;
-    versionDocument: Version[]; // Replace 'any' with your version type
-    fileHistory: Version[]; // Replace 'any' with your history type
+    versionDocument: Version[];
+    fileHistory: Version[];
   };
 }
 

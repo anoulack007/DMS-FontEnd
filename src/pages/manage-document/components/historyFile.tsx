@@ -9,7 +9,7 @@ interface FileHistoryProps {
 }
 
 export const FileHistory = ({ fileHistory, isLoading = false }: FileHistoryProps) => {
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState<boolean>(false);
   const initialLimit = 3;
 
   const formatDate = (date?: string) => {

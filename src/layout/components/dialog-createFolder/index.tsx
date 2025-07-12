@@ -48,7 +48,7 @@ const CreateFolderDialog: React.FC<CreateFolderDialogProps> = ({
   onUsersSelected = () => {},
 }) => {
   const [users, setUsers] = useState<UserModel[]>([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState<boolean>(false);
   const [selectedUsernames, setSelectedUsernames] =
     useState<string[]>(selectedUsers);
 
@@ -119,19 +119,6 @@ const CreateFolderDialog: React.FC<CreateFolderDialogProps> = ({
     }
   };
 
-  // Handle key down events for the entire dialog
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      // Prevent default form submission
-      event.preventDefault();
-      
-      // Only submit if folder name is provided and not loading
-      if (folderName && !loading) {
-        handleSubmit();
-      }
-    }
-  };
-
   // Handle key down specifically for the folder name input
   const handleFolderNameKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -146,7 +133,6 @@ const CreateFolderDialog: React.FC<CreateFolderDialogProps> = ({
       fullWidth 
       open={open} 
       onClose={handleCloseX}
-      onKeyDown={handleKeyDown}
     >
       <DialogTitle sx={{ display: "flex", justifyContent: "space-between" }}>
         ສ້າງໂຟເດີ
