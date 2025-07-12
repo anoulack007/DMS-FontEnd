@@ -1,3 +1,5 @@
+import { folderModel } from "./Document";
+
 interface owner {
   company: string;
   name: string;
@@ -35,4 +37,6 @@ export interface Version {
   createdAt: string;
   updateBy: string;
   event: string;
+  folderEvent?: string;
+  folder?: folderModel
 }

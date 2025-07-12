@@ -8,13 +8,16 @@ interface FileHistoryProps {
   isLoading?: boolean;
 }
 
-export const FileHistory = ({ fileHistory, isLoading = false }: FileHistoryProps) => {
+export const FileHistory = ({
+  fileHistory,
+  isLoading = false,
+}: FileHistoryProps) => {
   const [showAll, setShowAll] = useState<boolean>(false);
   const initialLimit = 3;
 
   const formatDate = (date?: string) => {
     if (!date) return "";
-    return new Date(date).toLocaleDateString();
+    return new Date(date).toLocaleDateString("en-GB");
   };
 
   // Show loading skeletons when data is loading
@@ -68,10 +71,10 @@ export const FileHistory = ({ fileHistory, isLoading = false }: FileHistoryProps
           }}
         >
           <Typography color="text.secondary" mb={1}>
-            {history?.event}
+            {history?.event ?? history?.folderEvent}
           </Typography>
           <Typography color="text.secondary">
-            {formatDate(history?.createdAt)}
+            {formatDate(history?.createdAt ?? history?.folder?.updatedAt)}
           </Typography>
         </Box>
       ))}
