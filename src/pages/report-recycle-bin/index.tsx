@@ -52,7 +52,7 @@ const ReportRecycleBinPage = () => {
     const typeGroups: Record<string, number> = {};
 
     ctrl?.uploadDocument.forEach((doc) => {
-      const type = doc.type || "Unknown"; // Default if missing
+      const type = doc.type || "Folder"; // Default if missing
       typeGroups[type] = (typeGroups[type] || 0) + 1;
     });
 
@@ -76,7 +76,7 @@ const ReportRecycleBinPage = () => {
     // Group by document type instead of categories
     const typeGroups: Record<string, number> = {};
     ctrl?.uploadDocument.forEach((doc) => {
-      const type = doc.type || "Unknown"; // Default if missing
+      const type = doc.type || "Folder"; // Default if missing
       if (!typeGroups[type]) {
         typeGroups[type] = 0;
       }

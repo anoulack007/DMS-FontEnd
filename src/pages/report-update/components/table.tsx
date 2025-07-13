@@ -105,7 +105,7 @@ const DocumentTable = forwardRef<DocumentTableRef, DocumentTableProps>(({
             onClick={onExport}
             startIcon={<SystemUpdateAltIcon />}
           >
-            Export to Excel
+            ສົ່ງອອກເປັນ Excel
           </Button>
         </Box>
       </Box>

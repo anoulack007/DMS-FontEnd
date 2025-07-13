@@ -31,28 +31,27 @@ const UseMainController = (props?: UseMainControllerProps) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const handleGetReportUploadDocument = async (eventType?: string) => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      let url = GET_ALL_FOLLOW_DOCUMENT_END_POINT;
-      if (eventType) {
-        url += `?event=${eventType}`;
-      }
-
-      const res = await axiosInstance.get<{ data: FollowDocumentModel[] }>(url);
-
-      let documents = res?.data?.data || [];
-      const uploadDocuments = documents.filter((doc) => doc.event === "Upload");
-
-      setUploadDocument(uploadDocuments);
-
-      applyFilters(uploadDocuments, searchQuery, dateFilter);
-    } catch (error) {
-      console.error("Error fetching documents:", error);
-    } finally {
-      setLoading(false);
+    let url = GET_ALL_FOLLOW_DOCUMENT_END_POINT;
+    if (eventType) {
+      url += `?event=${eventType}`;
     }
-  };
+
+    const res = await axiosInstance.get<{ data: FollowDocumentModel[] }>(url);
+
+    let documents = res?.data?.data || [];
+
+    setUploadDocument(documents); 
+
+    applyFilters(documents, searchQuery, dateFilter); 
+  } catch (error) {
+    console.error("Error fetching documents:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const applyFilters = useCallback(
     (docs: FollowDocumentModel[], query: string, dates: DateFilterType) => {

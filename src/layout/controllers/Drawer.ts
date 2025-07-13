@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import axiosInstance from "../../configs/axios";
 import { CREATE_FOLDER_END_POINT } from "../../configs/endPoint/folder-endpoint";
 import Swal from "sweetalert2";
@@ -18,6 +18,9 @@ const UseDrawerController = () => {
 
   const [anchorEl, setAnchorEl] = useState<null>(null!);
   const opening = Boolean(anchorEl);
+
+  // Add a ref to track if request is in progress
+  const isRequestInProgress = useRef<boolean>(false);
 
   const handleNavigateToMain = (path: string) => {
     navigate(path);
@@ -45,17 +48,37 @@ const UseDrawerController = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setFolderName("");
+    // Reset the request flag when closing dialog
+    isRequestInProgress.current = false;
   };
 
   const handleCreateFolder = async () => {
+    // Prevent duplicate requests
+    if (isRequestInProgress.current || loading) {
+      return;
+    }
+
+    // Validate folder name
+    if (!folderName || folderName.trim() === "") {
+      Swal.fire({
+        title: "ຜິດຜາດ!",
+        text: "ກະລຸນາໃສ່ຊື່ໂຟເດີ້",
+        icon: "error",
+        confirmButtonText: "ຕົກລົງ",
+      });
+      return;
+    }
+
     try {
+      // Set flag to prevent duplicate requests
+      isRequestInProgress.current = true;
       setLoading(true);
 
       // Get the parent folder ID from local storage
       const parentFolderPath = localStorage.getItem("currentFolderPath");
 
       const data = {
-        name: folderName,
+        name: folderName.trim(),
         path: parentFolderPath || null,
         inviteUsername: selectedUsers || null,
       };
@@ -76,7 +99,6 @@ const UseDrawerController = () => {
 
       handleCloseDialog();
     } catch (error: any) {
-      handleCloseDialog();
       let errorMessage = "Failed to create folder. Please try again.";
 
       if (error.response) {
@@ -96,10 +118,23 @@ const UseDrawerController = () => {
       });
 
       console.error("Error creating folder:", error);
-      console.error(error);
     } finally {
       setLoading(false);
+      // Reset the request flag
+      isRequestInProgress.current = false;
     }
+  };
+
+  // Handler for form submission (Enter key)
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent default form submission
+    handleCreateFolder();
+  };
+
+  // Handler for button click
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent any default behavior
+    handleCreateFolder();
   };
 
   const handleOpenUploadDialog = () => {
@@ -127,6 +162,8 @@ const UseDrawerController = () => {
     handleCloseUploadDialog,
     handleOpenUploadDialog,
     handleCreateFolder,
+    handleFormSubmit, // New handler for form submission
+    handleButtonClick, // New handler for button click
     handleOpenDialog,
     handleCloseDialog,
     handleNavigateToMain,

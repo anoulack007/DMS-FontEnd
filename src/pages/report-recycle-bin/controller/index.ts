@@ -13,15 +13,19 @@ interface DateFilterType {
 }
 
 const UseMainController = () => {
-  const [uploadDocument, setUploadDocument] = useState<FollowDocumentModel[]>([]);
-  const [filteredDocuments, setFilteredDocuments] = useState<FollowDocumentModel[]>([]);
+  const [uploadDocument, setUploadDocument] = useState<FollowDocumentModel[]>(
+    []
+  );
+  const [filteredDocuments, setFilteredDocuments] = useState<
+    FollowDocumentModel[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [dateFilter, setDateFilter] = useState<DateFilterType>({
     startDate: dayjs().subtract(30, "day"),
     endDate: dayjs(),
   });
   const [searchQuery, setSearchQuery] = useState<string>("");
-  
+
   // Add pagination state to controller
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -30,15 +34,20 @@ const UseMainController = () => {
     try {
       setLoading(true);
       const res = await axiosInstance.get<{ data: FollowDocumentModel[] }>(
-        GET_ALL_FOLLOW_DOCUMENT_END_POINT
+        GET_ALL_FOLLOW_DOCUMENT_END_POINT,
+        {
+          params: {
+            event: "Restore",
+          },
+        }
       );
 
-      // Filter only uploaded files/folders
-      const uploadedDocs = res?.data?.data?.filter((doc) => doc.event === "Restore");
-      setUploadDocument(uploadedDocs);
-      
+      const RestoreDoc = res?.data?.data || [];
+
+      setUploadDocument(RestoreDoc);
+
       // Apply initial date filter
-      applyFilters(uploadedDocs, searchQuery, dateFilter);
+      applyFilters(RestoreDoc, searchQuery, dateFilter);
     } catch (error) {
       console.error("Error fetching documents:", error);
     } finally {
@@ -56,8 +65,10 @@ const UseMainController = () => {
         filtered = filtered.filter((doc) => {
           const docDate = dayjs(doc.createdAt);
           return (
-            docDate.isAfter(dates.startDate, "day") || docDate.isSame(dates.startDate, "day")) &&
-            (docDate.isBefore(dates.endDate, "day") || docDate.isSame(dates.endDate, "day")
+            (docDate.isAfter(dates.startDate, "day") ||
+              docDate.isSame(dates.startDate, "day")) &&
+            (docDate.isBefore(dates.endDate, "day") ||
+              docDate.isSame(dates.endDate, "day"))
           );
         });
       }
@@ -116,7 +127,9 @@ const UseMainController = () => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };

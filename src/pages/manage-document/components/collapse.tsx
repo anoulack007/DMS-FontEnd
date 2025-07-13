@@ -448,16 +448,24 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               </Box>
             </Box>
 
-            <Typography mt={2} fontWeight={700}>
-              <Typography
-                sx={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}
-              >
-                ເວີ​ຊັນ ​ແລະ ​ການ​ດັດ​ແປງ​{" "}
+            {ctrl?.selectedDocument?.type != "folder" && (
+              <Typography mt={2} fontWeight={700}>
+                <Typography
+                  sx={{
+                    fontSize: "18px",
+                    fontWeight: 700,
+                    marginBottom: "8px",
+                  }}
+                >
+                  ເວີ​ຊັນເອກະສານ​{" "}
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  <VersionListComponent
+                    versions={ctrl?.versionDocument || []}
+                  />
+                </Box>
               </Typography>
-              <Box sx={{ mt: 2 }}>
-                <VersionListComponent versions={ctrl?.versionDocument || []} />
-              </Box>
-            </Typography>
+            )}
 
             <Typography mt={2} fontWeight={700}>
               <Typography

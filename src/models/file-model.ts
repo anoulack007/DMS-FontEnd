@@ -35,4 +35,9 @@ export interface Version {
   createdAt: string;
   updateBy: string;
   event: string;
+  folderEvent?: string;
+  folder?: {
+    updatedAt: string;
+    createdAt: string;
+  }
 }

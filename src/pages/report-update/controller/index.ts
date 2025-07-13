@@ -31,17 +31,20 @@ const UseMainController = (tableRef?: React.RefObject<DocumentTableRef>) => {
     try {
       setLoading(true);
       const res = await axiosInstance.get<{ data: FollowDocumentModel[] }>(
-        GET_ALL_FOLLOW_DOCUMENT_END_POINT
+        GET_ALL_FOLLOW_DOCUMENT_END_POINT,
+        {
+          params: {
+            event: "Update",
+          },
+        }
       );
 
-      // Filter only uploaded files/folders
-      const uploadedDocs = res?.data?.data?.filter(
-        (doc) => doc.event === "Update"
-      );
-      setUploadDocument(uploadedDocs);
+      const UpdateDoc = res?.data?.data || [];
+
+      setUploadDocument(UpdateDoc);
 
       // Apply initial date filter
-      applyFilters(uploadedDocs, searchQuery, dateFilter);
+      applyFilters(UpdateDoc, searchQuery, dateFilter);
     } catch (error) {
       console.error("Error fetching documents:", error);
     } finally {

@@ -68,10 +68,10 @@ export const FileHistory = ({ fileHistory, isLoading = false }: FileHistoryProps
           }}
         >
           <Typography color="text.secondary" mb={1}>
-            {history?.event}
+            {history?.event ?? history?.folderEvent}
           </Typography>
           <Typography color="text.secondary">
-            {formatDate(history?.createdAt)}
+            {formatDate(history?.createdAt ?? history?.folder?.createdAt)}
           </Typography>
         </Box>
       ))}

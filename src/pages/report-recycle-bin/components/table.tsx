@@ -91,7 +91,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
             onClick={onExport}
             startIcon={<SystemUpdateAltIcon />}
           >
-            Export to Excel
+            ສົ່ງອອກເປັນ Excel
           </Button>
         </Box>
       </Box>
