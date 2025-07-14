@@ -38,7 +38,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import {
   GET_FOLDER_MEMBER_BY_DOC_ID_END_POINT,
-  GET_FOLDER_MEMBER_END_POINT,
 } from "../../../configs/endPoint/folder-endpoint";
 import eventBus from "../../../utils/functions/eventBus";
 import { getIconByType } from "../../../utils/functions/inconUtils";
@@ -122,15 +121,6 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
       setMembers(memberData);
     } catch (error) {
       console.error("Error fetching members:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: `Failed to fetch ${
-          selectedDocument.itemType || selectedDocument.type
-        } members`,
-        timer: 2000,
-        showConfirmButton: false,
-      });
       setMembers([]);
     } finally {
       setLoading(false);

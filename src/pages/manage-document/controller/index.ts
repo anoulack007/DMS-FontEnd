@@ -1238,7 +1238,6 @@ const UseMainController = () => {
 
         await handleGetData();
 
-        // ✅ Fix: Pass folderPath explicitly if needed
         if (folderPath) {
           await handleGetDocumentsByPath(folderPath);
         }
