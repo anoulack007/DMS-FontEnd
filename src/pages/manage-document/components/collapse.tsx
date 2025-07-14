@@ -105,9 +105,9 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
         selectedDocument.type === "folder";
 
       if (isFolder) {
-        endpoint = `${GET_FOLDER_MEMBER_BY_DOC_ID_END_POINT}/${selectedDocument.documentId}`;
+        endpoint = `${GET_FOLDER_MEMBER_BY_DOC_ID_END_POINT}/${selectedDocument?.id}`;
       } else {
-        endpoint = `${GET_FILE_MEMBER_BY_DOC_ID_END_POINT}/${selectedDocument.documentId}`;
+        endpoint = `${GET_FILE_MEMBER_BY_DOC_ID_END_POINT}/${selectedDocument?.id}`;
       }
 
       response = await axiosInstance.get(endpoint);
