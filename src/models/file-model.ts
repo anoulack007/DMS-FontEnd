@@ -29,7 +29,9 @@ export interface Version {
   id: string;
   url: string;
   version: string;
+  name: string;
   owner: owner;
+  nameVersion: string;
   modifiedBy: string;
   modifiedAt: string;
   createdAt: string;

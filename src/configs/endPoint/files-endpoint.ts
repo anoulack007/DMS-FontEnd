@@ -25,9 +25,13 @@ export const GET_FILE_HISTORY_END_POINT: string = '/files-history'
 
 export const GET_MEMBER_FILE_END_POINT: string = '/files/get-member/files'
 
+export const GET_FILE_MEMBER_BY_DOC_ID_END_POINT: string = '/files/file-members'
+
 export const GET_ONE_FILE_HISTORT_END_POINT: string = '/files-history/get-file-history'
 
 export const GET_VERSION_FILE_END_POINT: string = '/files/get-version'
 
 export const DELETE_FOLLOW_DOC: string = '/follow-docs'
+
+export const UPDATE_STATUS_FILE_END_POINT: string = '/files/status'
 

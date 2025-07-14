@@ -294,7 +294,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
 
     if (!access.canSelect) {
       let message = "ຖືກປະຕິເສດການເຂົ້າເຖິງ: ທ່ານບໍ່ມີສິດໃນການເລືອກລາຍການນີ້";
-      console.log(message)
+      console.log(message);
 
       if (access.accessLevel === "public-readonly") {
         message =
@@ -319,9 +319,9 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
 
     if (!access.canNavigate) {
       let title = "ບໍ່ມີສິດເຂົ້າເຖິງ";
-      console.log(title)
+      console.log(title);
       let text = "ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໂຟນເດີນີ້.";
-      console.log(text)
+      console.log(text);
 
       if (access.accessLevel === "public-readonly") {
         title = "ການເຂົ້າເຖິງແບບຈຳກັດ";
@@ -395,7 +395,6 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
     <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
       <TableContainer
         sx={{
-          boxShadow: 3,
           borderRadius: 3,
         }}
         component={Paper}
@@ -623,7 +622,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                       }}
                     >
                       {item.updatedAt
-                        ? new Date(item.updatedAt).toLocaleDateString('en-GB')
+                        ? new Date(item.updatedAt).toLocaleDateString("en-GB")
                         : ""}
                     </TableCell>
                     <TableCell
@@ -705,7 +704,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                   count={ctrl.documents.length}
                   page={ctrl.page}
                   onPageChange={ctrl.handleChangePage}
-                  rowsPerPage={ctrl.rowsPerPage}  
+                  rowsPerPage={ctrl.rowsPerPage}
                   onRowsPerPageChange={ctrl.handleChangeRowsPerPage}
                   rowsPerPageOptions={[5, 10, 25, 50]}
                 />

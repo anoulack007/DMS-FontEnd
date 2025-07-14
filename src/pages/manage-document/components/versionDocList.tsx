@@ -20,73 +20,69 @@ export const VersionList = ({ version }: VersionListProps) => {
 
   const formatDate = (date?: string) => {
     if (!date) return "N/A";
-    return new Date(date).toLocaleDateString();
+    return new Date(date).toLocaleDateString('en-GB');
   };
 
-  const handleFileOpen = async (event: React.MouseEvent, url?: string) => {
-    // Prevent event bubbling
-    event.preventDefault();
-    event.stopPropagation();
-    
-    if (!url) return;
-    
-    // Show loading state
-    setIsLoading(true);
-    
-    try {
-      // Ensure the URL has a protocol
-      let fullUrl = url;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        fullUrl = `https://${url}`;
-      }
-      
-      // Show SweetAlert2 confirmation dialog
-      const result = await Swal.fire({
-        title: 'ເປີດເອກະສານ',
-        text: 'ທ່ານຕ້ອງການດາວໂຫລດເອກະສານນີ້ບໍ່?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'ດາວໂຫລດ',
-        cancelButtonText: 'ຍົກເລີກ',
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#808080',
-        reverseButtons: true
-      });
-      
-      // If user canceled, do nothing
-      if (result.dismiss === Swal.DismissReason.cancel || !result.isConfirmed) {
-        setIsLoading(false);
-        return;
-      }
-      
-      // User confirmed download - open in new tab AND download
-      if (result.isConfirmed) {
-        // First open in a new tab
-        window.open(fullUrl, '_blank', 'noopener,noreferrer');
-        
-        // Then trigger download
-        const link = document.createElement('a');
-        link.href = fullUrl;
-        link.download = version.version || 'document'; // Use version number as filename or default to 'document'
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    } catch (error) {
-      console.error("Error handling file:", error);
-      Swal.fire({
-        icon: 'error',
-        title: 'ຂໍອະໄພ',
-        text: 'ເກີດຂໍ້ຜິດພາດໃນການເປີດເອກະສານ',
-        confirmButtonText: 'ຕົກລົງ'
-      });
-    } finally {
-      // Hide loading state after a short delay to show the indicator
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 1000);
+ const handleFileOpen = async (event: React.MouseEvent, url?: string) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (!url) return;
+
+  setIsLoading(true);
+
+  try {
+    let fullUrl = url;
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      fullUrl = `https://${url}`;
     }
-  };
+
+    const result = await Swal.fire({
+      title: "ເປີດເອກະສານ",
+      text: "ທ່ານຕ້ອງການດາວໂຫລດເອກະສານນີ້ບໍ່?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "ດາວໂຫລດ",
+      cancelButtonText: "ຍົກເລີກ",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#808080",
+      reverseButtons: true,
+    });
+
+    if (result.dismiss === Swal.DismissReason.cancel || !result.isConfirmed) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Download using fetch and blob
+    const response = await fetch(fullUrl);
+    if (!response.ok) throw new Error("Failed to fetch file");
+
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.setAttribute("download", version?.nameVersion || "document");
+    document.body.appendChild(link);  
+    link.click();
+
+    // Clean up
+    window.URL.revokeObjectURL(blobUrl);
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    Swal.fire({
+      icon: "error",
+      title: "ຂໍອະໄພ",
+      text: "ເກີດຂໍ້ຜິດພາດໃນການດາວໂຫລດເອກະສານ",
+      confirmButtonText: "ຕົກລົງ",
+    });
+  } finally {
+    setTimeout(() => setIsLoading(false), 1000);
+  }
+};
+
 
   return (
     <Box

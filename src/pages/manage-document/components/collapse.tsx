@@ -15,6 +15,8 @@ import {
   Tooltip,
   Button,
   Badge,
+  CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import FoldeImage from "../../../assets/Image/image 11.png";
@@ -27,11 +29,17 @@ import { VersionListComponent } from "./versionDocList";
 import { FileHistory } from "./historyFile";
 import { IconType } from "../../../enums/icon-enums";
 import axiosInstance from "../../../configs/axios";
-import { GET_MEMBER_FILE_END_POINT } from "../../../configs/endPoint/files-endpoint";
+import {
+  GET_FILE_MEMBER_BY_DOC_ID_END_POINT,
+  GET_MEMBER_FILE_END_POINT,
+} from "../../../configs/endPoint/files-endpoint";
 import Swal from "sweetalert2";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import { GET_FOLDER_MEMBER_END_POINT } from "../../../configs/endPoint/folder-endpoint";
+import {
+  GET_FOLDER_MEMBER_BY_DOC_ID_END_POINT,
+  GET_FOLDER_MEMBER_END_POINT,
+} from "../../../configs/endPoint/folder-endpoint";
 import eventBus from "../../../utils/functions/eventBus";
 import { getIconByType } from "../../../utils/functions/inconUtils";
 
@@ -62,127 +70,137 @@ interface Document {
 interface DocumentDetailsPanelProps {
   ctrl: {
     collapeOpen: boolean;
-    selectedDocument: Document | null; // Replace 'any' with your document type
+    selectedDocument: Document | null;
     setCollapseOpen: (open: boolean) => void;
     setSearchParams: (params: any) => void;
     handleChangeStatus: (event: any) => void;
     setInviteDialogOpen: (open: boolean) => void;
-    versionDocument: Version[]; // Replace 'any' with your version type
-    fileHistory: Version[]; // Replace 'any' with your history type
+    versionDocument: Version[];
+    fileHistory: Version[];
   };
 }
 
 export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
   ctrl,
 }) => {
-  const [showAllMembers, setShowAllMembers] = useState(false);
+  const [showAllMembers, setShowAllMembers] = useState<boolean>(false);
+  const [members, setMembers] = useState<MemberModel[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const toggleMemberDisplay = () => {
     setShowAllMembers(!showAllMembers);
   };
-  const [members, setMembers] = useState<MemberModel[]>([]);
 
   const getMemberData = async () => {
     const selectedDocument = ctrl.selectedDocument;
     if (!selectedDocument) return;
 
+    setLoading(true);
     try {
       let response;
+      let endpoint;
 
-      if (selectedDocument.itemType === "folder") {
-        response = await axiosInstance.get(GET_FOLDER_MEMBER_END_POINT);
+      const isFolder =
+        selectedDocument.itemType === "folder" ||
+        selectedDocument.type === "folder";
+
+      if (isFolder) {
+        endpoint = `${GET_FOLDER_MEMBER_BY_DOC_ID_END_POINT}/${selectedDocument.documentId}`;
       } else {
-        response = await axiosInstance.get(GET_MEMBER_FILE_END_POINT);
+        endpoint = `${GET_FILE_MEMBER_BY_DOC_ID_END_POINT}/${selectedDocument.documentId}`;
       }
 
+      response = await axiosInstance.get(endpoint);
       const memberData = response?.data?.data;
 
       if (!Array.isArray(memberData)) {
-        console.error("Invalid member data format received");
+        console.error("Invalid member data format received:", memberData);
         setMembers([]);
         return;
       }
 
-      // Now TypeScript knows selectedDocument can't be null here
-      const filteredMembers = memberData.filter((member: MemberModel) => {
-        if (selectedDocument.itemType === "folder") {
-          return member.folderId === selectedDocument.id;
-        }
-        return member.fileId === selectedDocument.id;
-      });
-
-      setMembers(filteredMembers);
+      setMembers(memberData);
     } catch (error) {
       console.error("Error fetching members:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: `Failed to fetch ${selectedDocument.itemType} members`,
+        text: `Failed to fetch ${
+          selectedDocument.itemType || selectedDocument.type
+        } members`,
         timer: 2000,
         showConfirmButton: false,
       });
       setMembers([]);
+    } finally {
+      setLoading(false);
     }
   };
-
   const handleDeleteMember = async (members: MemberModel[]) => {
-    if (!ctrl.selectedDocument?.id) {
+  if (!ctrl.selectedDocument?.id) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "ບໍ່ໄດ້ເລືອກເອກະສານ!",
+    });
+    return;
+  }
+
+  const isFolder = ctrl.selectedDocument.type === "folder";
+  const endpoint = isFolder ? "folders/member/delete" : "files/member/delete";
+
+  const username = members.map((member) => member.user?.username).filter(Boolean);
+  const emailList = members.map((member) => member.user?.email).filter(Boolean);
+  const email = emailList.length > 0 ? { email: emailList[0] } : {};
+
+  const payload = isFolder
+    ? { folderId: ctrl.selectedDocument.id, username }
+    : { fileId: ctrl.selectedDocument.id, ...email };
+
+  try {
+    const result = await Swal.fire({
+      title: "ທ່ານແນ່ໃຈບໍ່?",
+      text: `ທ່ານຕ້ອງການລຶບສະມາຊິກ ${members.length} ຄົນອອກຈາກ ${isFolder ? "ໂຟເດີ" : "ຟາຍ"}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ຕົກລົງ",
+      cancelButtonText: "ຍົກເລີກ",
+    });
+
+    if (result.isConfirmed) {
+      // Show SweetAlert loading
       Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "ບໍ່ໄດ້ເລືອກເອກະສານ!",
-      });
-      return;
-    }
-
-    const isFolder = ctrl.selectedDocument.type === "folder";
-    const endpoint = isFolder ? "folders/member/delete" : "files/member/delete";
-
-    const username = members
-      .map((member) => member.user?.username)
-      .filter(Boolean);
-    const emailList = members
-      .map((member) => member.user?.email)
-      .filter(Boolean);
-    const email = emailList.length > 0 ? { email: emailList[0] } : {};
-
-    const payload = isFolder
-      ? { folderId: ctrl.selectedDocument.id, username }
-      : { fileId: ctrl.selectedDocument.id, ...email };
-
-    try {
-      const result = await Swal.fire({
-        title: "ທ່ານແນ່ໃຈບໍ່?",
-        text: `ທ່ານຕ້ອງການລຶບສະມາຊິກ ${members.length} ຄົນອອກຈາກ ${
-          isFolder ? "ໂຟເດີ" : "ຟາຍ"
-        }?`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "ຕົກລົງ",
-        cancelButtonText: "ຍົກເລີກ",
+        title: "ກຳລັງລຶບ...",
+        text: "ກະລຸນາລໍຖ້າ",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
       });
 
-      if (result.isConfirmed) {
-        await axiosInstance.delete(endpoint, { data: payload });
+      // Perform delete
+      await axiosInstance.delete(endpoint, { data: payload });
 
-        Swal.fire({
-          icon: "success",
-          title: "ລຶບສະມາຊິກອອກສຳເລັດແລ້ວ",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-
-        getMemberData();
-      }
-    } catch (error) {
-      console.error("Error deleting member:", error);
+      // Show success after delete
       Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "ມີບາງຢ່າງຜິດພາດໃນຂະນະທີ່ລຶບສະມາຊິກອອກ.",
+        icon: "success",
+        title: "ລຶບສຳເລັດ",
+        showConfirmButton: false,
+        timer: 1500,
       });
+
+      getMemberData();
     }
-  };
+  } catch (error) {
+    console.error("Error deleting member:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "ມີບາງຢ່າງຜິດພາດໃນຂະນະທີ່ລຶບສະມາຊິກອອກ.",
+    });
+  }
+};
+
 
   useEffect(() => {
     const unsubscribe = eventBus.subscribe("MEMBER_UPDATED", (data) => {
@@ -199,6 +217,30 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
   }, [ctrl.selectedDocument]);
 
   const renderMembers = () => {
+    if (loading) {
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            p: 1,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          {[...Array(4)].map((_, index) => (
+            <Skeleton
+              key={index}
+              variant="circular"
+              width={32}
+              height={32}
+              sx={{ my: 1 }}
+            />
+          ))}
+        </Box>
+      );
+    }
+
     const displayMembers = showAllMembers ? members : members.slice(0, 4);
     const remainingCount = members.length - 4;
 
@@ -306,6 +348,7 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
       </Box>
     );
   };
+
   return (
     <Collapse
       in={ctrl.collapeOpen}
@@ -389,7 +432,10 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
               </FormControl>
 
               <Box sx={{ mt: 1 }}>
-                <Typography>ການເຂົ້າເຖິງ</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography>ການເຂົ້າເຖິງ</Typography>
+                  {loading && <CircularProgress size={16} />}
+                </Box>
 
                 <Box sx={{ mt: 2, display: "flex" }}>
                   <IconButton onClick={() => ctrl?.setInviteDialogOpen(true)}>
