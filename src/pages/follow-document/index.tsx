@@ -48,9 +48,9 @@ const FollowDocumentPage = () => {
       </Box>
 
       {/* Tabs Section */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs 
-          value={ctrl.activeTab} 
+      <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
+        <Tabs
+          value={ctrl.activeTab}
           onChange={ctrl.handleTabChange}
           aria-label="document tabs"
         >
@@ -154,11 +154,14 @@ const FollowDocumentPage = () => {
                   ລາຍລະອຽດ
                 </Typography>
 
-                <Typography>
-                  <strong>
-                    ເຈົ້າຂອງເອກະສານ <br /> {ctrl.selectedDocument?.ownerName}
-                  </strong>
-                </Typography>
+                {ctrl.selectedDocument?.event !== "AddMember" && ctrl?.selectedDocument?.event !== "RemoveMember" && (
+                  <Typography>
+                    <strong>
+                      ເຈົ້າຂອງເອກະສານ <br /> {ctrl.selectedDocument?.ownerName}
+                    </strong>
+                  </Typography>
+                )}
+
                 <Typography>
                   <strong>
                     ບໍລິສັດ <br /> {ctrl.selectedDocument?.company}
