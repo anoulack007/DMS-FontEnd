@@ -179,7 +179,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                           textOverflow: "ellipsis",
                         }}
                       >
-                        <Typography>{item.docName}</Typography>
+                        <Typography>{item.docName ?? 'N/A'}</Typography>
                       </Box>
                     </Box>
                   </TableCell>
@@ -189,10 +189,10 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                       : ""}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
-                    {item.ownerName}
+                    {item.ownerName ?? 'N/A'}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
-                    {item.company}
+                    {item.company ?? 'N/A'}
                   </TableCell>
                   <TableCell sx={{ borderBottom: "none" }}>
                     <Chip
