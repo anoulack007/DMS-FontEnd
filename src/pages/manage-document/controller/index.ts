@@ -59,14 +59,14 @@ const UseMainController = () => {
   const [inviteDialogOpen, setInviteDialogOpen] = useState<boolean>(false);
 
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
 
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [versionDocument, setVersionDocument] = useState<Version[]>([]);
-  const [versionUploadOpen, setVersionUploadOpen] = useState(false);
-  const [selectedDocumentNumber, setSelectedDocumentNumber] = useState("");
+  const [versionUploadOpen, setVersionUploadOpen] = useState<boolean>(false);
+  const [selectedDocumentNumber, setSelectedDocumentNumber] = useState<string>("");
 
   const handleUploadVersion = (documentNumber: string) => {
     setSelectedDocumentNumber(documentNumber);

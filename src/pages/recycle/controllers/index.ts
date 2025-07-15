@@ -79,7 +79,6 @@ const UseMainController = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const searchDelay = 500; // 500ms delay
 
-  // Pagination handlers
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -177,7 +176,6 @@ const UseMainController = () => {
     }
   };
 
-  // Search function to filter documents by name or documentId
   const handleSearch = (searchValue: string) => {
     setSearchTerm(searchValue);
   };

@@ -1,14 +1,14 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   Collapse,
   Paper,
   Typography,
   Divider,
-  IconButton
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import { RecycleBinDocument } from '../../../models/recycle-bin-model';
+  IconButton,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { RecycleBinDocument } from "../../../models/recycle-bin-model";
 import FoldeImage from "../../../assets/Image/image 11.png";
 
 interface DocumentDetailCollapseProps {
@@ -21,7 +21,10 @@ interface DocumentDetailCollapseProps {
   getIconByType: (type: string) => React.ReactNode;
 }
 
-const DocumentDetailCollapse: React.FC<DocumentDetailCollapseProps> = ({ ctrl, getIconByType }) => {
+const DocumentDetailCollapse: React.FC<DocumentDetailCollapseProps> = ({
+  ctrl,
+  getIconByType,
+}) => {
   return (
     <Collapse
       in={ctrl.collapeOpen}
@@ -79,9 +82,7 @@ const DocumentDetailCollapse: React.FC<DocumentDetailCollapseProps> = ({ ctrl, g
         <Divider />
 
         {ctrl.selectedDocument && (
-          <Box
-            sx={{ display: "flex", flexDirection: "column", gap: 5, mt: 3 }}
-          >
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 5, mt: 3 }}>
             <Typography>
               <strong>
                 ເຈົ້າຂອງເອກະສານ <br /> {ctrl.selectedDocument?.owner?.name}
@@ -97,9 +98,9 @@ const DocumentDetailCollapse: React.FC<DocumentDetailCollapseProps> = ({ ctrl, g
                 ສ້າງໃນວັນທີ <br />
               </strong>
               {ctrl?.selectedDocument?.createdAt
-                ? new Date(
-                    ctrl?.selectedDocument?.createdAt
-                  ).toLocaleString()
+                ? new Date(ctrl?.selectedDocument?.createdAt).toLocaleDateString(
+                    "en-GB"
+                  )
                 : "-"}
             </Typography>
             <Typography>
@@ -107,14 +108,14 @@ const DocumentDetailCollapse: React.FC<DocumentDetailCollapseProps> = ({ ctrl, g
                 ລຶບໃນວັນທີ <br />{" "}
               </strong>{" "}
               {ctrl?.selectedDocument?.updatedAt
-                ? new Date(
-                    ctrl?.selectedDocument?.updatedAt
-                  ).toLocaleString()
+                ? new Date(ctrl?.selectedDocument?.updatedAt).toLocaleDateString(
+                    "en-GB"
+                  )
                 : "-"}
             </Typography>
             <Typography>
               <strong>
-               ລຶບໂດຍ <br /> {ctrl.selectedDocument?.owner?.name}
+                ລຶບໂດຍ <br /> {ctrl.selectedDocument?.owner?.name}
               </strong>
             </Typography>
           </Box>

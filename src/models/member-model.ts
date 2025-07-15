@@ -21,15 +21,13 @@ export interface MemberModel {
   updatedAt: string;
   user: {
     id: string;
+    role: string;
     image: {
       url: string;
       filename: string;
       mimetype: string;
       path: string;
     };
-    role: {
-      name: string;
-    }
     email: string;
     name: string;
     username: string;

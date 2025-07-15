@@ -29,16 +29,11 @@ import { VersionListComponent } from "./versionDocList";
 import { FileHistory } from "./historyFile";
 import { IconType } from "../../../enums/icon-enums";
 import axiosInstance from "../../../configs/axios";
-import {
-  GET_FILE_MEMBER_BY_DOC_ID_END_POINT,
-  GET_MEMBER_FILE_END_POINT,
-} from "../../../configs/endPoint/files-endpoint";
+import { GET_FILE_MEMBER_BY_DOC_ID_END_POINT } from "../../../configs/endPoint/files-endpoint";
 import Swal from "sweetalert2";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import {
-  GET_FOLDER_MEMBER_BY_DOC_ID_END_POINT,
-} from "../../../configs/endPoint/folder-endpoint";
+import { GET_FOLDER_MEMBER_BY_DOC_ID_END_POINT } from "../../../configs/endPoint/folder-endpoint";
 import eventBus from "../../../utils/functions/eventBus";
 import { getIconByType } from "../../../utils/functions/inconUtils";
 
@@ -127,70 +122,75 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
     }
   };
   const handleDeleteMember = async (members: MemberModel[]) => {
-  if (!ctrl.selectedDocument?.id) {
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: "ບໍ່ໄດ້ເລືອກເອກະສານ!",
-    });
-    return;
-  }
-
-  const isFolder = ctrl.selectedDocument.type === "folder";
-  const endpoint = isFolder ? "folders/member/delete" : "files/member/delete";
-
-  const username = members.map((member) => member.user?.username).filter(Boolean);
-  const emailList = members.map((member) => member.user?.email).filter(Boolean);
-  const email = emailList.length > 0 ? { email: emailList[0] } : {};
-
-  const payload = isFolder
-    ? { folderId: ctrl.selectedDocument.id, username }
-    : { fileId: ctrl.selectedDocument.id, ...email };
-
-  try {
-    const result = await Swal.fire({
-      title: "ທ່ານແນ່ໃຈບໍ່?",
-      text: `ທ່ານຕ້ອງການລຶບສະມາຊິກ ${members.length} ຄົນອອກຈາກ ${isFolder ? "ໂຟເດີ" : "ຟາຍ"}?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "ຕົກລົງ",
-      cancelButtonText: "ຍົກເລີກ",
-    });
-
-    if (result.isConfirmed) {
-      // Show SweetAlert loading
+    if (!ctrl.selectedDocument?.id) {
       Swal.fire({
-        title: "ກຳລັງລຶບ...",
-        text: "ກະລຸນາລໍຖ້າ",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
+        icon: "error",
+        title: "Oops...",
+        text: "ບໍ່ໄດ້ເລືອກເອກະສານ!",
       });
-
-      // Perform delete
-      await axiosInstance.delete(endpoint, { data: payload });
-
-      // Show success after delete
-      Swal.fire({
-        icon: "success",
-        title: "ລຶບສຳເລັດ",
-        showConfirmButton: false,
-        timer: 1500,
-      });
-
-      getMemberData();
+      return;
     }
-  } catch (error) {
-    console.error("Error deleting member:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: "ມີບາງຢ່າງຜິດພາດໃນຂະນະທີ່ລຶບສະມາຊິກອອກ.",
-    });
-  }
-};
 
+    const isFolder = ctrl.selectedDocument.type === "folder";
+    const endpoint = isFolder ? "folders/member/delete" : "files/member/delete";
+
+    const username = members
+      .map((member) => member.user?.username)
+      .filter(Boolean);
+    const emailList = members
+      .map((member) => member.user?.email)
+      .filter(Boolean);
+    const email = emailList.length > 0 ? { email: emailList[0] } : {};
+
+    const payload = isFolder
+      ? { folderId: ctrl.selectedDocument.id, username }
+      : { fileId: ctrl.selectedDocument.id, ...email };
+
+    try {
+      const result = await Swal.fire({
+        title: "ທ່ານແນ່ໃຈບໍ່?",
+        text: `ທ່ານຕ້ອງການລຶບສະມາຊິກ ${members.length} ຄົນອອກຈາກ ${
+          isFolder ? "ໂຟເດີ" : "ຟາຍ"
+        }?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "ຕົກລົງ",
+        cancelButtonText: "ຍົກເລີກ",
+      });
+
+      if (result.isConfirmed) {
+        // Show SweetAlert loading
+        Swal.fire({
+          title: "ກຳລັງລຶບ...",
+          text: "ກະລຸນາລໍຖ້າ",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
+        // Perform delete
+        await axiosInstance.delete(endpoint, { data: payload });
+
+        // Show success after delete
+        Swal.fire({
+          icon: "success",
+          title: "ລຶບສຳເລັດ",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+
+        getMemberData();
+      }
+    } catch (error) {
+      console.error("Error deleting member:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "ມີບາງຢ່າງຜິດພາດໃນຂະນະທີ່ລຶບສະມາຊິກອອກ.",
+      });
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = eventBus.subscribe("MEMBER_UPDATED", (data) => {
@@ -206,34 +206,8 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
     };
   }, [ctrl.selectedDocument]);
 
-  const renderMembers = () => {
-    if (loading) {
-      return (
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            p: 1,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          {[...Array(4)].map((_, index) => (
-            <Skeleton
-              key={index}
-              variant="circular"
-              width={32}
-              height={32}
-              sx={{ my: 1 }}
-            />
-          ))}
-        </Box>
-      );
-    }
-
-    const displayMembers = showAllMembers ? members : members.slice(0, 4);
-    const remainingCount = members.length - 4;
-
+const renderMembers = () => {
+  if (loading) {
     return (
       <Box
         sx={{
@@ -244,100 +218,129 @@ export const DocumentDetailsPanel: React.FC<DocumentDetailsPanelProps> = ({
           alignItems: "center",
         }}
       >
-        {displayMembers.map((member) => (
-          <Box
-            key={member.id}
-            sx={{
-              my: 1,
-              position: "relative",
-              "&:hover .delete-button": {
-                opacity: 1,
-              },
-            }}
-          >
-            <Avatar
-              src={member?.user?.image?.url}
-              alt={member?.user?.name}
-              sx={{ width: 32, height: 32 }}
-            />
-            <Tooltip title="Remove member">
-              <IconButton
-                className="delete-button"
-                size="small"
-                onClick={() => handleDeleteMember([member])}
-                sx={{
-                  position: "absolute",
-                  top: -8,
-                  right: -8,
-                  backgroundColor: "white",
-                  opacity: 0,
-                  transition: "opacity 0.2s",
-                  "&:hover": {
-                    backgroundColor: "#f5f5f5",
-                  },
-                  width: 20,
-                  height: 20,
-                }}
-              >
-                <DeleteIcon sx={{ fontSize: 14 }} />
-              </IconButton>
-            </Tooltip>
-          </Box>
+        {[...Array(4)].map((_, index) => (
+          <Skeleton
+            key={index}
+            variant="circular"
+            width={32}
+            height={32}
+            sx={{ my: 1 }}
+          />
         ))}
-
-        {!showAllMembers && members.length > 4 && (
-          <Badge
-            variant="dot"
-            color="error"
-            sx={{
-              "& .MuiBadge-dot": {
-                top: 2,
-                right: 2,
-              },
-            }}
-          >
-            <Button
-              onClick={toggleMemberDisplay}
-              sx={{
-                minWidth: 32,
-                height: 32,
-                p: 0,
-                borderRadius: "50%",
-                color: "black",
-                backgroundColor: "#f5f5f5",
-                "&:hover": {
-                  backgroundColor: "#e0e0e0",
-                },
-              }}
-            >
-              <Tooltip title={`Show ${remainingCount} more members`}>
-                <MoreHorizIcon />
-              </Tooltip>
-            </Button>
-          </Badge>
-        )}
-
-        {showAllMembers && members.length > 3 && (
-          <Button
-            onClick={toggleMemberDisplay}
-            size="small"
-            sx={{
-              fontSize: "0.75rem",
-              textTransform: "none",
-              color: "black",
-              bgcolor: "#f1fbfd",
-              ml: 1,
-              "&:hover": {
-                backgroundColor: "#e0f3f7",
-              },
-            }}
-          >
-            ໜ້ອຍລົງ
-          </Button>
-        )}
       </Box>
     );
-  };
+  }
+
+  // Filter out members with ADMIN role
+  const filteredMembers = members.filter(member => member?.user?.role !== 'ADMIN');
+  
+  const displayMembers = showAllMembers ? filteredMembers : filteredMembers.slice(0, 4);
+  const remainingCount = filteredMembers.length - 4;
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        gap: 2,
+        p: 1,
+        flexWrap: "wrap",
+        alignItems: "center",
+      }}
+    >
+      {displayMembers.map((member) => (
+        <Box
+          key={member.id}
+          sx={{
+            my: 1,
+            position: "relative",
+            "&:hover .delete-button": {
+              opacity: 1,
+            },
+          }}
+        >
+          <Avatar
+            src={member?.user?.image?.url}
+            alt={member?.user?.name}
+            sx={{ width: 32, height: 32 }}
+          />
+          <Tooltip title="Remove member">
+            <IconButton
+              className="delete-button"
+              size="small"
+              onClick={() => handleDeleteMember([member])}
+              sx={{
+                position: "absolute",
+                top: -8,
+                right: -8,
+                backgroundColor: "white",
+                opacity: 0,
+                transition: "opacity 0.2s",
+                "&:hover": {
+                  backgroundColor: "#f5f5f5",
+                },
+                width: 20,
+                height: 20,
+              }}
+            >
+              <DeleteIcon sx={{ fontSize: 14 }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ))}
+
+      {!showAllMembers && filteredMembers.length > 4 && (
+        <Badge
+          variant="dot"
+          color="error"
+          sx={{
+            "& .MuiBadge-dot": {
+              top: 2,
+              right: 2,
+            },
+          }}
+        >
+          <Button
+            onClick={toggleMemberDisplay}
+            sx={{
+              minWidth: 32,
+              height: 32,
+              p: 0,
+              borderRadius: "50%",
+              color: "black",
+              backgroundColor: "#f5f5f5",
+              "&:hover": {
+                backgroundColor: "#e0e0e0",
+              },
+            }}
+          >
+            <Tooltip title={`Show ${remainingCount} more members`}>
+              <MoreHorizIcon />
+            </Tooltip>
+          </Button>
+        </Badge>
+      )}
+
+      {showAllMembers && filteredMembers.length > 3 && (
+        <Button
+          onClick={toggleMemberDisplay}
+          size="small"
+          sx={{
+            fontSize: "0.75rem",
+            textTransform: "none",
+            color: "black",
+            bgcolor: "#f1fbfd",
+            ml: 1,
+            "&:hover": {
+              backgroundColor: "#e0f3f7",
+            },
+          }}
+        >
+          ໜ້ອຍລົງ
+        </Button>
+      )}
+    </Box>
+  );
+};
 
   return (
     <Collapse
